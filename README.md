@@ -46,7 +46,7 @@ Press Ctrl+Space to disable the status bar again.
 Press **Ctrl+t**. A new tab will appear. Select this: http://sidigital.co/
 from wherever you're reading. Go back to the browser, click inside the tab (to
 ensure it's active - I have to improve that) and press **y**. This will navigate
-to the address stored on the primary clipboard. Nothing will happen yet:
+to the address stored on the primary clipboard. The animation will not run yet:
 javascript is disabled. Press **j** to scroll the page down, **k** to scroll up.
 
 Press **q**. The address bar should have turned blue: javascript is enabled now,
