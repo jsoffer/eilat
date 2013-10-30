@@ -45,7 +45,7 @@ Press Ctrl+Space to disable the status bar again.
 
 Press **Ctrl+t**. A new tab will appear. Select this: http://sidigital.co/
 from wherever you're reading. Go back to the browser, click inside the tab (to
-ensure it's active - I have to improve that) and press y. This will navigate
+ensure it's active - I have to improve that) and press **y**. This will navigate
 to the address stored on the primary clipboard. Nothing will happen yet:
 javascript is disabled. Press **j** to scroll the page down, **k** to scroll up.
 
@@ -73,7 +73,7 @@ Usage
 
 If entering something that's not a web address causes the progress bar to hang,
 as if waiting for something, that "something" may be the search server (it's
-either that, the proxy, or net access is down). Run 'node searchserver.js'
+either that, the proxy, or net access is down). Run **node searchserver.js**
 on a command line on a directory containing the subdirectory **templates/**
 and try again. An ugly page will appear containing the search results for
 that non-url entry.
