@@ -53,9 +53,10 @@ Press **q**. The address bar should have turned blue: javascript is enabled now,
 for this tab only. Press **F5** to reload. It works now. You can even keep pressing
 **q** to pause and resume the animation.
 
-Press **Ctrl-t** to create another new tab. Press **m**, **n**, **Ctrl+PgUp** or
-**Ctrl+PgDn** to navigate between the tabs. All the other tabs should have white
-background on the address bar, meaning that javascript should be disabled there.
+Press **Ctrl-t** to create another new tab. Press **m**, **n** (if the web view is 
+active, instead of the address bar), **Ctrl+PgUp** or **Ctrl+PgDn** to navigate 
+between the tabs. All the other tabs should have white background on the address bar,
+meaning that javascript should be disabled there.
 
 Go back to xkcd. Press **g**. A text entry should appear just over the address bar.
 Write **p**, **e**, **r** letter by letter to find the string "Permanent".
