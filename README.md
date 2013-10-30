@@ -31,7 +31,7 @@ Usage
 -----
 
 Set up a proxy, such as squid, polipo, etc. This is required. It can be ignored
-if the lines under # Proxy are commented, but then there won't be any kind of
+if the lines under **# Proxy** are commented, and then there won't be any kind of
 content caching.
 
 Chmod **eilat.py** as executable and run it. This starts an empty browser. On the
