@@ -10,6 +10,7 @@ davydm@gmail.com
 + tabs
 + descargar con click derecho + menú: requiere auxiliar
 
++ click medio abre new tab
 + proxy
 + actualizar dirección al cambiar de página
 + ctrl-l: address bar
@@ -208,7 +209,7 @@ class WebTab(QtGui.QWidget):
     # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
     self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0,40), "J", "Scrolls down"]
     self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0,-40), "K", "Scrolls down"]
-    self.actions["paste"] = [lambda: self.navigate(str(cb.text(Qt.QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
+    self.actions["paste"] = [lambda: self.navigate(unicode(cb.text(Qt.QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
 
   def toggleScript(self):
@@ -317,7 +318,7 @@ class WebTab(QtGui.QWidget):
         self.browser.addTab(url)
     else:
         # 'not url' para keybinding; 'int' para sin http:// ???
-        if not url or type(url) == int: url = str(self.cmb.currentText()) # ??? TODO
+        if not url or type(url) == int: url = unicode(self.cmb.currentText()) # ??? TODO
         url = QtCore.QUrl(self.browser.fixUrl(url))
         self.setTitle("Loading...")
         self.webkit.load(url)
@@ -484,14 +485,11 @@ class MainWin(QtGui.QMainWindow):
 
 class InterceptNAM(QtNetwork.QNetworkAccessManager):
     def createRequest(self, operation, request, data):
-        try:
-            url = request.url().toString()
-            if url[:4] == "data":
-                print "<-- " + url[:72]
-            else:
-                print "<<< " + url
-        except:
-            print "[unicode on address... browser bug, FIXME]"
+        url = unicode(request.url())
+        if url[:4] == "data":
+            print "<-- " + url[:72]
+        else:
+            print "<<< " + url
         return QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
 
 if __name__ == "__main__":
