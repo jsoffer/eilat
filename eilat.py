@@ -101,12 +101,16 @@ class WebView(QtWebKit.QWebView):
   """ Una página web con contenedor, para poner en una tab """
   def __init__(self, parent = None):
     self.parent = parent
+    self.paste = False
     QtWebKit.QWebView.__init__(self, parent)
+  def mousePressEvent(self, event):
+      self.paste = (event.buttons() & QtCore.Qt.MiddleButton)
+      return QtWebKit.QWebView.mousePressEvent(self,event)
   def createWindow(self, type):
     return self.parent.browser.addTab().webkit
 
 class WebTab(QtGui.QWidget):
-  """ Cada tab es el equivalente de una ventana; contiene una página web  """
+  """ Cada tab contiene una página web """
   def __init__(self, browser, actions=None, parent=None, showStatusBar=False):
     QtGui.QWidget.__init__(self, parent)
     self.actions = dict()
@@ -190,7 +194,7 @@ class WebTab(QtGui.QWidget):
     page.setNetworkAccessManager(self.netmanager);
 
   def onLinkClick(self, qurl):
-    self.navigate(qurl.toString())
+    self.navigate(qurl.toString(), self.webkit.paste)
 
   def registerActions(self):
     self.actions["addressnav"]  = [self.navigate, "Ctrl+J|Enter", self.cmb, "Navigate to the url in the address bar"]
@@ -308,12 +312,15 @@ class WebTab(QtGui.QWidget):
   def back(self):
     self.webkit.history().back()
 
-  def navigate(self, url = None):
-    # 'not url' para keybinding; 'int' para sin http:// ???
-    if not url or type(url) == int: url = str(self.cmb.currentText()) # ??? TODO
-    url = QtCore.QUrl(self.browser.fixUrl(url))
-    self.setTitle("Loading...")
-    self.webkit.load(url)
+  def navigate(self, url = None, newtab = False):
+    if newtab:
+        self.browser.addTab(url)
+    else:
+        # 'not url' para keybinding; 'int' para sin http:// ???
+        if not url or type(url) == int: url = str(self.cmb.currentText()) # ??? TODO
+        url = QtCore.QUrl(self.browser.fixUrl(url))
+        self.setTitle("Loading...")
+        self.webkit.load(url)
 
   def onStatusBarMessage(self, s):
     if s:
