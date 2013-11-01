@@ -446,7 +446,7 @@ class MainWin(QtGui.QMainWindow):
       try:
         socket.gethostbyname(url.split('/')[0]) # ingenioso pero feo; con 'bind' local es barato
       except Exception as e:
-        print e
+        #print e
         search = True
     if search:
       return "http://localhost:8000/?q=%s" % (url.replace(" ", "+"))
