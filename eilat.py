@@ -485,11 +485,17 @@ class MainWin(QtGui.QMainWindow):
 
 class InterceptNAM(QtNetwork.QNetworkAccessManager):
     def createRequest(self, operation, request, data):
-        url = unicode(request.url())
-        if url[:4] == "data":
-            print "<-- " + url[:72]
+        qurl = request.url()
+        # falta puerto, fragmento...
+        url = unicode(qurl.scheme() + "://" + qurl.host() + qurl.path())
+        if operation == QtNetwork.QNetworkAccessManager.PostOperation:
+            print "POST <- " + unicode(data.peek(4096))
+        if qurl.scheme() == "data":
+            print "<-- " + url.split(',')[0]
         else:
             print "<<< " + url
+            if qurl.hasQuery():
+                print "    < " + unicode(qurl.queryItems())
         return QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
 
 if __name__ == "__main__":
