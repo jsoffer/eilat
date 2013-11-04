@@ -195,7 +195,6 @@ class WebTab(QtGui.QWidget):
 
     self.registerActions()
     registerShortcuts(self.actions, self)
-    self.cmb.setFocus()
     self.showHideMessage()
 
     # reemplazar el Network Access Manager para saber qué contenido está pidiendo
@@ -332,7 +331,7 @@ class WebTab(QtGui.QWidget):
         self.cmb.addItem(url.host() + url.path())
         self.setTitle("Loading...")
         self.webkit.load(url)
-    self.webkit.setFocus()
+        self.webkit.setFocus()
 
   def showHideMessage(self):
     self.statusbar.showMessage("(press %s to hide this)" % (self.actions["togglestatus"][1]))
@@ -386,6 +385,9 @@ class MainWin(QtGui.QMainWindow):
 
   def focusAddress(self):
     self.tabs[self.tabWidget.currentIndex()].cmb.setFocus()
+
+  def focusWeb(self):
+    self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
 
   def zoomIn(self):
     self.zoom(1)
@@ -446,6 +448,7 @@ class MainWin(QtGui.QMainWindow):
     self.tabWidget.setCurrentWidget(tab)
     if url:
       tab.navigate(url)
+      self.focusWeb()
     else:
       self.focusAddress()
     return self.tabs[self.tabWidget.currentIndex()]
@@ -478,7 +481,7 @@ class MainWin(QtGui.QMainWindow):
     if len(self.tabs) == 0:
       self.close()
     else:
-      self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
+      self.focusWeb()
 
   def load(self, url):
     if self.tabs[-1].URL() == "":
