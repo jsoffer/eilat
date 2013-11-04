@@ -502,7 +502,8 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
         else:
             print "<<< " + url
             if qurl.hasQuery():
-                print "    < " + unicode(qurl.queryItems())
+                #print "    < " + unicode(qurl.queryItems())
+                print "    < " + " ".join((map(lambda (a,b): unicode("(" + a.toUtf8() + " => " + b.toUtf8() +")"), qurl.queryItems())))
         return QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
 
 if __name__ == "__main__":
