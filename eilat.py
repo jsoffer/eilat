@@ -195,7 +195,7 @@ class WebTab(QtGui.QWidget):
 
     self.registerActions()
     registerShortcuts(self.actions, self)
-    self.webkit.setFocus()
+    self.cmb.setFocus()
     self.showHideMessage()
 
     # reemplazar el Network Access Manager para saber qué contenido está pidiendo
@@ -297,8 +297,8 @@ class WebTab(QtGui.QWidget):
 
   def loadFinished(self, success):
     self.hideProgressBar()
-    #if self.cmb.hasFocus():
-    #  self.webkit.setFocus()
+    if self.cmb.hasFocus():
+      self.webkit.setFocus()
 
   def showProgressBar(self):
     self.pbar.setValue(0)
@@ -446,7 +446,8 @@ class MainWin(QtGui.QMainWindow):
     self.tabWidget.setCurrentWidget(tab)
     if url:
       tab.navigate(url)
-    #tab.webkit.setFocus()
+    else:
+      self.focusAddress()
     return self.tabs[self.tabWidget.currentIndex()]
 
   def fixUrl(self, url): # FIXME
@@ -474,9 +475,10 @@ class MainWin(QtGui.QMainWindow):
     t.stop()
     self.tabWidget.removeTab(idx)
     t.deleteLater()
-    self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
     if len(self.tabs) == 0:
       self.close()
+    else:
+      self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
 
   def load(self, url):
     if self.tabs[-1].URL() == "":
