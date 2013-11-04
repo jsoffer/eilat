@@ -219,6 +219,7 @@ class WebTab(QtGui.QWidget):
     self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0,-40), "K", "Scrolls down"]
     self.actions["paste"] = [lambda: self.navigate(unicode(cb.text(Qt.QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
+    self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Switches javascript on/off"]
 
   def toggleScript(self):
     """ Activa o desactiva javascript, y notifica cambiando el color del address bar """
@@ -445,8 +446,7 @@ class MainWin(QtGui.QMainWindow):
     self.tabWidget.setCurrentWidget(tab)
     if url:
       tab.navigate(url)
-    #else:
-    #  self.webkit.setFocus()
+    tab.webkit.setFocus()
     return self.tabs[self.tabWidget.currentIndex()]
 
   def fixUrl(self, url): # FIXME
@@ -474,6 +474,7 @@ class MainWin(QtGui.QMainWindow):
     t.stop()
     self.tabWidget.removeTab(idx)
     t.deleteLater()
+    self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
     if len(self.tabs) == 0:
       self.close()
 
