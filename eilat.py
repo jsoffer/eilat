@@ -217,7 +217,7 @@ class WebTab(QtGui.QWidget):
     # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
     self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0,40), "J", "Scrolls down"]
     self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0,-40), "K", "Scrolls down"]
-    self.actions["paste"] = [lambda: self.navigate(unicode(cb.text(Qt.QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
+    self.actions["paste"] = [lambda: self.browser.addTab(unicode(cb.text(Qt.QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
     self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
 
@@ -446,7 +446,7 @@ class MainWin(QtGui.QMainWindow):
     self.tabWidget.setCurrentWidget(tab)
     if url:
       tab.navigate(url)
-    tab.webkit.setFocus()
+    #tab.webkit.setFocus()
     return self.tabs[self.tabWidget.currentIndex()]
 
   def fixUrl(self, url): # FIXME
