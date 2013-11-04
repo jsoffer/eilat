@@ -18,7 +18,6 @@ Non-features
 * Does not have bookmarks management. May have as web service.
 * Has downloads disabled. Options are being assessed.
 * Does not report error when not able to do something. Check the console (to be fixed)
-* Middle click opens in new tab (to be fixed)
 
 Requirements
 ------------
