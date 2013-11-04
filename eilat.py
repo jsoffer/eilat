@@ -219,7 +219,7 @@ class WebTab(QtGui.QWidget):
     self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0,-40), "K", "Scrolls down"]
     self.actions["paste"] = [lambda: self.navigate(unicode(cb.text(Qt.QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
-    self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Switches javascript on/off"]
+    self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
 
   def toggleScript(self):
     """ Activa o desactiva javascript, y notifica cambiando el color del address bar """
