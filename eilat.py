@@ -70,6 +70,8 @@ import socket
 # clipboard; global, feo pero parece apropiado (es global a todo el sistema)
 cb = None
 
+completer = None
+
 # trivial; FIXME
 def log(s):
     print(s)
@@ -104,11 +106,10 @@ class WebView(QtWebKit.QWebView):
     self.parent = parent
     self.paste = False
     QtWebKit.QWebView.__init__(self, parent)
+
   def mousePressEvent(self, event):
       self.paste = (event.buttons() & QtCore.Qt.MiddleButton)
       return QtWebKit.QWebView.mousePressEvent(self,event)
-  def createWindow(self, type):
-    return self.parent.browser.addTab().webkit
 
 class WebTab(QtGui.QWidget):
   """ Cada tab contiene una página web """
@@ -139,6 +140,12 @@ class WebTab(QtGui.QWidget):
     self.cmb = QtGui.QComboBox()
     self.cmb.setEditable(True)
 
+    self.cmb.addItem("hello")
+    self.cmb.addItem("hi")
+    self.cmb.clear()
+
+    self.cmb.setCompleter(completer)
+
     # progress bar
     self.pbar = QtGui.QProgressBar()
     self.pbar.setRange(0, 100)
@@ -161,15 +168,16 @@ class WebTab(QtGui.QWidget):
     self.statusbar.setVisible(showStatusBar)
     self.statusbar.setMaximumHeight(25)
 
-    self.grid.addWidget(self.webkit, 0, 0)
-    self.grid.setRowStretch(0, 1)
-    self.grid.addWidget(self.fraSearch, 1, 0)
-    self.grid.addWidget(self.cmb, 2, 0)
+    self.grid.addWidget(self.webkit, 1, 0)
+    self.grid.setRowStretch(1, 1)
+    self.grid.addWidget(self.fraSearch, 2, 0)
+    self.grid.addWidget(self.cmb, 0, 0)
     self.grid.addWidget(self.pbar, 3, 0)
     self.grid.addWidget(self.statusbar, 4, 0)
 
     # cuando se selecciona una opción del combobox dropdown
-    self.connect(self.cmb, QtCore.SIGNAL("currentIndexChanged(int)"), self.navigate)
+    # Incorrecto; entra cada vez que se mueve el combobox
+    #self.connect(self.cmb, QtCore.SIGNAL("currentIndexChanged(int)"), self.navigate)
 
     self.connect(self.webkit, QtCore.SIGNAL("loadStarted()"), self.loadStarted)
     self.connect(self.webkit, QtCore.SIGNAL("loadFinished(bool)"), self.loadFinished)
@@ -187,7 +195,7 @@ class WebTab(QtGui.QWidget):
 
     self.registerActions()
     registerShortcuts(self.actions, self)
-    self.cmb.setFocus()
+    self.webkit.setFocus()
     self.showHideMessage()
 
     # reemplazar el Network Access Manager para saber qué contenido está pidiendo
@@ -288,8 +296,8 @@ class WebTab(QtGui.QWidget):
 
   def loadFinished(self, success):
     self.hideProgressBar()
-    if self.cmb.hasFocus():
-      self.webkit.setFocus()
+    #if self.cmb.hasFocus():
+    #  self.webkit.setFocus()
 
   def showProgressBar(self):
     self.pbar.setValue(0)
@@ -320,14 +328,10 @@ class WebTab(QtGui.QWidget):
         # 'not url' para keybinding; 'int' para sin http:// ???
         if not url or type(url) == int: url = unicode(self.cmb.currentText()) # ??? TODO
         url = QtCore.QUrl(self.browser.fixUrl(url))
+        self.cmb.addItem(url.host() + url.path())
         self.setTitle("Loading...")
         self.webkit.load(url)
-
-  def onStatusBarMessage(self, s):
-    if s:
-      self.statusbar.showMessage(s)
-    else:
-      self.showHideMessage()
+    self.webkit.setFocus()
 
   def showHideMessage(self):
     self.statusbar.showMessage("(press %s to hide this)" % (self.actions["togglestatus"][1]))
@@ -374,12 +378,12 @@ class MainWin(QtGui.QMainWindow):
     self.actions["closetab"]  = [self.delTab,       "Ctrl+W", "Close current tab"]
     self.actions["tabprev"]   = [self.decTab,       "N|Ctrl+PgUp", "Switch to previous tab"]
     self.actions["tabnext"]   = [self.incTab,       "M|Ctrl+PgDown", "Switch to next tab"]
-    self.actions["go"]        = [self.currentTabGo, "Ctrl+L", "Focus address bar"]
+    self.actions["go"]        = [self.focusAddress, "Ctrl+L", "Focus address bar"]
     self.actions["close"]     = [self.close,        "Ctrl+Q", "Close application"]
     self.actions["zoomin"]    = [self.zoomIn,       "Ctrl+Up", "Zoom into page"]
     self.actions["zoomout"]   = [self.zoomOut,      "Ctrl+Down", "Zoom out of page"]
 
-  def currentTabGo(self):
+  def focusAddress(self):
     self.tabs[self.tabWidget.currentIndex()].cmb.setFocus()
 
   def zoomIn(self):
@@ -441,8 +445,8 @@ class MainWin(QtGui.QMainWindow):
     self.tabWidget.setCurrentWidget(tab)
     if url:
       tab.navigate(url)
-    else:
-      self.currentTabGo()
+    #else:
+    #  self.webkit.setFocus()
     return self.tabs[self.tabWidget.currentIndex()]
 
   def fixUrl(self, url): # FIXME
@@ -508,6 +512,8 @@ if __name__ == "__main__":
 
   app = QtGui.QApplication([])
   cb = app.clipboard()
+
+  completer = Qt.QCompleter()
 
   app.setApplicationName("Eilat")
   app.setApplicationVersion("0.001")
