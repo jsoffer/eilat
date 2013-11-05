@@ -39,9 +39,6 @@ import os
 import sys
 import socket
 
-# clipboard; global, feo pero parece apropiado (es global a todo el sistema)
-cb = None
-
 completer = None
 
 # trivial; FIXME
@@ -189,7 +186,7 @@ class WebTab(QtGui.QWidget):
     # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
     self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0,40), "J", "Scrolls down"]
     self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0,-40), "K", "Scrolls down"]
-    self.actions["paste"] = [lambda: self.browser.addTab(unicode(cb.text(Qt.QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
+    self.actions["paste"] = [lambda: self.browser.addTab(unicode(self.cb.text(Qt.QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
     self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
 
