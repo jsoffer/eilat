@@ -473,13 +473,18 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
         # falta puerto, fragmento...
         url = unicode(qurl.scheme() + "://" + qurl.host() + qurl.path())
         if operation == QtNetwork.QNetworkAccessManager.PostOperation:
-            print "POST <- " + unicode(data.peek(4096))
+            post_str =  unicode(data.peek(4096))
+            if post_str:
+                try:
+                    print "POST < " + " ".join(map(lambda (a,b): "("+a+" => "+b+")", map(lambda k: k.split('='), post_str.split('&'))))
+                except:
+                    print post_str
+            else:
+                print "POST < ()"
         if qurl.scheme() == "data":
             print "<-- " + url.split(',')[0]
         else:
-            print "<<< " + url
             if qurl.hasQuery():
-                #print "    < " + unicode(qurl.queryItems())
-                print "    < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
-                #print unicode(qurl.queryItems())
+                print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
+            print "<<< " + url
         return QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
