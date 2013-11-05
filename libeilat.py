@@ -483,5 +483,5 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
         else:
             if qurl.hasQuery():
                 print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
-            print "<<< " + url
+            print "<"+str(operation)+"< " + url
         return QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
