@@ -170,7 +170,7 @@ class WebTab(QtGui.QWidget):
     self.netmanager.finished.connect(self.logReply)
 
   def logReply(self, reply):
-   print ">>> " + unicode(reply.request().url().path())
+   print ">>> " + unicode(reply.request().url().host()) + unicode(reply.request().url().path())
    for header in reply.rawHeaderList():
        print "     > " + unicode(header) + ": " + unicode(reply.rawHeader(header))
 
