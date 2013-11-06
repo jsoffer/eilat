@@ -34,12 +34,15 @@
 
 """
 
-from PyQt4 import Qt, QtGui, QtCore, QtWebKit, QtNetwork
 import os
 import sys
 import socket
 
 from signal import signal, alarm, SIGUSR1
+
+import sip
+sip.setapi('QString',2)
+from PyQt4 import Qt, QtGui, QtCore, QtWebKit, QtNetwork
 
 # trivial; FIXME
 def log(s):
@@ -103,7 +106,7 @@ class WebTab(QtGui.QWidget):
     self.webkit.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled,False)
     self.webkit.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled,False)
     #self.webkit.settings().setAttribute(QtWebKit.QWebSettings.SpatialNavigationEnabled,True)
-    #self.webkit.settings().setAttribute(QtWebKit.QWebSettings.DeveloperExtrasEnabled,True)
+    self.webkit.settings().setAttribute(QtWebKit.QWebSettings.DeveloperExtrasEnabled,True)
     #self.webkit.setSizePolicy()
 
     # address bar
@@ -163,7 +166,14 @@ class WebTab(QtGui.QWidget):
 
     # reemplazar el Network Access Manager para saber qué contenido está pidiendo
     self.netmanager = InterceptNAM()
-    page.setNetworkAccessManager(self.netmanager);
+    page.setNetworkAccessManager(self.netmanager)
+    self.netmanager.finished.connect(self.logReply)
+
+  def logReply(self, reply):
+   print ">>> " + unicode(reply.request().url().path())
+   for header in reply.rawHeaderList():
+       print "     > " + unicode(header) + ": " + unicode(reply.rawHeader(header))
+
 
   def onLinkClick(self, qurl):
     self.navigate(qurl.toString(), self.webkit.paste)
@@ -338,6 +348,7 @@ class MainWin(QtGui.QMainWindow):
     signal(SIGUSR1, self.stopJavascript)
 
   def stopJavascript(self, p, q):
+    log("STOPPING JAVASCRIPT GLOBALLY")
     for t in self.tabs:
       t.stopScript()
 
