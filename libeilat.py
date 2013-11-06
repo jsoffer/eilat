@@ -39,7 +39,7 @@ import os
 import sys
 import socket
 
-completer = None
+from signal import signal, alarm, SIGUSR1
 
 # trivial; FIXME
 def log(s):
@@ -109,12 +109,6 @@ class WebTab(QtGui.QWidget):
     # address bar
     self.cmb = QtGui.QComboBox()
     self.cmb.setEditable(True)
-
-    self.cmb.addItem("hello")
-    self.cmb.addItem("hi")
-    self.cmb.clear()
-
-    self.cmb.setCompleter(completer)
 
     # progress bar
     self.pbar = QtGui.QProgressBar()
@@ -198,6 +192,10 @@ class WebTab(QtGui.QWidget):
     else:
         self.webkit.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled,True)
         self.cmb.setStyleSheet("QComboBox { background-color: #ddf; }")
+
+  def stopScript(self):
+        self.webkit.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled,False)
+        self.cmb.setStyleSheet("QComboBox { background-color: #fff; }")
 
   def toggleStatus(self):
     if self.browser:
@@ -337,6 +335,11 @@ class MainWin(QtGui.QMainWindow):
     tmp.deleteLater()
     self.mkGui()
     registerShortcuts(self.actions, self)
+    signal(SIGUSR1, self.stopJavascript)
+
+  def stopJavascript(self, p, q):
+    for t in self.tabs:
+      t.stopScript()
 
   def toggleStatusVisiblity(self):
     """ Muestra/oculta status bar. Afecta a todas las tabs """
