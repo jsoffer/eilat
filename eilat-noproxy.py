@@ -69,6 +69,12 @@ from libeilat import *
 if __name__ == "__main__":
 
   app = QtGui.QApplication([])
+
+  # This timer allows catching signals even if the app is inactive
+  timer = QtCore.QTimer()
+  timer.start(5000)
+  timer.timeout.connect(lambda: None)
+
   cb = app.clipboard()
 
   completer = Qt.QCompleter()

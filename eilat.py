@@ -66,6 +66,10 @@ from PyQt4 import Qt, QtGui, QtCore, QtWebKit, QtNetwork
 import sys
 from libeilat import *
 
+def p(signum, frame):
+    print signum, frame
+    print "received user signal"
+
 if __name__ == "__main__":
   # Proxy
   proxy = QtNetwork.QNetworkProxy()
@@ -75,9 +79,13 @@ if __name__ == "__main__":
   QtNetwork.QNetworkProxy.setApplicationProxy(proxy);
 
   app = QtGui.QApplication([])
-  cb = app.clipboard()
 
-  completer = Qt.QCompleter()
+  # This timer allows catching signals even if the app is inactive
+  timer = QtCore.QTimer()
+  timer.start(5000)
+  timer.timeout.connect(lambda: None)
+
+  cb = app.clipboard()
 
   app.setApplicationName("Eilat")
   app.setApplicationVersion("0.001")
