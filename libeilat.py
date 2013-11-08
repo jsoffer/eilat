@@ -148,19 +148,20 @@ class WebTab(QtGui.QWidget):
     # Incorrecto; entra cada vez que se mueve el combobox
     #self.connect(self.cmb, QtCore.SIGNAL("currentIndexChanged(int)"), self.navigate)
 
-    self.connect(self.webkit, QtCore.SIGNAL("loadStarted()"), self.loadStarted)
-    self.connect(self.webkit, QtCore.SIGNAL("loadFinished(bool)"), self.loadFinished)
-    self.connect(self.webkit, QtCore.SIGNAL("titleChanged(QString)"), self.setTitle)
-    self.connect(self.webkit, QtCore.SIGNAL("loadProgress(int)"), self.loadProgress)
-    self.connect(self.webkit, QtCore.SIGNAL("urlChanged(QUrl)"), self.setURL)
-    self.connect(self.webkit.page(), QtCore.SIGNAL("linkHovered(QString, QString, QString)"), self.onLinkHovered)
+    self.webkit.loadStarted.connect(self.loadStarted)
+    self.webkit.loadFinished.connect(self.loadFinished)
+    self.webkit.titleChanged.connect(self.setTitle)
+    self.webkit.loadProgress.connect(self.loadProgress)
+    self.webkit.urlChanged.connect(self.setURL)
+    self.webkit.page().linkHovered.connect(self.onLinkHovered)
 
     # el contenido de la tab (los datos, no el contenedor)
     page = self.webkit.page()
     page.downloadRequested.connect(self.onDownloadRequested)
     page.setForwardUnsupportedContent(True)
     page.unsupportedContent.connect(self.onUnsupportedContent)
-    self.connect(self.txtSearch, QtCore.SIGNAL("textChanged(QString)"), self.doSearch)
+    self.txtSearch.textChanged.connect(self.doSearch)
+    #self.connect(self.txtSearch, QtCore.SIGNAL("textChanged(QString)"), self.doSearch)
 
     self.registerActions()
     registerShortcuts(self.actions, self)
@@ -424,8 +425,8 @@ class MainWin(QtGui.QMainWindow):
     self.setCentralWidget(self.tabWidget)
     self.tabWidget.setTabsClosable(True)
 
-    self.connect(self.tabWidget, QtCore.SIGNAL("tabCloseRequested(int)"), self.delTab)
-    self.connect(self, QtCore.SIGNAL("refreshAll()"), self.refreshAll)
+    self.tabWidget.tabCloseRequested.connect(self.delTab)
+    #self.connect(self.tabWidget, QtCore.SIGNAL("tabCloseRequested(int)"), self.delTab)
     self.addTab()
 
   def addTab(self, url = None):
@@ -475,10 +476,6 @@ class MainWin(QtGui.QMainWindow):
       self.tabs[-1].navigate(url)
     else:
       self.addTab(url)
-
-  def refreshAll(self):
-    for t in self.tabs:
-      t.refresh()
 
 class InterceptNAM(QtNetwork.QNetworkAccessManager):
     def createRequest(self, operation, request, data):
