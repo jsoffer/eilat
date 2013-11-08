@@ -33,6 +33,7 @@
    THE POSSIBILITY OF SUCH DAMAGE.
 
 """
+import time
 
 import os
 import sys
@@ -470,33 +471,45 @@ class MainWin(QtGui.QMainWindow):
       self.addTab(url)
 
 class InterceptNAM(QtNetwork.QNetworkAccessManager):
-    #def __init__(self, parent=0):
-    #    print "INIT InterceptNAM"
-    #    super(InterceptNAM, self).__init__(self, parent)
+    def __init__(self, parent=None):
+        print "INIT InterceptNAM"
+        self.count = 0
+        self.response = None
+        super(InterceptNAM, self).__init__(parent)
 
     def createRequest(self, operation, request, data):
-        qurl = request.url()
+        #qurl = request.url()
         # falta puerto, fragmento...
-        url = unicode(qurl.scheme() + "://" + qurl.host() + qurl.path())
-        if operation == QtNetwork.QNetworkAccessManager.PostOperation:
-            post_str =  unicode(data.peek(4096))
-            if post_str:
-                try:
-                    print "POST < " + " ".join(map(lambda (a,b): "("+a+" => "+b+")", map(lambda k: k.split('='), post_str.split('&'))))
-                except:
-                    print post_str
-            else:
-                print "POST < ()"
-        if qurl.scheme() == "data":
-            print "<-- " + url.split(',')[0]
-        else:
-            if qurl.hasQuery():
-                print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
-            print "<"+str(operation)+"< " + url
-        ret = QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
-        def printHeaders():
-            print ">>> " + unicode(ret.request().url().host()) + unicode(ret.request().url().path())
-            for (key,value) in ret.rawHeaderPairs():
-                print "     > " + unicode(key) + ": " + unicode(value)
-        ret.finished.connect(printHeaders)
-        return ret
+        #url = unicode(qurl.scheme() + "://" + qurl.host() + qurl.path())
+        #if operation == QtNetwork.QNetworkAccessManager.PostOperation:
+        #    post_str =  unicode(data.peek(4096))
+        #    if post_str:
+        #        try:
+        #            print "POST < " + " ".join(map(lambda (a,b): "("+a+" => "+b+")", map(lambda k: k.split('='), post_str.split('&'))))
+        #        except:
+        #            print post_str
+        #    else:
+        #        print "POST < ()"
+        #if qurl.scheme() == "data":
+        #    print "<-- " + url.split(',')[0]
+        #else:
+        #    if qurl.hasQuery():
+        #        print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
+        #    print "<"+unicode(operation)+"< " + url
+        def indice(r,k):
+            return (lambda : printHost(r, unicode(k) + " < "))
+        response = QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
+        self.response = response
+        response.error.connect(lambda: printHost(response, "ERROR> " ))
+        log(unicode(self.count) + " > " + request.url().host() + request.url().path())
+        response.finished.connect(indice(self.response, self.count))
+        self.count += 1
+        return response
+
+def printHost(r, s=">>> "):
+    print s + unicode(r.request().url().host()) + unicode(r.request().url().path())
+
+def printHeaders(r):
+    print ">>> " + unicode(r.request().url().host()) + unicode(r.request().url().path())
+    for (key,value) in r.rawHeaderPairs():
+        print "     > " + unicode(key) + ": " + unicode(value)
