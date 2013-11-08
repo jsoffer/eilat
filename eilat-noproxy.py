@@ -62,6 +62,9 @@ Pendiente:
 
 """
 
+import sip
+sip.setapi('QString',2)
+
 from PyQt4 import Qt, QtGui, QtCore, QtWebKit, QtNetwork
 import sys
 from libeilat import *
@@ -76,12 +79,11 @@ if __name__ == "__main__":
   timer.timeout.connect(lambda: None)
 
   cb = app.clipboard()
-
-  completer = Qt.QCompleter()
+  netmanager = InterceptNAM()
 
   app.setApplicationName("Eilat")
   app.setApplicationVersion("0.001")
-  mainwin = MainWin(cb)
+  mainwin = MainWin(netmanager, cb)
   mainwin.show()
   for arg in sys.argv[1:]:
     if arg not in ["-debug"]:

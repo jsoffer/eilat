@@ -44,7 +44,7 @@ import sip
 sip.setapi('QString',2)
 from PyQt4 import Qt, QtGui, QtCore, QtWebKit, QtNetwork
 
-import pymongo
+import psycopg2
 
 # trivial; FIXME
 def log(s):
@@ -87,7 +87,7 @@ class WebView(QtWebKit.QWebView):
 
 class WebTab(QtGui.QWidget):
   """ Cada tab contiene una página web """
-  def __init__(self, browser, clipboard, actions=None, parent=None, showStatusBar=False):
+  def __init__(self, browser, netmanager, clipboard, actions=None, parent=None, showStatusBar=False):
     QtGui.QWidget.__init__(self, parent)
     self.actions = dict()
 
@@ -146,7 +146,7 @@ class WebTab(QtGui.QWidget):
 
     # cuando se selecciona una opción del combobox dropdown
     # Incorrecto; entra cada vez que se mueve el combobox
-    #self.connect(self.cmb, QtCore.SIGNAL("currentIndexChanged(int)"), self.navigate)
+    #self.cmb.currentIndexChanged.connect(self.navigate)
 
     self.webkit.loadStarted.connect(self.loadStarted)
     self.webkit.loadFinished.connect(self.loadFinished)
@@ -161,22 +161,14 @@ class WebTab(QtGui.QWidget):
     page.setForwardUnsupportedContent(True)
     page.unsupportedContent.connect(self.onUnsupportedContent)
     self.txtSearch.textChanged.connect(self.doSearch)
-    #self.connect(self.txtSearch, QtCore.SIGNAL("textChanged(QString)"), self.doSearch)
 
     self.registerActions()
     registerShortcuts(self.actions, self)
     self.showHideMessage()
 
     # reemplazar el Network Access Manager para saber qué contenido está pidiendo
-    self.netmanager = InterceptNAM()
+    self.netmanager = netmanager
     page.setNetworkAccessManager(self.netmanager)
-    #self.netmanager.finished.connect(lambda: None)
-
-  #def logReply(self, reply):
-  # print ">>> " + unicode(reply.request().url().host()) + unicode(reply.request().url().path())
-  # for header in reply.rawHeaderList():
-  #     print "     > " + unicode(header) + ": " + unicode(reply.rawHeader(header))
-
 
   def onLinkClick(self, qurl):
     self.navigate(qurl.toString(), self.webkit.paste)
@@ -330,14 +322,15 @@ class WebTab(QtGui.QWidget):
 
 class MainWin(QtGui.QMainWindow):
   """ Esta ventana guarda las tabs """
-  def __init__(self, cb):
+  def __init__(self, netmanager, cb):
     QtGui.QMainWindow.__init__(self, None)
+    self.netmanager = netmanager
     self.cb = cb
     self.downloader = None
     self.actions = dict()
     self.tabactions = dict()
     self.tabactions = dict()
-    tmp = WebTab(None, None, cb)
+    tmp = WebTab(None, None, netmanager, cb)
     self.tabactions = tmp.actions
     self.registerActions()
     self.showStatusBar = False
@@ -426,11 +419,10 @@ class MainWin(QtGui.QMainWindow):
     self.tabWidget.setTabsClosable(True)
 
     self.tabWidget.tabCloseRequested.connect(self.delTab)
-    #self.connect(self.tabWidget, QtCore.SIGNAL("tabCloseRequested(int)"), self.delTab)
     self.addTab()
 
   def addTab(self, url = None):
-    tab = WebTab(browser=self, actions=self.tabactions, clipboard=self.cb, showStatusBar = self.showStatusBar)
+    tab = WebTab(browser=self, actions=self.tabactions, netmanager=self.netmanager, clipboard=self.cb, showStatusBar = self.showStatusBar)
     self.tabWidget.addTab(tab, "New tab")
     self.tabs.append(tab)
     self.tabWidget.setCurrentWidget(tab)
@@ -478,6 +470,10 @@ class MainWin(QtGui.QMainWindow):
       self.addTab(url)
 
 class InterceptNAM(QtNetwork.QNetworkAccessManager):
+    #def __init__(self, parent=0):
+    #    print "INIT InterceptNAM"
+    #    super(InterceptNAM, self).__init__(self, parent)
+
     def createRequest(self, operation, request, data):
         qurl = request.url()
         # falta puerto, fragmento...
