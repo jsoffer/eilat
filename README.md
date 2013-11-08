@@ -10,6 +10,7 @@ Features
 * Keyboard navigation, minimal UI widgets
 * "Smartly" (queries DNS) chooses between "navigate URL" and "search for term"
 * Reports every network request
+* With one shared 'netmanager' the cookies are available on all tabs (useful? fix?).
 
 Non-features
 ------------
