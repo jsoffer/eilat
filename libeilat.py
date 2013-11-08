@@ -44,6 +44,8 @@ import sip
 sip.setapi('QString',2)
 from PyQt4 import Qt, QtGui, QtCore, QtWebKit, QtNetwork
 
+import pymongo
+
 # trivial; FIXME
 def log(s):
     print(s)
@@ -106,7 +108,7 @@ class WebTab(QtGui.QWidget):
     self.webkit.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled,False)
     self.webkit.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled,False)
     #self.webkit.settings().setAttribute(QtWebKit.QWebSettings.SpatialNavigationEnabled,True)
-    self.webkit.settings().setAttribute(QtWebKit.QWebSettings.DeveloperExtrasEnabled,True)
+    #self.webkit.settings().setAttribute(QtWebKit.QWebSettings.DeveloperExtrasEnabled,True)
     #self.webkit.setSizePolicy()
 
     # address bar
@@ -167,12 +169,12 @@ class WebTab(QtGui.QWidget):
     # reemplazar el Network Access Manager para saber qué contenido está pidiendo
     self.netmanager = InterceptNAM()
     page.setNetworkAccessManager(self.netmanager)
-    self.netmanager.finished.connect(self.logReply)
+    #self.netmanager.finished.connect(lambda: None)
 
-  def logReply(self, reply):
-   print ">>> " + unicode(reply.request().url().host()) + unicode(reply.request().url().path())
-   for header in reply.rawHeaderList():
-       print "     > " + unicode(header) + ": " + unicode(reply.rawHeader(header))
+  #def logReply(self, reply):
+  # print ">>> " + unicode(reply.request().url().host()) + unicode(reply.request().url().path())
+  # for header in reply.rawHeaderList():
+  #     print "     > " + unicode(header) + ": " + unicode(reply.rawHeader(header))
 
 
   def onLinkClick(self, qurl):
@@ -498,4 +500,10 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
             if qurl.hasQuery():
                 print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
             print "<"+str(operation)+"< " + url
-        return QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
+        ret = QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
+        def printHeaders():
+            print ">>> " + unicode(ret.request().url().host()) + unicode(ret.request().url().path())
+            for (key,value) in ret.rawHeaderPairs():
+                print "     > " + unicode(key) + ": " + unicode(value)
+        ret.finished.connect(printHeaders)
+        return ret
