@@ -474,7 +474,6 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
     def __init__(self, parent=None):
         print "INIT InterceptNAM"
         self.count = 0
-        self.response = None
         super(InterceptNAM, self).__init__(parent)
 
     def createRequest(self, operation, request, data):
@@ -496,18 +495,29 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
         #    if qurl.hasQuery():
         #        print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
         #    print "<"+unicode(operation)+"< " + url
-        def indice(r,k):
-            return (lambda : printHost(r, unicode(k) + " < "))
         response = QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
-        self.response = response
-        response.error.connect(lambda: printHost(response, "ERROR> " ))
+        #response.error.connect(lambda: printHost(response, "ERROR> " ))
+        def indice(r, k):
+            def ret():
+                #print unicode(r)
+                try:
+                    printHost( r, unicode(k) + " < ")
+                except:
+                    print "Except!"
+            return ret
+        #def foo(x):
+        #    def ret():
+        #        log(x)
+        #    return ret
+        #response.finished.connect(foo("hello"))
+        response.finished.connect(indice(response, self.count))
         log(unicode(self.count) + " > " + request.url().host() + request.url().path())
-        response.finished.connect(indice(self.response, self.count))
         self.count += 1
         return response
 
 def printHost(r, s=">>> "):
-    print s + unicode(r.request().url().host()) + unicode(r.request().url().path())
+    #print s + unicode(r.request().url().host()) + unicode(r.request().url().path())
+    print s
 
 def printHeaders(r):
     print ">>> " + unicode(r.request().url().host()) + unicode(r.request().url().path())
