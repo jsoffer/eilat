@@ -331,15 +331,12 @@ class MainWin(QtGui.QMainWindow):
     self.actions = dict()
     self.tabactions = dict()
     self.tabactions = dict()
-    tmp = WebTab(None, None, netmanager, cb)
-    self.tabactions = tmp.actions
     self.registerActions()
     self.showStatusBar = False
     self.appname = "Eilat Browser"
     self.tabs = []
     self.maxTitleLen = 40
 
-    tmp.deleteLater()
     self.mkGui()
     registerShortcuts(self.actions, self)
     signal(SIGUSR1, self.stopJavascript)
@@ -470,6 +467,8 @@ class MainWin(QtGui.QMainWindow):
     else:
       self.addTab(url)
 
+cheatgc = []
+
 class InterceptNAM(QtNetwork.QNetworkAccessManager):
     def __init__(self, parent=None):
         print "INIT InterceptNAM"
@@ -498,12 +497,16 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
         response = QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
         #response.error.connect(lambda: printHost(response, "ERROR> " ))
         def indice(r, k):
+            global cheatgc
+            cheatgc.append(r)
+            cheatgc.append(k)
             def ret():
                 #print unicode(r)
                 try:
                     printHost( r, unicode(k) + " < ")
                 except:
                     print "Except!"
+
             return ret
         #def foo(x):
         #    def ret():
@@ -516,8 +519,7 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
         return response
 
 def printHost(r, s=">>> "):
-    #print s + unicode(r.request().url().host()) + unicode(r.request().url().path())
-    print s
+    print s + unicode(r.request().url().host()) + unicode(r.request().url().path())
 
 def printHeaders(r):
     print ">>> " + unicode(r.request().url().host()) + unicode(r.request().url().path())
