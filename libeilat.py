@@ -504,8 +504,15 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
                 #print unicode(r)
                 try:
                     printHost( r, unicode(k) + " < ")
-                except:
-                    print "Except!"
+                    try:
+                        cheatgc.remove(r)
+                        cheatgc.remove(k)
+                    except Exception as e:
+                        print ">>> Exception: %s" % (e)
+                except NameError:
+                    print "Except NameError!"
+                except Exception as e:
+                    print "+++ Except %s" % (e)
 
             return ret
         #def foo(x):
