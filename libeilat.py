@@ -507,6 +507,7 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
                     try:
                         cheatgc.remove(r)
                         cheatgc.remove(k)
+                        print "LEN: %s" % (len(cheatgc))
                     except Exception as e:
                         print ">>> Exception: %s" % (e)
                 except NameError:
