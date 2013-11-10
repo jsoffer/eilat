@@ -467,12 +467,11 @@ class MainWin(QtGui.QMainWindow):
     else:
       self.addTab(url)
 
-cheatgc = []
-
 class InterceptNAM(QtNetwork.QNetworkAccessManager):
     def __init__(self, parent=None):
         print "INIT InterceptNAM"
         self.count = 0
+        self.cheatgc = []
         super(InterceptNAM, self).__init__(parent)
 
     def createRequest(self, operation, request, data):
@@ -497,17 +496,18 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
         response = QtNetwork.QNetworkAccessManager.createRequest(self, operation, request, data)
         #response.error.connect(lambda: printHost(response, "ERROR> " ))
         def indice(r, k):
-            global cheatgc
-            cheatgc.append(r)
-            cheatgc.append(k)
+            # please don't do garbage collection...
+            self.cheatgc.append(r)
+            self.cheatgc.append(k)
             def ret():
-                #print unicode(r)
                 try:
-                    printHost( r, unicode(k) + " < ")
+                    printHost(r, unicode(k) + " < ")
+                    # ...until we're done with the request
+                    # (pyqt/sip related trouble)
                     try:
-                        cheatgc.remove(r)
-                        cheatgc.remove(k)
-                        print "LEN: %s" % (len(cheatgc))
+                        self.cheatgc.remove(r)
+                        self.cheatgc.remove(k)
+                        print "LEN: %s" % (len(self.cheatgc))
                     except Exception as e:
                         print ">>> Exception: %s" % (e)
                 except NameError:
@@ -516,11 +516,6 @@ class InterceptNAM(QtNetwork.QNetworkAccessManager):
                     print "+++ Except %s" % (e)
 
             return ret
-        #def foo(x):
-        #    def ret():
-        #        log(x)
-        #    return ret
-        #response.finished.connect(foo("hello"))
         response.finished.connect(indice(response, self.count))
         log(unicode(self.count) + " > " + request.url().host() + request.url().path())
         self.count += 1
