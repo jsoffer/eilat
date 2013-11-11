@@ -63,9 +63,8 @@ if __name__ == "__main__":
 
   cb = app.clipboard()
   netmanager = InterceptNAM()
-  cookiejar = CookieJar()
+  cookiejar = CookieJar(allowed = ["facebook.com", "twitter.com", "google.com"])
   netmanager.setCookieJar(cookiejar)
-
   app.setApplicationName("Eilat")
   app.setApplicationVersion("0.001")
   mainwin = MainWin(netmanager, cb)
