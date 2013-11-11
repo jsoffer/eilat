@@ -49,6 +49,7 @@ from PyQt4.QtNetwork import QNetworkProxy
 # local
 from InterceptNAM import InterceptNAM
 from MainWin import MainWin
+from CookieJar import CookieJar
 
 from sys import argv
 
@@ -69,6 +70,8 @@ if __name__ == "__main__":
 
   cb = app.clipboard()
   netmanager = InterceptNAM()
+  cookiejar = CookieJar()
+  netmanager.setCookieJar(cookiejar)
 
   app.setApplicationName("Eilat")
   app.setApplicationVersion("0.001")
