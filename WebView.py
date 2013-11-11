@@ -1,11 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
-minimalistic browser levering off of Python, PyQt and Webkit
-
-Original: https://code.google.com/p/foobrowser/
-davydm@gmail.com
 
   Copyright (c) 2012, Davyd McColl; 2013, Jaime Soffer
 
@@ -39,38 +34,15 @@ davydm@gmail.com
 
 """
 
-import sip
-sip.setapi('QString',2)
+from PyQt4 import QtWebKit, QtCore
 
-from PyQt4 import QtGui, QtCore, QtNetwork
-from InterceptNAM import InterceptNAM
-from MainWin import MainWin
+class WebView(QtWebKit.QWebView):
+  """ Una página web con contenedor, para poner en una tab """
+  def __init__(self, parent = None):
+    self.parent = parent
+    self.paste = False
+    QtWebKit.QWebView.__init__(self, parent)
 
-from sys import argv
-
-if __name__ == "__main__":
-  # Proxy
-  proxy = QtNetwork.QNetworkProxy()
-  proxy.setType(QtNetwork.QNetworkProxy.HttpProxy)
-  proxy.setHostName('localhost');
-  proxy.setPort(3128)
-  QtNetwork.QNetworkProxy.setApplicationProxy(proxy);
-
-  app = QtGui.QApplication([])
-
-  # This timer allows catching signals even if the app is inactive
-  timer = QtCore.QTimer()
-  timer.start(5000)
-  timer.timeout.connect(lambda: None)
-
-  cb = app.clipboard()
-  netmanager = InterceptNAM()
-
-  app.setApplicationName("Eilat")
-  app.setApplicationVersion("0.001")
-  mainwin = MainWin(netmanager, cb)
-  mainwin.show()
-  for arg in argv[1:]:
-    if arg not in ["-debug"]:
-      mainwin.load(arg)
-  app.exec_()
+  def mousePressEvent(self, event):
+      self.paste = (event.buttons() & QtCore.Qt.MiddleButton)
+      return QtWebKit.QWebView.mousePressEvent(self,event)

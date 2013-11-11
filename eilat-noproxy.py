@@ -7,29 +7,6 @@ minimalistic browser levering off of Python, PyQt and Webkit
 Original: https://code.google.com/p/foobrowser/
 davydm@gmail.com
 
-+ tabs
-+ descargar con click derecho + menú: requiere auxiliar
-
-+ click medio abre new tab
-+ proxy
-+ actualizar dirección al cambiar de página
-+ ctrl-l: address bar
-+ ctrl-q: salir
-+ dirección destino, [title], ¿status bar?
-+ ^J como Enter en address bar
-+ zoom
-+ buscar en página
-+ detecta si es búsqueda o completa el http://
-+ movimiento con jk (falta hl)
-+ paste (y visita sitio) con 'y'
-+ verifica no tráfico no solicitado
-
-Pendiente:
-
-* navegación con teclado
-* historia en address bar
-* ^H en address bar es backspace
-
   Copyright (c) 2012, Davyd McColl; 2013, Jaime Soffer
 
    All rights reserved.
@@ -65,12 +42,13 @@ Pendiente:
 import sip
 sip.setapi('QString',2)
 
-from PyQt4 import Qt, QtGui, QtCore, QtWebKit, QtNetwork
-import sys
-from libeilat import *
+from PyQt4 import QtGui, QtCore, QtNetwork
+from InterceptNAM import InterceptNAM
+from MainWin import MainWin
+
+from sys import argv
 
 if __name__ == "__main__":
-
   app = QtGui.QApplication([])
 
   # This timer allows catching signals even if the app is inactive
@@ -85,7 +63,7 @@ if __name__ == "__main__":
   app.setApplicationVersion("0.001")
   mainwin = MainWin(netmanager, cb)
   mainwin.show()
-  for arg in sys.argv[1:]:
+  for arg in argv[1:]:
     if arg not in ["-debug"]:
       mainwin.load(arg)
   app.exec_()
