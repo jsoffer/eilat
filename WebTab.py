@@ -34,7 +34,12 @@
 
 """
 
-from PyQt4 import Qt, QtGui, QtWebKit, QtCore
+from PyQt4.Qt import QClipboard
+import PyQt4.QtGui as QtGui
+from PyQt4.QtWebKit import QWebPage, QWebSettings
+from PyQt4.QtCore import QUrl
+
+
 from WebView import WebView
 
 from libeilat import log, registerShortcuts
@@ -57,12 +62,12 @@ class WebTab(QtGui.QWidget):
     # webkit: la parte que entra a internet
     # aquí se configura, cada tab tiene opciones independientes
     self.webkit = WebView(self)
-    self.webkit.page().setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
+    self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
     self.webkit.linkClicked.connect(self.onLinkClick)
-    self.webkit.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled,False)
-    self.webkit.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled,False)
-    #self.webkit.settings().setAttribute(QtWebKit.QWebSettings.SpatialNavigationEnabled,True)
-    #self.webkit.settings().setAttribute(QtWebKit.QWebSettings.DeveloperExtrasEnabled,True)
+    self.webkit.settings().setAttribute(QWebSettings.PluginsEnabled,False)
+    self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,False)
+    #self.webkit.settings().setAttribute(QWebSettings.SpatialNavigationEnabled,True)
+    #self.webkit.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled,True)
     #self.webkit.setSizePolicy()
 
     # address bar
@@ -139,21 +144,21 @@ class WebTab(QtGui.QWidget):
     # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
     self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0,40), "J", "Scrolls down"]
     self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0,-40), "K", "Scrolls down"]
-    self.actions["paste"] = [lambda: self.browser.addTab(unicode(self.cb.text(Qt.QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
+    self.actions["paste"] = [lambda: self.browser.addTab(unicode(self.cb.text(QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
     self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
 
   def toggleScript(self):
     """ Activa o desactiva javascript, y notifica cambiando el color del address bar """
-    if self.webkit.settings().testAttribute(QtWebKit.QWebSettings.JavascriptEnabled):
-        self.webkit.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled,False)
+    if self.webkit.settings().testAttribute(QWebSettings.JavascriptEnabled):
+        self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,False)
         self.cmb.setStyleSheet("QComboBox { background-color: #fff; }")
     else:
-        self.webkit.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled,True)
+        self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,True)
         self.cmb.setStyleSheet("QComboBox { background-color: #ddf; }")
 
   def stopScript(self):
-        self.webkit.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled,False)
+        self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,False)
         self.cmb.setStyleSheet("QComboBox { background-color: #fff; }")
 
   def toggleStatus(self):
@@ -177,7 +182,7 @@ class WebTab(QtGui.QWidget):
   # múltiples llamadas - reestructurar
   def doSearch(self, s = None):
     if s is None: s = self.txtSearch.text()
-    self.webkit.findText(s, QtWebKit.QWebPage.FindWrapsAroundDocument)
+    self.webkit.findText(s, QWebPage.FindWrapsAroundDocument)
 
   def stopOrHideSearch(self):
     if self.fraSearch.isVisible():
@@ -254,7 +259,7 @@ class WebTab(QtGui.QWidget):
     else:
         # 'not url' para keybinding; 'int' para sin http:// ???
         if not url or type(url) == int: url = unicode(self.cmb.currentText()) # ??? TODO
-        url = QtCore.QUrl(self.browser.fixUrl(url))
+        url = QUrl(self.browser.fixUrl(url))
         self.cmb.addItem(url.host() + url.path())
         self.setTitle("Loading...")
         self.webkit.load(url)

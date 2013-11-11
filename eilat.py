@@ -42,7 +42,11 @@ davydm@gmail.com
 import sip
 sip.setapi('QString',2)
 
-from PyQt4 import QtGui, QtCore, QtNetwork
+from PyQt4.QtGui import QApplication
+from PyQt4.QtCore import QTimer
+from PyQt4.QtNetwork import QNetworkProxy
+
+# local
 from InterceptNAM import InterceptNAM
 from MainWin import MainWin
 
@@ -50,16 +54,16 @@ from sys import argv
 
 if __name__ == "__main__":
   # Proxy
-  proxy = QtNetwork.QNetworkProxy()
-  proxy.setType(QtNetwork.QNetworkProxy.HttpProxy)
+  proxy = QNetworkProxy()
+  proxy.setType(QNetworkProxy.HttpProxy)
   proxy.setHostName('localhost');
   proxy.setPort(3128)
-  QtNetwork.QNetworkProxy.setApplicationProxy(proxy);
+  QNetworkProxy.setApplicationProxy(proxy);
 
-  app = QtGui.QApplication([])
+  app = QApplication([])
 
   # This timer allows catching signals even if the app is inactive
-  timer = QtCore.QTimer()
+  timer = QTimer()
   timer.start(5000)
   timer.timeout.connect(lambda: None)
 

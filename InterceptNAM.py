@@ -36,6 +36,7 @@
 
 from PyQt4.QtNetwork import QNetworkAccessManager
 
+# local
 from libeilat import log, printHost, printHeaders
 
 class InterceptNAM(QNetworkAccessManager):

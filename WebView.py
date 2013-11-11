@@ -34,15 +34,16 @@
 
 """
 
-from PyQt4 import QtWebKit, QtCore
+from PyQt4.QtWebKit import QWebView
+from PyQt4.QtCore import Qt
 
-class WebView(QtWebKit.QWebView):
+class WebView(QWebView):
   """ Una página web con contenedor, para poner en una tab """
   def __init__(self, parent = None):
     self.parent = parent
     self.paste = False
-    QtWebKit.QWebView.__init__(self, parent)
+    QWebView.__init__(self, parent)
 
   def mousePressEvent(self, event):
-      self.paste = (event.buttons() & QtCore.Qt.MiddleButton)
-      return QtWebKit.QWebView.mousePressEvent(self,event)
+      self.paste = (event.buttons() & Qt.MiddleButton)
+      return QWebView.mousePressEvent(self,event)

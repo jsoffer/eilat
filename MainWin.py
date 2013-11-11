@@ -34,17 +34,19 @@
 
 """
 
-from PyQt4 import QtGui
-from WebTab import WebTab
+from PyQt4.QtGui import QMainWindow, QTabWidget
 
+# local
+from WebTab import WebTab
 from libeilat import registerShortcuts
+
 from signal import signal, alarm, SIGUSR1
 from socket import gethostbyname
 
-class MainWin(QtGui.QMainWindow):
+class MainWin(QMainWindow):
   """ Esta ventana guarda las tabs """
   def __init__(self, netmanager, cb):
-    QtGui.QMainWindow.__init__(self, None)
+    QMainWindow.__init__(self, None)
     self.netmanager = netmanager
     self.cb = cb
     self.downloader = None
@@ -131,7 +133,7 @@ class MainWin(QtGui.QMainWindow):
 
   def mkGui(self):
     self.setWindowTitle(self.appname)
-    self.tabWidget = QtGui.QTabWidget(self)
+    self.tabWidget = QTabWidget(self)
     self.tabWidget.tabBar().setMovable(True)
     self.setCentralWidget(self.tabWidget)
     self.tabWidget.setTabsClosable(True)
