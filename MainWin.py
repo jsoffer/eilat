@@ -155,6 +155,8 @@ class MainWin(QMainWindow):
 
   def fixUrl(self, url): # FIXME
     # look for "smart" search
+    if url.split(':')[0] == "about":
+        return url
     search = False
     if url[:4] == 'http':
       return url

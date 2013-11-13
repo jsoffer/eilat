@@ -34,16 +34,18 @@
 
 """
 
-from PyQt4.QtNetwork import QNetworkAccessManager
+from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
+from PyQt4.Qt import QUrl
 
 # local
 from libeilat import log, printHost, printHeaders
 
 class InterceptNAM(QNetworkAccessManager):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, whitelist=None):
         print "INIT InterceptNAM"
         self.count = 0
         self.cheatgc = []
+        self.whitelist = whitelist
         super(InterceptNAM, self).__init__(parent)
 
     def createRequest(self, operation, request, data):
@@ -65,6 +67,12 @@ class InterceptNAM(QNetworkAccessManager):
         #    if qurl.hasQuery():
         #        print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
         #    print "<"+unicode(operation)+"< " + url
+        print "WL ", self.whitelist
+        if self.whitelist:
+            if not any(map(lambda k: request.url().host()[-len(k):] == k, self.whitelist)):
+                print "FILTERING %s" % request.url().host()
+                return QNetworkAccessManager.createRequest(self, operation, QNetworkRequest(QUrl("about:blank")), data)
+
         response = QNetworkAccessManager.createRequest(self, operation, request, data)
         #response.error.connect(lambda: printHost(response, "ERROR> " ))
         def indice(r, k):
@@ -79,7 +87,7 @@ class InterceptNAM(QNetworkAccessManager):
                     try:
                         self.cheatgc.remove(r)
                         self.cheatgc.remove(k)
-                        print "LEN: %s" % (len(self.cheatgc))
+                        print "PENDING: %s" % (len(self.cheatgc))
                     except Exception as e:
                         print ">>> Exception: %s" % (e)
                 except NameError:

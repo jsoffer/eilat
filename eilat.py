@@ -69,8 +69,9 @@ if __name__ == "__main__":
   timer.timeout.connect(lambda: None)
 
   cb = app.clipboard()
+  #netmanager = InterceptNAM(whitelist=["reddit.com", "redditstatic.com"])
   netmanager = InterceptNAM()
-  cookiejar = CookieJar()
+  cookiejar = CookieJar(allowed = ["github.com", "linkedin.com"])
   netmanager.setCookieJar(cookiejar)
 
   app.setApplicationName("Eilat")
