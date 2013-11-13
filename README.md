@@ -30,9 +30,9 @@ Requirements
 Usage
 -----
 
-Set up a proxy, such as squid, polipo, etc. This is required. It can be ignored
-if the lines under **# Proxy** are commented, and then there won't be any kind of
-content caching.
+(Unless using -noproxy or -fb); Set up a proxy, such as squid, polipo, etc.
+This is required. It can be ignored if the lines under **# Proxy** are commented,
+and then there will be only limited memory content caching.
 
 Chmod **eilat.py** as executable and run it. This starts an empty browser. On the
 bottom is an address bar. Write a partial URL, as, for example, **xkcd.com**. Press
