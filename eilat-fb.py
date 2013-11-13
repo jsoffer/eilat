@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
   cb = app.clipboard()
   netmanager = InterceptNAM(whitelist=["facebook.com", "akamaihd.net", "fbcdn.net"])
-  cookiejar = CookieJar(allowed = ["facebook.com"])
+  cookiejar = CookieJar(allowed = ["facebook.com"], storage="fbcookies.cj")
   netmanager.setCookieJar(cookiejar)
   app.setApplicationName("Eilat")
   app.setApplicationVersion("0.001")
@@ -72,4 +72,10 @@ if __name__ == "__main__":
   for arg in argv[1:]:
     if arg not in ["-debug"]:
       mainwin.load(arg)
+  def endCall():
+      print "END"
+      fh = open("fbcookies.cj","w")
+      for cookie in cookiejar.allCookies():
+          fh.write(cookie.toRawForm()+"\n")
+  app.lastWindowClosed.connect(endCall)
   app.exec_()
