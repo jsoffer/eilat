@@ -57,12 +57,49 @@ def atEnd():
     print "CLOSE"
 
 if __name__ == "__main__":
+
+  # Considerations:
+  # Will use proxy? (if not google, fb, twitter... then yes)
+  use_proxy = True
+  # Which whitelist will use instead?
+  hosts_whitelist = None
+  # Will allow cookies? Which? Where are they saved?
+  cookies_allowed = ["github.com", "linkedin.com"]
+  cookies_storage = None
+
+  if len(argv) == 2:
+      sitio = argv[1]
+      if (sitio.split('.')[-2:] == ["facebook","com"]):
+          print "FACEBOOK"
+          use_proxy = False
+          hosts_whitelist = ["facebook.com", "akamaihd.net", "fbcdn.net"]
+          cookies_allowed = ["facebook.com"]
+          cookies_storage = "fbcookies.cj"
+      elif (sitio.split('.')[-2:] == ["twitter","com"]):
+          print "TWITTER"
+          use_proxy = False
+          hosts_whitelist = ["twitter.com", "twimg.com"]
+          cookies_allowed = ["twitter.com"]
+          cookies_storage = "twcookies.cj"
+      elif (sitio.split('.')[-2:] == ["google","com"]):
+          print "GOOGLE"
+          use_proxy = False
+          hosts_whitelist = ["google.com","google.com.mx","googleusercontent.com","gstatic.com","googleapis.com"]
+          cookies_allowed = ["google.com"]
+          cookies_storage = "gcookies.cj"
+      else:
+          print "GENERAL"
+  else:
+      sitio = None
+      print "EMPTY"
+
   # Proxy
-  proxy = QNetworkProxy()
-  proxy.setType(QNetworkProxy.HttpProxy)
-  proxy.setHostName('localhost');
-  proxy.setPort(3128)
-  QNetworkProxy.setApplicationProxy(proxy);
+  if use_proxy:
+      proxy = QNetworkProxy()
+      proxy.setType(QNetworkProxy.HttpProxy)
+      proxy.setHostName('localhost');
+      proxy.setPort(3128)
+      QNetworkProxy.setApplicationProxy(proxy);
 
   app = QApplication([])
 
@@ -72,19 +109,26 @@ if __name__ == "__main__":
   timer.timeout.connect(lambda: None)
 
   cb = app.clipboard()
-  #netmanager = InterceptNAM(whitelist=["reddit.com", "redditstatic.com"])
-  netmanager = InterceptNAM()
-  cookiejar = CookieJar(allowed = ["github.com", "linkedin.com"])
+  netmanager = InterceptNAM(whitelist = hosts_whitelist)
+  cookiejar = CookieJar(allowed = cookies_allowed, storage = cookies_storage)
   netmanager.setCookieJar(cookiejar)
 
   app.setApplicationName("Eilat")
   app.setApplicationVersion("0.001")
   mainwin = MainWin(netmanager, cb)
   mainwin.show()
-  for arg in argv[1:]:
-    if arg not in ["-debug"]:
-      mainwin.load(arg)
+
+  if sitio:
+      mainwin.load(sitio)
+
   def endCall():
-      print "END", cookiejar.allCookies()
+      print "END"
+      if cookies_storage:
+          print "SAVING COOKIES"
+          fh = open(cookies_storage,"w")
+          for cookie in cookiejar.allCookies():
+              fh.write(cookie.toRawForm()+"\n")
+          fh.flush()
+          fh.close()
   app.lastWindowClosed.connect(endCall)
   app.exec_()

@@ -6,11 +6,15 @@ class CookieJar(QNetworkCookieJar):
         print "INIT CookieJar"
         self.allowed = allowed
         if storage:
-            fh = open(storage,"r")
-            cookies = map(lambda k: QNetworkCookie.parseCookies(k), fh.readlines())
-            cookies = [x for y in cookies for x in y]
-            print unicode(cookies)
-            self.setAllCookies(cookies)
+            try:
+                fh = open(storage,"r")
+                cookies = map(lambda k: QNetworkCookie.parseCookies(k), fh.readlines())
+                cookies = [x for y in cookies for x in y]
+                print unicode(cookies)
+                self.setAllCookies(cookies)
+            except Exception as e:
+                print e
+                print "COOKIES: empty?"
 
     def setCookiesFromUrl(self,cookies,url):
         if ".".join(url.host().split('.')[-2:]) not in self.allowed:
