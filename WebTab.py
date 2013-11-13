@@ -260,7 +260,8 @@ class WebTab(QtGui.QWidget):
         # 'not url' para keybinding; 'int' para sin http:// ???
         if not url or type(url) == int: url = unicode(self.cmb.currentText()) # ??? TODO
         url = QUrl(self.browser.fixUrl(url))
-        self.cmb.addItem(url.host() + url.path())
+        #self.cmb.addItem(url.host() + url.path())
+        #self.cmb.setText(url.host() + url.path())
         self.setTitle("Loading...")
         self.webkit.load(url)
         self.webkit.setFocus()

@@ -67,7 +67,6 @@ class InterceptNAM(QNetworkAccessManager):
         #    if qurl.hasQuery():
         #        print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
         #    print "<"+unicode(operation)+"< " + url
-        print "WL ", self.whitelist
         if self.whitelist:
             if not any(map(lambda k: request.url().host()[-len(k):] == k, self.whitelist)):
                 print "FILTERING %s" % request.url().host()

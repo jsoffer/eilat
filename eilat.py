@@ -53,6 +53,9 @@ from CookieJar import CookieJar
 
 from sys import argv
 
+def atEnd():
+    print "CLOSE"
+
 if __name__ == "__main__":
   # Proxy
   proxy = QNetworkProxy()
@@ -81,4 +84,7 @@ if __name__ == "__main__":
   for arg in argv[1:]:
     if arg not in ["-debug"]:
       mainwin.load(arg)
+  def endCall():
+      print "END", cookiejar.allCookies()
+  app.lastWindowClosed.connect(endCall)
   app.exec_()
