@@ -116,8 +116,10 @@ class InterceptNAM(QNetworkAccessManager):
         response.finished.connect(indice(response, self.count))
         #log(",".join(map(unicode,request.rawHeaderList())))
         log(unicode(self.count) + " > " + request.url().toString() + " [" +request.originatingObject().requestedUrl().toString() + "]")
-        if request.originatingObject().parentFrame():
-            log("+++++++ " + request.originatingObject().parentFrame().requestedUrl().toString())
+        root = request.originatingObject().parentFrame()
+        while root:
+            log("+++++++ " + root.requestedUrl().toString())
+            root = root.parentFrame()
         self.count += 1
         return response
 
