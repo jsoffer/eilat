@@ -49,6 +49,9 @@ class InterceptNAM(QNetworkAccessManager):
         super(InterceptNAM, self).__init__(parent)
 
     def createRequest(self, operation, request, data):
+        # Storables:
+        # operation
+        # request: 
         #qurl = request.url()
         # falta puerto, fragmento...
         #url = unicode(qurl.scheme() + "://" + qurl.host() + qurl.path())
@@ -80,13 +83,15 @@ class InterceptNAM(QNetworkAccessManager):
             self.cheatgc.append(k)
             def ret():
                 try:
-                    printHost(r, unicode(k) + " < ")
+                    #printHost(r, unicode(k) + " < ")
+                    #printHeaders(r)
                     # ...until we're done with the request
                     # (pyqt/sip related trouble)
+                    print '.',
                     try:
                         self.cheatgc.remove(r)
                         self.cheatgc.remove(k)
-                        print "PENDING: %s" % (len(self.cheatgc))
+                        #print "PENDING: %s" % (len(self.cheatgc))
                     except Exception as e:
                         print ">>> Exception: %s" % (e)
                 except NameError:
@@ -96,7 +101,9 @@ class InterceptNAM(QNetworkAccessManager):
 
             return ret
         response.finished.connect(indice(response, self.count))
-        log(unicode(self.count) + " > " + request.url().host() + request.url().path())
+        log(unicode(self.count) + " > " + request.url().host() + request.url().path() + "["+unicode(request.originatingObject().requestedUrl().host()) + unicode(request.originatingObject().requestedUrl().path()+"]"))
+        if request.originatingObject().parentFrame():
+            log("+++++++ " + unicode(request.originatingObject().parentFrame().requestedUrl().host()))
         self.count += 1
         return response
 
