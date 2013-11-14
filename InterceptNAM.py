@@ -49,9 +49,16 @@ class InterceptNAM(QNetworkAccessManager):
         super(InterceptNAM, self).__init__(parent)
 
     def createRequest(self, operation, request, data):
+
         # Storables:
-        # operation
-        # request: 
+        # * operation
+        # * request:
+        #     url: scheme, host, port, fragment, query; toString
+        #     originatingObject (frame): parentFrame (recursive), requesterUrl
+        #     headers (request)
+        #     priority
+        # * data: split as query
+
         #qurl = request.url()
         # falta puerto, fragmento...
         #url = unicode(qurl.scheme() + "://" + qurl.host() + qurl.path())
@@ -72,7 +79,7 @@ class InterceptNAM(QNetworkAccessManager):
         #    print "<"+unicode(operation)+"< " + url
         if self.whitelist:
             if not any(map(lambda k: request.url().host()[-len(k):] == k, self.whitelist)):
-                print "FILTERING %s" % request.url().host()
+                print "FILTERING %s" % request.url().toString()
                 return QNetworkAccessManager.createRequest(self, operation, QNetworkRequest(QUrl("about:blank")), data)
 
         response = QNetworkAccessManager.createRequest(self, operation, request, data)
@@ -83,6 +90,12 @@ class InterceptNAM(QNetworkAccessManager):
             self.cheatgc.append(k)
             def ret():
                 try:
+                    # Storables:
+                    # * k (indice), ID de sesión y de instancia de navegador
+                    # * reply:
+                    #     headers (reply)
+                    #     url: mismos campos (puede variar desde el request)
+
                     #printHost(r, unicode(k) + " < ")
                     #printHeaders(r)
                     # ...until we're done with the request
@@ -101,9 +114,10 @@ class InterceptNAM(QNetworkAccessManager):
 
             return ret
         response.finished.connect(indice(response, self.count))
-        log(unicode(self.count) + " > " + request.url().host() + request.url().path() + "["+unicode(request.originatingObject().requestedUrl().host()) + unicode(request.originatingObject().requestedUrl().path()+"]"))
+        #log(",".join(map(unicode,request.rawHeaderList())))
+        log(unicode(self.count) + " > " + request.url().toString() + " [" +request.originatingObject().requestedUrl().toString() + "]")
         if request.originatingObject().parentFrame():
-            log("+++++++ " + unicode(request.originatingObject().parentFrame().requestedUrl().host()))
+            log("+++++++ " + request.originatingObject().parentFrame().requestedUrl().toString())
         self.count += 1
         return response
 
