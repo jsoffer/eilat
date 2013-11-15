@@ -61,13 +61,14 @@ class InterceptNAM(QNetworkAccessManager):
     def createRequest(self, operation, request, data):
 
         # Storables:
-        # * datetime
-        # * operation
+        # + datetime
+        # - operation
         # * request:
-        #     url: scheme, path, host, port, fragment, query (json); toString
-        #     originatingObject (frame): parentFrame (recursive), requesterUrl
-        #     headers (request)
-        #     priority
+        #     + url: toString
+        #     * scheme, path, host, port, fragment, query (json)
+        #     + originatingObject (frame): parentFrame (recursive), requesterUrl
+        #     * headers (request, json)
+        #     - priority
         # * data: split as query (json)
 
         #qurl = request.url()
@@ -101,6 +102,9 @@ class InterceptNAM(QNetworkAccessManager):
                 ret[unicode(p)] = unicode(q)
             return json.dumps(ret).replace("'","''")
 
+        def s(x):
+            return x.replace("'","''")
+
         def indice(r, k):
             # please don't do garbage collection...
             self.cheatgc.append(r)
@@ -108,26 +112,24 @@ class InterceptNAM(QNetworkAccessManager):
             def ret():
                 try:
                     # Storables:
-                    # * reply's datetime
-                    # * k (indice), ID de sesión y de instancia de navegador
-                    # * reply:
-                    #     headers (reply)
-                    #     url: mismos campos (puede variar desde el request)
+                    # + reply's datetime
+                    # + k (indice)
+                    # * ID de sesión y de instancia de navegador
+                    #   reply:
+                    #    + headers (reply)
+                    #    - url: mismos campos (puede variar desde el request)
 
                     encabezados = filtra(r.rawHeaderPairs())
-                    query = "INSERT INTO reply (id, url, t) values (%s, '%s','%s')" % (k, r.url().toString(), encabezados)
+                    query = "INSERT INTO reply (at, instance, id, url, t) values (now(), %s, %s, '%s','%s')" % (self.instance_id, k, s(r.url().toString()), encabezados)
                     self.db_cursor.execute(query)
                     self.db_conn.commit()
 
-                    #printHost(r, unicode(k) + " < ")
-                    #printHeaders(r)
                     # ...until we're done with the request
                     # (pyqt/sip related trouble)
-                    print '.',
                     try:
                         self.cheatgc.remove(r)
                         self.cheatgc.remove(k)
-                        #print "PENDING: %s" % (len(self.cheatgc))
+                        print "[PENDING: %s] " % (len(self.cheatgc)),
                     except Exception as e:
                         print ">>> Exception: %s" % (e)
                 except NameError:
@@ -137,19 +139,15 @@ class InterceptNAM(QNetworkAccessManager):
 
             return ret
         response.finished.connect(indice(response, self.count))
-        #log(",".join(map(unicode,request.rawHeaderList())))
         #log(unicode(self.count) + " > " + request.url().toString() + " [" +request.originatingObject().requestedUrl().toString() + "]")
         root = request.originatingObject().parentFrame()
         frame = request.originatingObject()
         while root:
             frame = root
             root = root.parentFrame()
-        query = "INSERT INTO request (id, url, frame) values (%s, '%s','%s')" % (self.count, request.url().toString(), frame.url().host())
+        query = "INSERT INTO request (at, instance, id, url, frame) values (now(), %s, %s, '%s','%s')" % (self.instance_id, self.count, s(request.url().toString()), s(frame.url().host()))
         self.db_cursor.execute(query)
         self.db_conn.commit()
-        #while root:
-        #    log("+++++++ " + root.requestedUrl().toString() + " ||| " + unicode(id(root)))
-        #    root = root.parentFrame()
         self.count += 1
         return response
 
