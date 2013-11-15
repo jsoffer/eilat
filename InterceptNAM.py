@@ -34,6 +34,11 @@
 
 """
 
+import json
+import psycopg2 as postgres
+
+from time import time
+
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
 
@@ -43,21 +48,27 @@ from libeilat import log, printHost, printHeaders
 class InterceptNAM(QNetworkAccessManager):
     def __init__(self, parent=None, whitelist=None):
         print "INIT InterceptNAM"
+        self.instance_id = time()
         self.count = 0
         self.cheatgc = []
         self.whitelist = whitelist
+
+        self.db_conn = postgres.connect("dbname=pguser user=pguser")
+        self.db_cursor = self.db_conn.cursor()
+
         super(InterceptNAM, self).__init__(parent)
 
     def createRequest(self, operation, request, data):
 
         # Storables:
+        # * datetime
         # * operation
         # * request:
-        #     url: scheme, host, port, fragment, query; toString
+        #     url: scheme, path, host, port, fragment, query (json); toString
         #     originatingObject (frame): parentFrame (recursive), requesterUrl
         #     headers (request)
         #     priority
-        # * data: split as query
+        # * data: split as query (json)
 
         #qurl = request.url()
         # falta puerto, fragmento...
@@ -84,6 +95,12 @@ class InterceptNAM(QNetworkAccessManager):
 
         response = QNetworkAccessManager.createRequest(self, operation, request, data)
         #response.error.connect(lambda: printHost(response, "ERROR> " ))
+        def filtra(xs):
+            ret = {}
+            for (p,q) in xs:
+                ret[unicode(p)] = unicode(q)
+            return json.dumps(ret).replace("'","''")
+
         def indice(r, k):
             # please don't do garbage collection...
             self.cheatgc.append(r)
@@ -91,10 +108,16 @@ class InterceptNAM(QNetworkAccessManager):
             def ret():
                 try:
                     # Storables:
+                    # * reply's datetime
                     # * k (indice), ID de sesión y de instancia de navegador
                     # * reply:
                     #     headers (reply)
                     #     url: mismos campos (puede variar desde el request)
+
+                    encabezados = filtra(r.rawHeaderPairs())
+                    query = "INSERT INTO reply (id, url, t) values (%s, '%s','%s')" % (k, r.url().toString(), encabezados)
+                    self.db_cursor.execute(query)
+                    self.db_conn.commit()
 
                     #printHost(r, unicode(k) + " < ")
                     #printHeaders(r)
@@ -115,11 +138,18 @@ class InterceptNAM(QNetworkAccessManager):
             return ret
         response.finished.connect(indice(response, self.count))
         #log(",".join(map(unicode,request.rawHeaderList())))
-        log(unicode(self.count) + " > " + request.url().toString() + " [" +request.originatingObject().requestedUrl().toString() + "]")
+        #log(unicode(self.count) + " > " + request.url().toString() + " [" +request.originatingObject().requestedUrl().toString() + "]")
         root = request.originatingObject().parentFrame()
+        frame = request.originatingObject()
         while root:
-            log("+++++++ " + root.requestedUrl().toString())
+            frame = root
             root = root.parentFrame()
+        query = "INSERT INTO request (id, url, frame) values (%s, '%s','%s')" % (self.count, request.url().toString(), frame.url().host())
+        self.db_cursor.execute(query)
+        self.db_conn.commit()
+        #while root:
+        #    log("+++++++ " + root.requestedUrl().toString() + " ||| " + unicode(id(root)))
+        #    root = root.parentFrame()
         self.count += 1
         return response
 
