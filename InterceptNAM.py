@@ -89,6 +89,9 @@ class InterceptNAM(QNetworkAccessManager):
         #    if qurl.hasQuery():
         #        print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
         #    print "<"+unicode(operation)+"< " + url
+        if request.url().scheme() == 'data':
+            return QNetworkAccessManager.createRequest(self, operation, request, data)
+
         if self.whitelist:
             if not any(map(lambda k: request.url().host()[-len(k):] == k, self.whitelist)):
                 print "FILTERING %s" % request.url().toString()
@@ -103,7 +106,7 @@ class InterceptNAM(QNetworkAccessManager):
             return json.dumps(ret).replace("'","''")
 
         def s(x):
-            return x.replace("'","''")
+            return x.replace("'","''")[:4095]
 
         def indice(r, k):
             # please don't do garbage collection...
