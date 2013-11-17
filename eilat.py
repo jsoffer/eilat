@@ -121,7 +121,7 @@ if __name__ == "__main__":
   if sitio:
       mainwin.addTab(sitio)
   else:
-      mainwin.addTab("about:blank")
+      mainwin.addTab()
 
   def endCall():
       print "END"
