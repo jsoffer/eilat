@@ -40,7 +40,7 @@ from PyQt4.QtGui import QMainWindow, QTabWidget
 from WebTab import WebTab
 from libeilat import registerShortcuts
 
-from signal import signal, alarm, SIGUSR1
+#from signal import signal, SIGUSR1
 
 class MainWin(QMainWindow):
   """ Esta ventana guarda las tabs """
@@ -60,7 +60,7 @@ class MainWin(QMainWindow):
 
     self.mkGui()
     registerShortcuts(self.actions, self)
-    signal(SIGUSR1, self.stopJavascript)
+    #signal(SIGUSR1, self.stopJavascript)
 
   def stopJavascript(self, p, q):
     log("STOPPING JAVASCRIPT GLOBALLY")

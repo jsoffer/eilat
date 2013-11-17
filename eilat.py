@@ -104,9 +104,9 @@ if __name__ == "__main__":
   app = QApplication([])
 
   # This timer allows catching signals even if the app is inactive
-  timer = QTimer()
-  timer.start(5000)
-  timer.timeout.connect(lambda: None)
+  # timer = QTimer()
+  # timer.start(5000)
+  # timer.timeout.connect(lambda: None)
 
   cb = app.clipboard()
   netmanager = InterceptNAM(whitelist = hosts_whitelist)
