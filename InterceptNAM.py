@@ -61,13 +61,15 @@ class InterceptNAM(QNetworkAccessManager):
     def createRequest(self, operation, request, data):
 
         # Storables:
-        # + datetime
+        # + datetime: timestamp
         # - operation
         # * request:
         #     + url: toString
-        #     * scheme, path, host, port, fragment, query (json)
+        #     * scheme, path, host, fragment, port, query (json)
+        #           varchar(10), (2048) (256), (2048), (-), JSON
         #     + originatingObject (frame): parentFrame (recursive), requesterUrl
-        #     * headers (request, json)
+        #           ???
+        #     * headers (request, json): JSON
         #     - priority
         # * data: split as query (json)
 
@@ -89,7 +91,8 @@ class InterceptNAM(QNetworkAccessManager):
         #    if qurl.hasQuery():
         #        print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
         #    print "<"+unicode(operation)+"< " + url
-        if request.url().scheme() == 'data':
+
+        if (request.url().scheme() == 'data') or (request.url().host() == 'localhost'):
             return QNetworkAccessManager.createRequest(self, operation, request, data)
 
         if self.whitelist:
@@ -132,7 +135,7 @@ class InterceptNAM(QNetworkAccessManager):
                     try:
                         self.cheatgc.remove(r)
                         self.cheatgc.remove(k)
-                        print "[PENDING: %s] " % (len(self.cheatgc)),
+                        print "[%s]" % (len(self.cheatgc)),
                     except Exception as e:
                         print ">>> Exception: %s" % (e)
                 except NameError:
