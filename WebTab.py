@@ -212,10 +212,10 @@ class WebTab(QtGui.QWidget):
 
   # action (en registerActions)
   def toggleStatus(self):
-    if self.browser:
-      self.browser.toggleStatusVisiblity()
-    else:
-      self.statusbar.setVisible(not self.statusBar.isVisible())
+    #if self.browser:
+      #self.browser.toggleStatusVisiblity()
+    #else:
+    self.statusbar.setVisible(not self.statusbar.isVisible())
 
   # action (en registerActions)
   def stopOrHideSearch(self):
@@ -284,8 +284,8 @@ class WebTab(QtGui.QWidget):
     self.webkit.findText(s, QWebPage.FindWrapsAroundDocument)
 
   # uso externo, delTab en MainWindow
-  def stop(self):
-    self.webkit.stop()
+  #def stop(self):
+  #  self.webkit.stop()
 
   # uso externo, con señal, en MainWin
   # no usar; complicado y posiblemente innecesario (no resuelve linkedin)
@@ -294,9 +294,5 @@ class WebTab(QtGui.QWidget):
   #      self.cmb.setStyleSheet("QComboBox { background-color: #fff; }")
 
   # uso externo, toggleStatusVisibility, en MainWin
-  def setStatusVisibility(self, visible):
-    self.statusbar.setVisible(visible)
-
-  # externo en load en MainWin
-  def URL(self):
-    return self.cmb.currentText()
+  #def setStatusVisibility(self, visible):
+  #  self.statusbar.setVisible(visible)

@@ -62,16 +62,16 @@ class MainWin(QMainWindow):
     registerShortcuts(self.actions, self)
     #signal(SIGUSR1, self.stopJavascript)
 
-  def stopJavascript(self, p, q):
-    log("STOPPING JAVASCRIPT GLOBALLY")
-    for t in self.tabs:
-      t.stopScript()
+  #def stopJavascript(self, p, q):
+  #  log("STOPPING JAVASCRIPT GLOBALLY")
+  #  for t in self.tabs:
+  #    t.stopScript()
 
-  def toggleStatusVisiblity(self):
-    """ Muestra/oculta status bar. Afecta a todas las tabs """
-    self.showStatusBar = not self.showStatusBar
-    for t in self.tabs:
-      t.setStatusVisibility(self.showStatusBar)
+  #def toggleStatusVisiblity(self):
+  #  """ Muestra/oculta status bar. Afecta a todas las tabs """
+  #  self.showStatusBar = not self.showStatusBar
+  #  for t in self.tabs:
+  #    t.setStatusVisibility(self.showStatusBar)
 
   def registerActions(self):
     self.actions["newtab"]    = [self.addTab,       "Ctrl+T", "Open new tab"]
@@ -138,7 +138,6 @@ class MainWin(QMainWindow):
     self.tabWidget.setTabsClosable(True)
 
     self.tabWidget.tabCloseRequested.connect(self.delTab)
-    self.addTab()
 
   def addTab(self, url = None):
     tab = WebTab(browser=self, actions=self.tabactions, netmanager=self.netmanager, clipboard=self.cb, showStatusBar = self.showStatusBar)
@@ -158,17 +157,10 @@ class MainWin(QMainWindow):
     if idx == -1:
       idx = self.tabWidget.currentIndex()
     t = self.tabs.pop(idx)
-    t.stop()
+    t.webkit.stop()
     self.tabWidget.removeTab(idx)
     t.deleteLater()
     if len(self.tabs) == 0:
       self.close()
     else:
       self.focusWeb()
-
-  def load(self, url):
-    if self.tabs[-1].URL() == "":
-      self.tabs[-1].navigate(url)
-    else:
-      self.addTab(url)
-
