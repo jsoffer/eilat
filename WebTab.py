@@ -129,9 +129,6 @@ class WebTab(QtGui.QWidget):
     self.netmanager = netmanager
     page.setNetworkAccessManager(self.netmanager)
 
-  def onLinkClick(self, qurl):
-    self.navigate(qurl.toString(), self.webkit.paste)
-
   def registerActions(self):
     self.actions["addressnav"]  = [self.navigate, "Ctrl+J|Enter", self.cmb, "Navigate to the url in the address bar"]
     self.actions["reload"]      = [self.reload, "F5|R", "Reload the current page"]
@@ -148,6 +145,7 @@ class WebTab(QtGui.QWidget):
     self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
     self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
 
+  # action (en registerActions)
   def toggleScript(self):
     """ Activa o desactiva javascript, y notifica cambiando el color del address bar """
     if self.webkit.settings().testAttribute(QWebSettings.JavascriptEnabled):
@@ -157,25 +155,27 @@ class WebTab(QtGui.QWidget):
         self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,True)
         self.cmb.setStyleSheet("QComboBox { background-color: #ddf; }")
 
+  # uso externo, con señal, en MainWin
   def stopScript(self):
         self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,False)
         self.cmb.setStyleSheet("QComboBox { background-color: #fff; }")
 
+  # action (en registerActions)
   def toggleStatus(self):
     if self.browser:
       self.browser.toggleStatusVisiblity()
     else:
       self.statusbar.setVisible(not self.statusBar.isVisible())
 
-  # toggleStatusVisibility
+  # toggleStatusVisibility, en MainWin
   def setStatusVisibility(self, visible):
     self.statusbar.setVisible(visible)
 
-  # conexión
+  # connect (en constructor)
   def onUnsupportedContent(self, reply):
     log("\nUnsupported content %s" % (reply.url().toString()))
 
-  # conexión
+  # connect (en constructor)
   def onDownloadRequested(self, request):
     log("\nDownload Request: " + str(request.url()))
 
@@ -184,17 +184,13 @@ class WebTab(QtGui.QWidget):
     if s is None: s = self.txtSearch.text()
     self.webkit.findText(s, QWebPage.FindWrapsAroundDocument)
 
+  # action (en registerActions)
   def stopOrHideSearch(self):
     if self.fraSearch.isVisible():
       self.fraSearch.setVisible(False)
       self.webkit.setFocus()
     else:
       self.webkit.stop()
-
-  def showSearch(self):
-    self.txtSearch.setText("")
-    self.fraSearch.setVisible(True)
-    self.txtSearch.setFocus()
 
   # usado en zoom in, zoom out
   def zoom(self, lvl):
@@ -203,55 +199,81 @@ class WebTab(QtGui.QWidget):
   def stop(self):
     self.webkit.stop()
 
-  # usado en load, refresh
+  # externo en load en MainWin
   def URL(self):
     return self.cmb.currentText()
 
-  # conexión
+  # connect (en constructor)
   def loadProgress(self, val):
     if self.pbar.isVisible():
       self.pbar.setValue(val)
 
-  def setTitle(self, title):
-    if self.browser:
-      self.browser.setTabTitle(self, title)
-
+  # connect (en constructor)
   def setURL(self, url):
     self.cmb.setEditText(url.toString())
 
-  def refresh(self):
-    self.navigate(self.URL())
-    self.webkit.reload()
-
+  # connect (en constructor)
   def loadStarted(self):
     self.showProgressBar()
-
-  def loadFinished(self, success):
-    self.hideProgressBar()
-    if self.cmb.hasFocus():
-      self.webkit.setFocus()
 
   def showProgressBar(self):
     self.pbar.setValue(0)
     self.pbar.setVisible(True)
 
+  # connect (en constructor)
+  def loadFinished(self, success):
+    self.hideProgressBar()
+    if self.cmb.hasFocus():
+      self.webkit.setFocus()
+
   def hideProgressBar(self, success = False):
     self.pbar.setVisible(False)
 
+  # action (en registerActions)
   def reload(self):
     self.webkit.reload()
 
+  # action (en registerActions)
   def smartSearch(self):
     if self.fraSearch.isVisible():
       self.doSearch()
     else:
       self.showSearch()
 
+  def showSearch(self):
+    self.txtSearch.setText("")
+    self.fraSearch.setVisible(True)
+    self.txtSearch.setFocus()
+
+  # action (en registerActions)
   def fwd(self):
     self.webkit.history().forward()
 
+  # action (en registerActions)
   def back(self):
     self.webkit.history().back()
+
+  # connect (en constructor)
+  def onLinkClick(self, qurl):
+    self.navigate(qurl.toString(), self.webkit.paste)
+
+  # connect (en constructor)
+  # action (en registerActions)
+  def navigate(self, url = None, newtab = False):
+    if newtab:
+        self.browser.addTab(url)
+    else:
+        # 'not url' para keybinding; 'int' para sin http:// ???
+        if not url or type(url) == int: url = unicode(self.cmb.currentText()) # ??? TODO
+        url = QUrl(self.fixUrl(url))
+        self.setTitle("Loading...")
+        self.webkit.load(url)
+        self.webkit.setFocus()
+
+  # connect (en constructor)
+  def setTitle(self, title):
+    if self.browser:
+      self.browser.setTabTitle(self, title)
 
   def fixUrl(self, url): # FIXME
     # look for "smart" search
@@ -270,20 +292,7 @@ class WebTab(QtGui.QWidget):
     else:
       return "http://" + url
 
-  def navigate(self, url = None, newtab = False):
-    if newtab:
-        self.browser.addTab(url)
-    else:
-        # 'not url' para keybinding; 'int' para sin http:// ???
-        if not url or type(url) == int: url = unicode(self.cmb.currentText()) # ??? TODO
-        url = QUrl(self.fixUrl(url))
-        self.setTitle("Loading...")
-        self.webkit.load(url)
-        self.webkit.setFocus()
-
-  def showHideMessage(self):
-    self.statusbar.showMessage("(press %s to hide this)" % (self.actions["togglestatus"][1]))
-
+  # connect (en constructor)
   def onLinkHovered(self, link, title, content):
     if link or title:
       if title and not link:
@@ -294,3 +303,8 @@ class WebTab(QtGui.QWidget):
         self.statusbar.showMessage("%s (%s)" % (title, link))
     else:
       self.showHideMessage()
+
+  # en constructor 
+  def showHideMessage(self):
+    self.statusbar.showMessage("(press %s to hide this)" % (self.actions["togglestatus"][1]))
+
