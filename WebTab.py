@@ -34,7 +34,6 @@
 
 """
 
-from PyQt4.Qt import QClipboard
 import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl
@@ -47,12 +46,11 @@ from libeilat import log, registerShortcuts
 
 class WebTab(QtGui.QWidget):
   """ Cada tab contiene una página web """
-  def __init__(self, browser, netmanager, clipboard, actions=None, parent=None, showStatusBar=False):
+  def __init__(self, browser, netmanager, actions=None, parent=None, showStatusBar=False):
     QtGui.QWidget.__init__(self, parent)
     self.actions = dict()
 
     self.browser = browser
-    self.cb = clipboard
 
     # layout
     self.grid = QtGui.QGridLayout(self)
@@ -196,7 +194,6 @@ class WebTab(QtGui.QWidget):
     # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
     self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0,40), "J", "Scrolls down"]
     self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0,-40), "K", "Scrolls down"]
-    self.actions["paste"] = [lambda: self.browser.addTab(unicode(self.cb.text(QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
     self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
 

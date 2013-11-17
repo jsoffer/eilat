@@ -34,6 +34,7 @@
 
 """
 
+from PyQt4.Qt import QClipboard
 from PyQt4.QtGui import QMainWindow, QTabWidget
 
 # local
@@ -62,6 +63,16 @@ class MainWin(QMainWindow):
     registerShortcuts(self.actions, self)
     #signal(SIGUSR1, self.stopJavascript)
 
+  # run (en constructor)
+  def mkGui(self):
+    self.setWindowTitle(self.appname)
+    self.tabWidget = QTabWidget(self)
+    self.tabWidget.tabBar().setMovable(True)
+    self.setCentralWidget(self.tabWidget)
+    self.tabWidget.setTabsClosable(True)
+
+    self.tabWidget.tabCloseRequested.connect(self.delTab)
+
   #def stopJavascript(self, p, q):
   #  log("STOPPING JAVASCRIPT GLOBALLY")
   #  for t in self.tabs:
@@ -75,25 +86,19 @@ class MainWin(QMainWindow):
 
   def registerActions(self):
     self.actions["newtab"]    = [self.addTab,       "Ctrl+T", "Open new tab"]
+    self.actions["paste"] = [lambda: self.addTab(unicode(self.cb.text(QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["closetab"]  = [self.delTab,       "Ctrl+W", "Close current tab"]
     self.actions["tabprev"]   = [self.decTab,       "N|Ctrl+PgUp", "Switch to previous tab"]
     self.actions["tabnext"]   = [self.incTab,       "M|Ctrl+PgDown", "Switch to next tab"]
     self.actions["go"]        = [self.focusAddress, "Ctrl+L", "Focus address bar"]
     self.actions["close"]     = [self.close,        "Ctrl+Q", "Close application"]
-    self.actions["zoomin"]    = [self.zoomIn,       "Ctrl+Up", "Zoom into page"]
-    self.actions["zoomout"]   = [self.zoomOut,      "Ctrl+Down", "Zoom out of page"]
-
-  def focusAddress(self):
-    self.tabs[self.tabWidget.currentIndex()].cmb.setFocus()
+    self.actions["zoomin"]    = [lambda: self.zoom(1),   "Ctrl+Up", "Zoom into page"]
+    self.actions["zoomout"]   = [lambda: self.zoom(-1),  "Ctrl+Down", "Zoom out of page"]
 
   def focusWeb(self):
     self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
 
-  def zoomIn(self):
-    self.zoom(1)
-  def zoomOut(self):
-    self.zoom(-1)
-
+  # aux. action (en registerActions)
   def zoom(self, lvl):
     self.tabs[self.tabWidget.currentIndex()].zoom(lvl)
 
@@ -126,31 +131,11 @@ class MainWin(QMainWindow):
         return i
     return -1
 
-  def closeEvent(self, e):
-    e.accept()
-    self.close()
+  # action (en registerActions)
+  def focusAddress(self):
+    self.tabs[self.tabWidget.currentIndex()].cmb.setFocus()
 
-  def mkGui(self):
-    self.setWindowTitle(self.appname)
-    self.tabWidget = QTabWidget(self)
-    self.tabWidget.tabBar().setMovable(True)
-    self.setCentralWidget(self.tabWidget)
-    self.tabWidget.setTabsClosable(True)
-
-    self.tabWidget.tabCloseRequested.connect(self.delTab)
-
-  def addTab(self, url = None):
-    tab = WebTab(browser=self, actions=self.tabactions, netmanager=self.netmanager, clipboard=self.cb, showStatusBar = self.showStatusBar)
-    self.tabWidget.addTab(tab, "New tab")
-    self.tabs.append(tab)
-    self.tabWidget.setCurrentWidget(tab)
-    if url:
-      tab.navigate(url)
-      self.focusWeb()
-    else:
-      self.focusAddress()
-    return self.tabs[self.tabWidget.currentIndex()]
-
+  # action y connect en llamada en constructor
   def delTab(self, idx = -1):
     if idx >= len(self.tabs):
       return
@@ -164,3 +149,23 @@ class MainWin(QMainWindow):
       self.close()
     else:
       self.focusWeb()
+
+  # action (en registerActions)
+  # externo en eilat.py, crea la primera tab
+  def addTab(self, url = None):
+    tab = WebTab(browser=self, actions=self.tabactions, netmanager=self.netmanager, showStatusBar = self.showStatusBar)
+    self.tabWidget.addTab(tab, "New tab")
+    self.tabs.append(tab)
+    self.tabWidget.setCurrentWidget(tab)
+    if url:
+      tab.navigate(url)
+      self.focusWeb()
+    else:
+      self.focusAddress()
+    return self.tabs[self.tabWidget.currentIndex()]
+
+  # Implemented, it's recognized and runs at close
+  def closeEvent(self, e):
+    print "MainWin.closeEvent"
+    e.accept()
+    self.close()
