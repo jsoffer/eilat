@@ -41,7 +41,6 @@ from WebTab import WebTab
 from libeilat import registerShortcuts
 
 from signal import signal, alarm, SIGUSR1
-from socket import gethostbyname
 
 class MainWin(QMainWindow):
   """ Esta ventana guarda las tabs """
@@ -152,23 +151,6 @@ class MainWin(QMainWindow):
     else:
       self.focusAddress()
     return self.tabs[self.tabWidget.currentIndex()]
-
-  def fixUrl(self, url): # FIXME
-    # look for "smart" search
-    if url.split(':')[0] == "about":
-        return url
-    search = False
-    if url[:4] == 'http':
-      return url
-    else:
-      try:
-        gethostbyname(url.split('/')[0]) # ingenioso pero feo; con 'bind' local es barato
-      except Exception as e:
-        search = True
-    if search:
-      return "http://localhost:8000/?q=%s" % (url.replace(" ", "+"))
-    else:
-      return "http://" + url
 
   def delTab(self, idx = -1):
     if idx >= len(self.tabs):

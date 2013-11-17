@@ -39,9 +39,10 @@ import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl
 
+from socket import gethostbyname
 
+# local
 from WebView import WebView
-
 from libeilat import log, registerShortcuts
 
 class WebTab(QtGui.QWidget):
@@ -68,7 +69,6 @@ class WebTab(QtGui.QWidget):
     self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,False)
     #self.webkit.settings().setAttribute(QWebSettings.SpatialNavigationEnabled,True)
     #self.webkit.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled,True)
-    #self.webkit.setSizePolicy()
 
     # address bar
     self.cmb = QtGui.QComboBox()
@@ -173,11 +173,11 @@ class WebTab(QtGui.QWidget):
 
   # conexión
   def onUnsupportedContent(self, reply):
-    log("Unsupported content %s" % (reply.url().toString()))
+    log("\nUnsupported content %s" % (reply.url().toString()))
 
   # conexión
   def onDownloadRequested(self, request):
-    log("Download Request: " + str(request.url()))
+    log("\nDownload Request: " + str(request.url()))
 
   # múltiples llamadas - reestructurar
   def doSearch(self, s = None):
@@ -253,15 +253,30 @@ class WebTab(QtGui.QWidget):
   def back(self):
     self.webkit.history().back()
 
+  def fixUrl(self, url): # FIXME
+    # look for "smart" search
+    if url.split(':')[0] == "about":
+        return url
+    search = False
+    if url[:4] == 'http':
+      return url
+    else:
+      try:
+        gethostbyname(url.split('/')[0]) # ingenioso pero feo; con 'bind' local es barato
+      except Exception as e:
+        search = True
+    if search:
+      return "http://localhost:8000/?q=%s" % (url.replace(" ", "+"))
+    else:
+      return "http://" + url
+
   def navigate(self, url = None, newtab = False):
     if newtab:
         self.browser.addTab(url)
     else:
         # 'not url' para keybinding; 'int' para sin http:// ???
         if not url or type(url) == int: url = unicode(self.cmb.currentText()) # ??? TODO
-        url = QUrl(self.browser.fixUrl(url))
-        #self.cmb.addItem(url.host() + url.path())
-        #self.cmb.setText(url.host() + url.path())
+        url = QUrl(self.fixUrl(url))
         self.setTitle("Loading...")
         self.webkit.load(url)
         self.webkit.setFocus()
