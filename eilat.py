@@ -119,7 +119,9 @@ if __name__ == "__main__":
   mainwin.show()
 
   if sitio:
-      mainwin.load(sitio)
+      mainwin.addTab(sitio)
+  else:
+      mainwin.addTab("about:blank")
 
   def endCall():
       print "END"
