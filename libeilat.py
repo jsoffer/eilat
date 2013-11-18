@@ -36,38 +36,35 @@
 
 from PyQt4.QtGui import QShortcut
 
-# trivial; FIXME
-def log(s):
-    print(s)
+def log(text):
+    """ Trivial wrap over print
 
-def registerShortcuts(actions, defaultOwner):
-  for action in actions:
-    """ Las acciones son ??? """ # FIXME
-    shortcut = actions[action][1]
-    if shortcut.lower() == "none":
-      continue
-# allow multiple shortcuts with keys delimited by |
-    shortcuts = shortcut.split("|")
-    for shortcut in shortcuts:
-      shortcut = shortcut.strip()
-      if shortcut == "":
-        continue
-      callback = actions[action][0]
-      if len(actions[action]) == 2:
-        owner = defaultOwner
-      else:
-        if type(actions[action][2]) != str:
-          owner = actions[action][2]
-        elif len(actions[action]) == 4:
-          owner = actions[action][3]
-        else:
-          owner = defaultOwner
-      QShortcut(shortcut, owner, callback)
+    """
+    print(text)
 
-def printHost(r, s=">>> "):
-    print s + unicode(r.request().url().host()) + unicode(r.request().url().path()),
+def register_shortcuts(actions, default_owner):
+    """ Takes lists of [fun, key, (opt) owner, description], creates
+    QShortCuts
 
-def printHeaders(r):
-    print ">>> " + unicode(r.request().url().host()) + unicode(r.request().url().path())
-    for (key,value) in r.rawHeaderPairs():
-        print "     > " + unicode(key) + ": " + unicode(value)
+    """
+    for action in actions:
+        shortcut = actions[action][1]
+        if shortcut.lower() == "none":
+            continue
+        # allow multiple shortcuts with keys delimited by |
+        shortcuts = shortcut.split("|")
+        for shortcut in shortcuts:
+            shortcut = shortcut.strip()
+            if shortcut == "":
+                continue
+            callback = actions[action][0]
+            if len(actions[action]) == 2:
+                owner = default_owner
+            else:
+                if type(actions[action][2]) != str:
+                    owner = actions[action][2]
+                elif len(actions[action]) == 4:
+                    owner = actions[action][3]
+                else:
+                    owner = default_owner
+            QShortcut(shortcut, owner, callback)
