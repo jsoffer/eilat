@@ -159,7 +159,7 @@ class WebTab(QtGui.QWidget):
 
   # connect (en constructor)
   def onLinkClick(self, qurl):
-    self.navigate(qurl.toString(), self.webkit.paste)
+    self.navigate(qurl, self.webkit.paste)
 
   # connect (en constructor)
   def onLinkHovered(self, link, title, content):
@@ -207,9 +207,6 @@ class WebTab(QtGui.QWidget):
 
   # action (en registerActions)
   def toggleStatus(self):
-    #if self.browser:
-      #self.browser.toggleStatusVisiblity()
-    #else:
     self.statusbar.setVisible(not self.statusbar.isVisible())
 
   # action (en registerActions)
@@ -226,9 +223,6 @@ class WebTab(QtGui.QWidget):
 
   # action (en registerActions)
   def initSearch(self):
-    #if self.fraSearch.isVisible():
-    #  self.doSearch()
-    #else:
     self.showSearch()
 
   def showSearch(self):
@@ -246,13 +240,16 @@ class WebTab(QtGui.QWidget):
 
   # action (en registerActions)
   def navigate(self, url = None, newtab = False):
+    """ Entra QUrl """
+    print url, unicode(newtab)
     if newtab:
         self.browser.addTab(url)
     else:
-        # 'not url' para keybinding; 'int' para sin http:// ???
-        if not url or type(url) == int: url = unicode(self.cmb.currentText()) # ??? TODO
-        #url = QUrl(self.fixUrl(url))
-        url = self.fixUrl(url)
+        if not url: # ??? TODO
+            url = unicode(self.cmb.currentText())
+        if isinstance(url, str):
+            # 'not url' para keybinding; 'int' para sin http:// ???
+            url = self.fixUrl(url)
         self.setTitle("Loading...")
         self.webkit.load(url)
         self.webkit.setFocus()
