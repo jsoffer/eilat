@@ -134,7 +134,7 @@ class MainWin(QMainWindow):
   # action (en registerActions)
   # externo en eilat.py, crea la primera tab
   def addTab(self, url = None):
-    tab = WebTab(browser=self, actions=self.tabactions, netmanager=self.netmanager, showStatusBar = self.showStatusBar)
+    tab = WebTab(browser=self, actions=self.tabactions, netmanager=self.netmanager)
     self.tabWidget.addTab(tab, "New tab")
     self.tabs.append(tab)
     self.tabWidget.setCurrentWidget(tab)

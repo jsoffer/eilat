@@ -46,7 +46,7 @@ from libeilat import log, registerShortcuts
 
 class WebTab(QtGui.QWidget):
   """ Cada tab contiene una página web """
-  def __init__(self, browser, netmanager, actions=None, parent=None, showStatusBar=False):
+  def __init__(self, browser, netmanager, actions=None, parent=None):
     QtGui.QWidget.__init__(self, parent)
     self.actions = dict()
 
@@ -91,7 +91,7 @@ class WebTab(QtGui.QWidget):
     self.fraSearch.setVisible(False)
 
     self.statusbar = QtGui.QStatusBar()
-    self.statusbar.setVisible(showStatusBar)
+    self.statusbar.setVisible(False)
     self.statusbar.setMaximumHeight(25)
 
     self.grid.addWidget(self.webkit, 1, 0)
@@ -160,12 +160,6 @@ class WebTab(QtGui.QWidget):
   # connect (en constructor)
   def onLinkClick(self, qurl):
     self.navigate(qurl.toString(), self.webkit.paste)
-
-  # connect (en constructor)
-  def setTitle(self, title):
-    if self.browser:
-      #self.browser.setTabTitle(self, title)
-      self.browser.tabWidget.setTabText(self.browser.tabWidget.currentIndex(),title[:40])
 
   # connect (en constructor)
   def onLinkHovered(self, link, title, content):
@@ -260,7 +254,9 @@ class WebTab(QtGui.QWidget):
         self.webkit.setFocus()
 
   def fixUrl(self, url): # FIXME
-    # look for "smart" search
+    print url
+    if not url:
+        return "about:blank"
     if url.split(':')[0] == "about":
         return url
     search = False
@@ -275,6 +271,12 @@ class WebTab(QtGui.QWidget):
       return "http://localhost:8000/?q=%s" % (url.replace(" ", "+"))
     else:
       return "http://" + url
+
+  # connect (en constructor)
+  def setTitle(self, title):
+    if self.browser:
+      #self.browser.setTabTitle(self, title)
+      self.browser.tabWidget.setTabText(self.browser.tabWidget.currentIndex(),title[:40])
 
   # connection in constructor and action
   def doSearch(self, s = None):
