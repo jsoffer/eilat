@@ -248,29 +248,31 @@ class WebTab(QtGui.QWidget):
     else:
         # 'not url' para keybinding; 'int' para sin http:// ???
         if not url or type(url) == int: url = unicode(self.cmb.currentText()) # ??? TODO
-        url = QUrl(self.fixUrl(url))
+        #url = QUrl(self.fixUrl(url))
+        url = self.fixUrl(url)
         self.setTitle("Loading...")
         self.webkit.load(url)
         self.webkit.setFocus()
 
   def fixUrl(self, url): # FIXME
-    print url
+    """ entra string, sale QUrl """
     if not url:
-        return "about:blank"
+        return QUrl()
     if url.split(':')[0] == "about":
-        return url
+        return QUrl(url)
     search = False
     if url[:4] == 'http':
-      return url
+      return QUrl(url)
     else:
       try:
         gethostbyname(url.split('/')[0]) # ingenioso pero feo; con 'bind' local es barato
       except Exception as e:
         search = True
     if search:
-      return "http://localhost:8000/?q=%s" % (url.replace(" ", "+"))
+      return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
     else:
-      return "http://" + url
+      #return "http://" + url
+      return QUrl.fromUserInput(url)
 
   # connect (en constructor)
   def setTitle(self, title):

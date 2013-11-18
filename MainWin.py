@@ -143,7 +143,7 @@ class MainWin(QMainWindow):
       self.focusWeb()
     else:
       self.focusAddress()
-    return self.tabs[self.tabWidget.currentIndex()]
+    #return self.tabs[self.tabWidget.currentIndex()]
 
   def focusWeb(self):
     self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
