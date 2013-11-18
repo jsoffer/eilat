@@ -35,7 +35,6 @@
 """
 
 from PyQt4.Qt import QClipboard
-from PyQt4.QtCore import QUrl
 from PyQt4.QtGui import QMainWindow, QTabWidget
 
 # local

@@ -45,33 +45,6 @@ from PyQt4.Qt import QUrl
 # local
 from libeilat import log, printHost, printHeaders
 
-errorData = {
-        0: "NoError",
-        1: "ConnectionRefusedError",
-        2: "RemoteHostClosedError",
-        3: "HostNotFoundError",
-        4: "TimeoutError",
-        5: "OperationCanceledError",
-        6: "SslHandshakeFailedError",
-        7: "TemporaryNetworkFailureError",
-        101: "ProxyConnectionRefusedError",
-        102: "ProxyConnectionClosedError",
-        103: "ProxyNotFoundError",
-        104: "ProxyTimeoutError",
-        105: "ProxyAuthenticationRequiredError",
-        201: "ContentAccessDenied",
-        202: "ContentOperationNotPermittedError",
-        203: "ContentNotFoundError",
-        204: "AuthenticationRequiredError",
-        205: "ContentReSendError",
-        301: "ProtocolUnknownError",
-        302: "ProtocolInvalidOperationError",
-        99: "UnknownNetworkError",
-        199: "UnknownProxyError",
-        299: "UnknownContentError",
-        399: "ProtocolFailure"
-}
-
 class InterceptNAM(QNetworkAccessManager):
     def __init__(self, parent=None, whitelist=None):
         super(InterceptNAM, self).__init__(parent)
@@ -89,7 +62,8 @@ class InterceptNAM(QNetworkAccessManager):
 
         # Storables:
         # + datetime: timestamp
-        # - operation
+        # * operation
+        #    * if POST: query
         # * request:
         #     + url: toString
         #     * scheme, path, host, fragment, port, query (json)
@@ -120,7 +94,6 @@ class InterceptNAM(QNetworkAccessManager):
         #    print "<"+unicode(operation)+"< " + url
 
         if (request.url().scheme() in ['data','file']) or (request.url().host() == 'localhost'):
-            print request.url().scheme()
             return QNetworkAccessManager.createRequest(self, operation, request, data)
 
         if self.whitelist:
@@ -154,10 +127,8 @@ class InterceptNAM(QNetworkAccessManager):
                     #    - url: mismos campos (puede variar desde el request)
 
                     encabezados = filtra(r.rawHeaderPairs())
-                    statuscode = r.attribute(QNetworkRequest.HttpStatusCodeAttribute).toInt()
-                    if statuscode[0] != 200:
-                        print "STATUS " + unicode(statuscode)
-                    query = "INSERT INTO reply (at, instance, id, url, status, t) values (now(), %s, %s, '%s', %s, '%s')" % (self.instance_id, k, s(r.url().toString()), statuscode[0], encabezados)
+                    (statuscode,unknown_other) = r.attribute(QNetworkRequest.HttpStatusCodeAttribute).toInt()
+                    query = "INSERT INTO reply (at, instance, id, url, status, t) values (now(), %s, %s, '%s', %s, '%s')" % (self.instance_id, k, s(r.url().toString()), statuscode, encabezados)
                     self.db_cursor.execute(query)
                     self.db_conn.commit()
 
@@ -187,4 +158,3 @@ class InterceptNAM(QNetworkAccessManager):
         self.db_conn.commit()
         self.count += 1
         return response
-
