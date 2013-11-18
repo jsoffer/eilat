@@ -45,8 +45,36 @@ from PyQt4.Qt import QUrl
 # local
 from libeilat import log, printHost, printHeaders
 
+errorData = {
+        0: "NoError",
+        1: "ConnectionRefusedError",
+        2: "RemoteHostClosedError",
+        3: "HostNotFoundError",
+        4: "TimeoutError",
+        5: "OperationCanceledError",
+        6: "SslHandshakeFailedError",
+        7: "TemporaryNetworkFailureError",
+        101: "ProxyConnectionRefusedError",
+        102: "ProxyConnectionClosedError",
+        103: "ProxyNotFoundError",
+        104: "ProxyTimeoutError",
+        105: "ProxyAuthenticationRequiredError",
+        201: "ContentAccessDenied",
+        202: "ContentOperationNotPermittedError",
+        203: "ContentNotFoundError",
+        204: "AuthenticationRequiredError",
+        205: "ContentReSendError",
+        301: "ProtocolUnknownError",
+        302: "ProtocolInvalidOperationError",
+        99: "UnknownNetworkError",
+        199: "UnknownProxyError",
+        299: "UnknownContentError",
+        399: "ProtocolFailure"
+}
+
 class InterceptNAM(QNetworkAccessManager):
     def __init__(self, parent=None, whitelist=None):
+        super(InterceptNAM, self).__init__(parent)
         print "INIT InterceptNAM"
         self.instance_id = time()
         self.count = 0
@@ -56,7 +84,6 @@ class InterceptNAM(QNetworkAccessManager):
         self.db_conn = postgres.connect("dbname=pguser user=pguser")
         self.db_cursor = self.db_conn.cursor()
 
-        super(InterceptNAM, self).__init__(parent)
 
     def createRequest(self, operation, request, data):
 
@@ -92,7 +119,8 @@ class InterceptNAM(QNetworkAccessManager):
         #        print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
         #    print "<"+unicode(operation)+"< " + url
 
-        if (request.url().scheme() == 'data') or (request.url().host() == 'localhost'):
+        if (request.url().scheme() in ['data','file']) or (request.url().host() == 'localhost'):
+            print request.url().scheme()
             return QNetworkAccessManager.createRequest(self, operation, request, data)
 
         if self.whitelist:
@@ -101,7 +129,7 @@ class InterceptNAM(QNetworkAccessManager):
                 return QNetworkAccessManager.createRequest(self, operation, QNetworkRequest(QUrl("about:blank")), data)
 
         response = QNetworkAccessManager.createRequest(self, operation, request, data)
-        #response.error.connect(lambda: printHost(response, "ERROR> " ))
+        #response.error.connect(lambda k: log(response.errorString() + "|||" + errorData[k]))
         def filtra(xs):
             ret = {}
             for (p,q) in xs:
@@ -126,7 +154,10 @@ class InterceptNAM(QNetworkAccessManager):
                     #    - url: mismos campos (puede variar desde el request)
 
                     encabezados = filtra(r.rawHeaderPairs())
-                    query = "INSERT INTO reply (at, instance, id, url, t) values (now(), %s, %s, '%s','%s')" % (self.instance_id, k, s(r.url().toString()), encabezados)
+                    statuscode = r.attribute(QNetworkRequest.HttpStatusCodeAttribute).toInt()
+                    if statuscode[0] != 200:
+                        print "STATUS " + unicode(statuscode)
+                    query = "INSERT INTO reply (at, instance, id, url, status, t) values (now(), %s, %s, '%s', %s, '%s')" % (self.instance_id, k, s(r.url().toString()), statuscode[0], encabezados)
                     self.db_cursor.execute(query)
                     self.db_conn.commit()
 
@@ -135,7 +166,7 @@ class InterceptNAM(QNetworkAccessManager):
                     try:
                         self.cheatgc.remove(r)
                         self.cheatgc.remove(k)
-                        print "[%s]" % (len(self.cheatgc)),
+                        print "[%s]" % (len(self.cheatgc))
                     except Exception as e:
                         print ">>> Exception: %s" % (e)
                 except NameError:
