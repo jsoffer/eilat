@@ -42,7 +42,7 @@ from socket import gethostbyname
 
 # local
 from WebView import WebView
-from libeilat import log, registerShortcuts
+from libeilat import log, register_shortcuts
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -116,7 +116,7 @@ class WebTab(QtGui.QWidget):
         self.txtSearch.textChanged.connect(self.doSearch)
 
         self.registerActions()
-        registerShortcuts(self.actions, self)
+        register_shortcuts(self.actions, self)
         self.showHideMessage()
 
         # reemplazar el Network Access Manager para saber qué contenido está pidiendo

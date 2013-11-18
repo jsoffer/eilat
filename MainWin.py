@@ -39,9 +39,7 @@ from PyQt4.QtGui import QMainWindow, QTabWidget
 
 # local
 from WebTab import WebTab
-from libeilat import registerShortcuts
-
-#from signal import signal, SIGUSR1
+from libeilat import register_shortcuts
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
@@ -49,10 +47,8 @@ class MainWin(QMainWindow):
         QMainWindow.__init__(self, None)
         self.netmanager = netmanager
         self.cb = cb
-        self.downloader = None
         self.actions = dict()
         self.register_actions()
-        self.showStatusBar = False
         self.appname = "Eilat Browser"
         self.tabWidget = QTabWidget(self)
 
@@ -62,7 +58,7 @@ class MainWin(QMainWindow):
         self.tabWidget.setTabsClosable(True)
 
         self.tabWidget.tabCloseRequested.connect(self.del_tab)
-        registerShortcuts(self.actions, self)
+        register_shortcuts(self.actions, self)
 
     def register_actions(self):
         self.actions["newtab"]    = [self.add_tab,       "Ctrl+T", "Open new tab"]
