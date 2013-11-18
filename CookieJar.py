@@ -35,33 +35,56 @@
 """
 
 from PyQt4.QtNetwork import QNetworkCookieJar, QNetworkCookie
+from libeilat import log
+
+def format_cookie(url, cookies):
+    """ Constructs a log message from a list of cookies and the host
+    where they're set
+
+    """
+    prefix = "\n< COOKIES (%s%s) " % (url.host(), url.path())
+    suffix = ", ".join(["[[%s%s] %s => %s]" %
+        (cookie.domain(),
+            cookie.path(),
+            cookie.name(),
+            cookie.value())
+        for cookie in cookies])
+    return (prefix + suffix)
 
 class CookieJar(QNetworkCookieJar):
-    def __init__(self, parent=None, allowed = [], storage=None):
+    """ Logs and intercepts cookies; part of the Network Access Manager
+
+    """
+    def __init__(self, parent=None, allowed=None, storage=None):
+        """ Load cookies from a file
+
+        """
         super(CookieJar, self).__init__(parent)
         print "INIT CookieJar"
-        self.allowed = allowed
+        if not allowed:
+            self.allowed = []
+        else:
+            self.allowed = allowed
         if storage:
             try:
-                self.fh = open(storage,"r")
-                cookies = map(QNetworkCookie.parseCookies, self.fh.readlines())
-                cookies = [x for y in cookies for x in y]
-                self.setAllCookies(cookies)
-            except Exception as e:
-                print e
-                print "\nCOOKIES: empty?"
+                with open(storage,"r") as readfile:
+                    cookies = [QNetworkCookie.parseCookies(k)
+                            for k in readfile.readlines()]
+                    cookies = [x for y in cookies for x in y] # flatten
+                    self.setAllCookies(cookies)
+            except IOError:
+                print "LOAD COOKIES: empty?"
 
-    def setCookiesFromUrl(self,cookies,url):
+
+    def setCookiesFromUrl(self, cookies, url):
+        """ Reimplementation from base class. Prevents cookies from being set
+        if not from whitelisted domains.
+
+        """
         if ".".join(unicode(url.host()).split('.')[-2:]) not in self.allowed:
             ret = []
         else:
             ret = cookies
         if ret:
-            print "\n< COOKIES " + url.host() + url.path() + ": " + ", ".join(map(lambda k: "["+unicode(k.domain())+unicode(k.path())+"]" + unicode(k.name()) + " => " + unicode(k.value()), ret))
-        return QNetworkCookieJar.setCookiesFromUrl(self,ret,url)
-    def cookiesForUrl(self,url):
-        ret = QNetworkCookieJar.cookiesForUrl(self,url)
-        #if ret:
-            #print "> COOKIES " + unicode(map(lambda k: k.toRawForm(), ret))
-        #    print "> COOKIES " + url.host() + url.path() + ": " + ", ".join(map(lambda k: "["+unicode(k.domain())+unicode(k.path())+"]" + unicode(k.name()) + " => " + unicode(k.value()), ret))
-        return ret
+            log(format_cookie(url, ret))
+        return QNetworkCookieJar.setCookiesFromUrl(self, ret, url)
