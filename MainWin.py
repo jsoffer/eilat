@@ -51,8 +51,6 @@ class MainWin(QMainWindow):
     self.cb = cb
     self.downloader = None
     self.actions = dict()
-    self.tabactions = dict()
-    self.tabactions = dict()
     self.registerActions()
     self.showStatusBar = False
     self.appname = "Eilat Browser"
@@ -90,6 +88,7 @@ class MainWin(QMainWindow):
     elif idx >= self.tabWidget.count():
       idx = 0
     self.tabWidget.setCurrentIndex(idx)
+    self.tabWidget.currentWidget().webkit.setFocus()
 
   # action y connect en llamada en constructor
   def delTab(self, idx = None):
@@ -100,15 +99,19 @@ class MainWin(QMainWindow):
     self.tabWidget.removeTab(idx)
     if len(self.tabWidget) == 0:
       self.close()
+    else:
+      self.tabWidget.currentWidget().webkit.setFocus()
 
   # action (en registerActions)
   # externo en eilat.py, crea la primera tab
   def addTab(self, url = None):
-    tab = WebTab(browser=self, actions=self.tabactions, netmanager=self.netmanager)
+    tab = WebTab(browser=self, netmanager=self.netmanager)
     self.tabWidget.addTab(tab, "New tab")
     self.tabWidget.setCurrentWidget(tab)
     if url:
       tab.navigate(url)
+    else:
+      tab.cmb.setFocus()
 
   # Implemented, it's recognized and runs at close
   def closeEvent(self, e):

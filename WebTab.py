@@ -46,9 +46,8 @@ from libeilat import log, registerShortcuts
 
 class WebTab(QtGui.QWidget):
   """ Cada tab contiene una página web """
-  def __init__(self, browser, netmanager, actions=None, parent=None):
+  def __init__(self, browser, netmanager, parent=None):
     QtGui.QWidget.__init__(self, parent)
-    self.tabindex = browser.tabWidget.currentIndex() + 1
     self.actions = dict()
 
     self.browser = browser
@@ -124,8 +123,6 @@ class WebTab(QtGui.QWidget):
     self.netmanager = netmanager
     page.setNetworkAccessManager(self.netmanager)
 
-    self.cmb.setFocus()
-
   # connect (en constructor)
   def onUnsupportedContent(self, reply):
     log("\nUnsupported content %s" % (reply.url().toString()))
@@ -181,7 +178,7 @@ class WebTab(QtGui.QWidget):
     self.statusbar.showMessage("(press %s to hide this)" % (self.actions["togglestatus"][1]))
 
   def registerActions(self):
-    self.actions["addressnav"]  = [self.navigate, "Ctrl+J|Enter", self.cmb, "Navigate to the url in the address bar"]
+    self.actions["addressnav"]  = [self.navigate, "Enter|Ctrl+J", self.cmb, "Navigate to the url in the address bar"]
     self.actions["reload"]      = [self.webkit.reload, "F5|R", "Reload the current page"]
     self.actions["back"]        = [self.back, "Alt+Left", "Go back in history"]
     self.actions["fwd"]         = [self.fwd, "Alt+Right", "Go forward in history"]
