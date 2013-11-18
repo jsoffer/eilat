@@ -261,7 +261,7 @@ class WebTab(QtGui.QWidget):
     if url.split(':')[0] == "about":
         return QUrl(url)
     search = False
-    if url[:4] == 'http':
+    if url[:4] in ['http','file']:
       return QUrl(url)
     else:
       try:
