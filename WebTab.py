@@ -159,7 +159,10 @@ class WebTab(QtGui.QWidget):
 
   # connect (en constructor)
   def onLinkClick(self, qurl):
-    self.navigate(qurl, self.webkit.paste)
+    if self.webkit.paste:
+        self.browser.addTab(qurl)
+    else:
+        self.navigate(qurl)
 
   # connect (en constructor)
   def onLinkHovered(self, link, title, content):
@@ -217,7 +220,7 @@ class WebTab(QtGui.QWidget):
     else:
       self.webkit.stop()
 
-  # usado en zoom in, zoom out
+  # auxiliar; action (en registerActions)
   def zoom(self, lvl):
     self.webkit.setZoomFactor(self.webkit.zoomFactor() + (lvl * 0.25))
 
@@ -239,20 +242,15 @@ class WebTab(QtGui.QWidget):
     self.webkit.history().back()
 
   # action (en registerActions)
-  def navigate(self, url = None, newtab = False):
-    """ Entra QUrl """
-    print url, unicode(newtab)
-    if newtab:
-        self.browser.addTab(url)
+  def navigate(self, url = None):
+    if isinstance(url,QUrl):
+        qurl = url
     else:
-        if not url: # ??? TODO
-            url = unicode(self.cmb.currentText())
-        if isinstance(url, str):
-            # 'not url' para keybinding; 'int' para sin http:// ???
-            url = self.fixUrl(url)
-        self.setTitle("Loading...")
-        self.webkit.load(url)
-        self.webkit.setFocus()
+        if not url: url = unicode(self.cmb.currentText())
+        qurl = self.fixUrl(url)
+    self.setTitle("Loading...")
+    self.webkit.load(qurl)
+    self.webkit.setFocus()
 
   def fixUrl(self, url): # FIXME
     """ entra string, sale QUrl """
