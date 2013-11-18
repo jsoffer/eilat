@@ -277,31 +277,14 @@ class WebTab(QtGui.QWidget):
     if search:
       return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
     else:
-      #return "http://" + url
       return QUrl.fromUserInput(url)
 
   # connect (en constructor)
   def setTitle(self, title):
     if self.browser:
-      #self.browser.setTabTitle(self, title)
-      #self.browser.tabWidget.setTabText(self.browser.tabWidget.currentIndex(),title[:40])
-      self.browser.tabWidget.setTabText(self.tabindex,title[:40])
+      self.browser.tabWidget.setTabText(self.browser.tabWidget.indexOf(self),title[:40])
 
   # connection in constructor and action
   def doSearch(self, s = None):
     if s is None: s = self.txtSearch.text()
     self.webkit.findText(s, QWebPage.FindWrapsAroundDocument)
-
-  # uso externo, delTab en MainWindow
-  #def stop(self):
-  #  self.webkit.stop()
-
-  # uso externo, con señal, en MainWin
-  # no usar; complicado y posiblemente innecesario (no resuelve linkedin)
-  #def stopScript(self):
-  #      self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,False)
-  #      self.cmb.setStyleSheet("QComboBox { background-color: #fff; }")
-
-  # uso externo, toggleStatusVisibility, en MainWin
-  #def setStatusVisibility(self, visible):
-  #  self.statusbar.setVisible(visible)

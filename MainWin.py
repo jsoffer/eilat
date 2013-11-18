@@ -60,7 +60,6 @@ class MainWin(QMainWindow):
 
     self.mkGui()
     registerShortcuts(self.actions, self)
-    #signal(SIGUSR1, self.stopJavascript)
 
   # run (en constructor)
   def mkGui(self):
@@ -82,7 +81,6 @@ class MainWin(QMainWindow):
 
   # aux. action (en registerActions)
   def incTab(self, incby = 1):
-    """ Va a la tab siguiente """
     if self.tabWidget.count() < 2:
       return
     idx = self.tabWidget.currentIndex()
