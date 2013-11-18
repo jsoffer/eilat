@@ -2,7 +2,7 @@
 
 """
 
-  Copyright (c) 2012, Davyd McColl; 2013, Jaime Soffer
+  Copyright (c) 2013, Jaime Soffer
 
    All rights reserved.
 
@@ -40,9 +40,9 @@ from PyQt4.QtCore import Qt
 class WebView(QWebView):
   """ Una página web con contenedor, para poner en una tab """
   def __init__(self, parent = None):
+    super(WebView, self).__init__(parent)
     self.parent = parent
     self.paste = False
-    QWebView.__init__(self, parent)
 
   def mousePressEvent(self, event):
       self.paste = (event.buttons() & Qt.MiddleButton)
