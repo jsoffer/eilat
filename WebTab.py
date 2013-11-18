@@ -164,7 +164,8 @@ class WebTab(QtGui.QWidget):
   # connect (en constructor)
   def setTitle(self, title):
     if self.browser:
-      self.browser.setTabTitle(self, title)
+      #self.browser.setTabTitle(self, title)
+      self.browser.tabWidget.setTabText(self.browser.tabWidget.currentIndex(),title[:40])
 
   # connect (en constructor)
   def onLinkHovered(self, link, title, content):

@@ -88,24 +88,18 @@ class MainWin(QMainWindow):
     self.actions["newtab"]    = [self.addTab,       "Ctrl+T", "Open new tab"]
     self.actions["paste"] = [lambda: self.addTab(unicode(self.cb.text(QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["closetab"]  = [self.delTab,       "Ctrl+W", "Close current tab"]
-    self.actions["tabprev"]   = [self.decTab,       "N|Ctrl+PgUp", "Switch to previous tab"]
+    self.actions["tabprev"]   = [lambda: self.incTab(-1),       "N|Ctrl+PgUp", "Switch to previous tab"]
     self.actions["tabnext"]   = [self.incTab,       "M|Ctrl+PgDown", "Switch to next tab"]
     self.actions["go"]        = [self.focusAddress, "Ctrl+L", "Focus address bar"]
     self.actions["close"]     = [self.close,        "Ctrl+Q", "Close application"]
     self.actions["zoomin"]    = [lambda: self.zoom(1),   "Ctrl+Up", "Zoom into page"]
     self.actions["zoomout"]   = [lambda: self.zoom(-1),  "Ctrl+Down", "Zoom out of page"]
 
-  def focusWeb(self):
-    self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
-
   # aux. action (en registerActions)
   def zoom(self, lvl):
     self.tabs[self.tabWidget.currentIndex()].zoom(lvl)
 
-  def decTab(self):
-    """ Va a la tab anterior """
-    self.incTab(-1)
-
+  # aux. action (en registerActions)
   def incTab(self, incby = 1):
     """ Va a la tab siguiente """
     if self.tabWidget.count() < 2:
@@ -117,19 +111,6 @@ class MainWin(QMainWindow):
     elif idx >= self.tabWidget.count():
       idx = 0
     self.tabWidget.setCurrentIndex(idx)
-
-  def setTabTitle(self, tab, title):
-    idx = self.getTabIndex(tab)
-    if idx > -1:
-      if len(title) > self.maxTitleLen:
-        title = title[:self.maxTitleLen-3] + "..."
-      self.tabWidget.setTabText(idx, title)
-
-  def getTabIndex(self, tab):
-    for i in range(len(self.tabs)):
-      if tab == self.tabs[i]:
-        return i
-    return -1
 
   # action (en registerActions)
   def focusAddress(self):
@@ -163,6 +144,9 @@ class MainWin(QMainWindow):
     else:
       self.focusAddress()
     return self.tabs[self.tabWidget.currentIndex()]
+
+  def focusWeb(self):
+    self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
 
   # Implemented, it's recognized and runs at close
   def closeEvent(self, e):
