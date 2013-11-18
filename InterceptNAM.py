@@ -97,7 +97,8 @@ class InterceptNAM(QNetworkAccessManager):
             return QNetworkAccessManager.createRequest(self, operation, request, data)
 
         if self.whitelist:
-            if not any(map(lambda k: request.url().host()[-len(k):] == k, self.whitelist)):
+            #if not any(map(lambda k: request.url().host()[-len(k):] == k, self.whitelist)):
+            if not any([request.url().host()[-len(k):] == k for k in self.whitelist]):
                 print "FILTERING %s" % request.url().toString()
                 return QNetworkAccessManager.createRequest(self, operation, QNetworkRequest(QUrl("about:blank")), data)
 
@@ -105,7 +106,7 @@ class InterceptNAM(QNetworkAccessManager):
         #response.error.connect(lambda k: log(response.errorString() + "|||" + errorData[k]))
         def filtra(xs):
             ret = {}
-            for (p,q) in xs:
+            for (p, q) in xs:
                 ret[unicode(p)] = unicode(q)
             return json.dumps(ret).replace("'","''")
 
@@ -127,8 +128,8 @@ class InterceptNAM(QNetworkAccessManager):
                     #    - url: mismos campos (puede variar desde el request)
 
                     encabezados = filtra(r.rawHeaderPairs())
-                    (statuscode,unknown_other) = r.attribute(QNetworkRequest.HttpStatusCodeAttribute).toInt()
-                    query = "INSERT INTO reply (at, instance, id, url, status, t) values (now(), %s, %s, '%s', %s, '%s')" % (self.instance_id, k, s(r.url().toString()), statuscode, encabezados)
+                    (statuscode, unknown_other) = r.attribute(QNetworkRequest.HttpStatusCodeAttribute).toInt()
+                    query = """INSERT INTO reply (at, instance, id, url, status, t) values (now(), %s, %s, '%s', %s, '%s')""" % (self.instance_id, k, s(r.url().toString()), statuscode, encabezados)
                     self.db_cursor.execute(query)
                     self.db_conn.commit()
 

@@ -45,238 +45,238 @@ from WebView import WebView
 from libeilat import log, registerShortcuts
 
 class WebTab(QtGui.QWidget):
-  """ Cada tab contiene una página web """
-  def __init__(self, browser, netmanager, parent=None):
-    QtGui.QWidget.__init__(self, parent)
-    self.actions = dict()
+    """ Cada tab contiene una página web """
+    def __init__(self, browser, netmanager, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.actions = dict()
 
-    self.browser = browser
+        self.browser = browser
 
-    # layout
-    self.grid = QtGui.QGridLayout(self)
-    self.grid.setSpacing(0)
-    self.grid.setVerticalSpacing(0)
-    self.grid.setContentsMargins(0,0,0,0)
+        # layout
+        self.grid = QtGui.QGridLayout(self)
+        self.grid.setSpacing(0)
+        self.grid.setVerticalSpacing(0)
+        self.grid.setContentsMargins(0,0,0,0)
 
-    # webkit: la parte que entra a internet
-    # aquí se configura, cada tab tiene opciones independientes
-    self.webkit = WebView(self)
-    self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
-    self.webkit.linkClicked.connect(self.onLinkClick)
-    self.webkit.settings().setAttribute(QWebSettings.PluginsEnabled,False)
-    self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,False)
-    #self.webkit.settings().setAttribute(QWebSettings.SpatialNavigationEnabled,True)
-    #self.webkit.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled,True)
-
-    # address bar
-    self.cmb = QtGui.QComboBox()
-    self.cmb.setEditable(True)
-
-    # progress bar
-    self.pbar = QtGui.QProgressBar()
-    self.pbar.setRange(0, 100)
-    self.pbar.setTextVisible(False)
-    self.pbar.setVisible(False)
-    self.pbar.setMaximumHeight(7)
-
-    # buscar en página (frame+layout)
-    self.fraSearch = QtGui.QFrame()
-    self.searchGrid = QtGui.QGridLayout(self.fraSearch)
-    self.searchGrid.setSpacing(0)
-    self.searchGrid.setContentsMargins(0,0,0,0)
-    self.lblSearch = QtGui.QLabel("Find in page:")
-    self.txtSearch = QtGui.QLineEdit()
-    self.searchGrid.addWidget(self.lblSearch, 0,0)
-    self.searchGrid.addWidget(self.txtSearch, 0,1)
-    self.fraSearch.setVisible(False)
-
-    self.statusbar = QtGui.QStatusBar()
-    self.statusbar.setVisible(False)
-    self.statusbar.setMaximumHeight(25)
-
-    self.grid.addWidget(self.webkit, 1, 0)
-    self.grid.setRowStretch(1, 1)
-    self.grid.addWidget(self.fraSearch, 2, 0)
-    self.grid.addWidget(self.cmb, 0, 0)
-    self.grid.addWidget(self.pbar, 3, 0)
-    self.grid.addWidget(self.statusbar, 4, 0)
-
-    self.webkit.loadStarted.connect(self.loadStarted)
-    self.webkit.loadFinished.connect(self.loadFinished)
-    self.webkit.titleChanged.connect(self.setTitle)
-    self.webkit.loadProgress.connect(self.loadProgress)
-    self.webkit.urlChanged.connect(self.setURL)
-    self.webkit.page().linkHovered.connect(self.onLinkHovered)
-
-    # el contenido de la tab (los datos, no el contenedor)
-    page = self.webkit.page()
-    page.downloadRequested.connect(self.onDownloadRequested)
-    page.setForwardUnsupportedContent(True)
-    page.unsupportedContent.connect(self.onUnsupportedContent)
-    self.txtSearch.textChanged.connect(self.doSearch)
-
-    self.registerActions()
-    registerShortcuts(self.actions, self)
-    self.showHideMessage()
-
-    # reemplazar el Network Access Manager para saber qué contenido está pidiendo
-    self.netmanager = netmanager
-    page.setNetworkAccessManager(self.netmanager)
-
-  # connect (en constructor)
-  def onUnsupportedContent(self, reply):
-    log("\nUnsupported content %s" % (reply.url().toString()))
-
-  # connect (en constructor)
-  def onDownloadRequested(self, request):
-    log("\nDownload Request: " + str(request.url()))
-
-  # connect (en constructor)
-  def loadProgress(self, val):
-    if self.pbar.isVisible():
-      self.pbar.setValue(val)
-
-  # connect (en constructor)
-  def setURL(self, url):
-    self.cmb.setEditText(url.toString())
-
-  # connect (en constructor)
-  def loadStarted(self):
-    self.showProgressBar()
-
-  def showProgressBar(self):
-    self.pbar.setValue(0)
-    self.pbar.setVisible(True)
-
-  # connect (en constructor)
-  def loadFinished(self, success):
-    self.hideProgressBar()
-    if self.cmb.hasFocus():
-      self.webkit.setFocus()
-
-  def hideProgressBar(self, success = False):
-    self.pbar.setVisible(False)
-
-  # connect (en constructor)
-  def onLinkClick(self, qurl):
-    if self.webkit.paste:
-        self.browser.addTab(qurl)
-    else:
-        self.navigate(qurl)
-
-  # connect (en constructor)
-  def onLinkHovered(self, link, title, content):
-    if link or title:
-      if title and not link:
-        self.statusbar.showMessage(title)
-      elif link and not title:
-        self.statusbar.showMessage(link)
-      elif link and title:
-        self.statusbar.showMessage("%s (%s)" % (title, link))
-    else:
-      self.showHideMessage()
-
-  # en constructor
-  def showHideMessage(self):
-    self.statusbar.showMessage("(press %s to hide this)" % (self.actions["togglestatus"][1]))
-
-  def registerActions(self):
-    self.actions["addressnav"]  = [self.navigate, "Enter|Ctrl+J", self.cmb, "Navigate to the url in the address bar"]
-    self.actions["reload"]      = [self.webkit.reload, "F5|R", "Reload the current page"]
-    self.actions["back"]        = [self.back, "Alt+Left", "Go back in history"]
-    self.actions["fwd"]         = [self.fwd, "Alt+Right", "Go forward in history"]
-    self.actions["search"] = [self.initSearch, "G", "Start a search"]
-    self.actions["stopsearch"]  = [self.stopOrHideSearch, "Escape", self.fraSearch, "Stop current load or searching"]
-    self.actions["findnext"]    = [self.doSearch, "Return", self.txtSearch, "Next match for current search"]
-    self.actions["togglestatus"]= [self.toggleStatus, "Ctrl+Space", "Toggle visibility of status bar"]
-    # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
-    self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0,40), "J", "Scrolls down"]
-    self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0,-40), "K", "Scrolls down"]
-    self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
-    self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
-    self.actions["zoomin"]    = [lambda: self.zoom(1),   "Ctrl+Up", "Zoom into page"]
-    self.actions["zoomout"]   = [lambda: self.zoom(-1),  "Ctrl+Down", "Zoom out of page"]
-    self.actions["go"]        = [self.cmb.setFocus, "Ctrl+L", "Focus address bar"]
-
-  # action (en registerActions)
-  def toggleScript(self):
-    """ Activa o desactiva javascript, y notifica cambiando el color del address bar """
-    if self.webkit.settings().testAttribute(QWebSettings.JavascriptEnabled):
+        # webkit: la parte que entra a internet
+        # aquí se configura, cada tab tiene opciones independientes
+        self.webkit = WebView(self)
+        self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        self.webkit.linkClicked.connect(self.onLinkClick)
+        self.webkit.settings().setAttribute(QWebSettings.PluginsEnabled,False)
         self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,False)
-        self.cmb.setStyleSheet("QComboBox { background-color: #fff; }")
-    else:
-        self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,True)
-        self.cmb.setStyleSheet("QComboBox { background-color: #ddf; }")
+        #self.webkit.settings().setAttribute(QWebSettings.SpatialNavigationEnabled,True)
+        #self.webkit.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled,True)
 
-  # action (en registerActions)
-  def toggleStatus(self):
-    self.statusbar.setVisible(not self.statusbar.isVisible())
+        # address bar
+        self.cmb = QtGui.QComboBox()
+        self.cmb.setEditable(True)
 
-  # action (en registerActions)
-  def stopOrHideSearch(self):
-    if self.fraSearch.isVisible():
-      self.fraSearch.setVisible(False)
-      self.webkit.setFocus()
-    else:
-      self.webkit.stop()
+        # progress bar
+        self.pbar = QtGui.QProgressBar()
+        self.pbar.setRange(0, 100)
+        self.pbar.setTextVisible(False)
+        self.pbar.setVisible(False)
+        self.pbar.setMaximumHeight(7)
 
-  # auxiliar; action (en registerActions)
-  def zoom(self, lvl):
-    self.webkit.setZoomFactor(self.webkit.zoomFactor() + (lvl * 0.25))
+        # buscar en página (frame+layout)
+        self.fraSearch = QtGui.QFrame()
+        self.searchGrid = QtGui.QGridLayout(self.fraSearch)
+        self.searchGrid.setSpacing(0)
+        self.searchGrid.setContentsMargins(0,0,0,0)
+        self.lblSearch = QtGui.QLabel("Find in page:")
+        self.txtSearch = QtGui.QLineEdit()
+        self.searchGrid.addWidget(self.lblSearch, 0,0)
+        self.searchGrid.addWidget(self.txtSearch, 0,1)
+        self.fraSearch.setVisible(False)
 
-  # action (en registerActions)
-  def initSearch(self):
-    self.showSearch()
+        self.statusbar = QtGui.QStatusBar()
+        self.statusbar.setVisible(False)
+        self.statusbar.setMaximumHeight(25)
 
-  def showSearch(self):
-    self.txtSearch.setText("")
-    self.fraSearch.setVisible(True)
-    self.txtSearch.setFocus()
+        self.grid.addWidget(self.webkit, 1, 0)
+        self.grid.setRowStretch(1, 1)
+        self.grid.addWidget(self.fraSearch, 2, 0)
+        self.grid.addWidget(self.cmb, 0, 0)
+        self.grid.addWidget(self.pbar, 3, 0)
+        self.grid.addWidget(self.statusbar, 4, 0)
 
-  # action (en registerActions)
-  def fwd(self):
-    self.webkit.history().forward()
+        self.webkit.loadStarted.connect(self.loadStarted)
+        self.webkit.loadFinished.connect(self.loadFinished)
+        self.webkit.titleChanged.connect(self.setTitle)
+        self.webkit.loadProgress.connect(self.loadProgress)
+        self.webkit.urlChanged.connect(self.setURL)
+        self.webkit.page().linkHovered.connect(self.onLinkHovered)
 
-  # action (en registerActions)
-  def back(self):
-    self.webkit.history().back()
+        # el contenido de la tab (los datos, no el contenedor)
+        page = self.webkit.page()
+        page.downloadRequested.connect(self.onDownloadRequested)
+        page.setForwardUnsupportedContent(True)
+        page.unsupportedContent.connect(self.onUnsupportedContent)
+        self.txtSearch.textChanged.connect(self.doSearch)
 
-  # action (en registerActions)
-  def navigate(self, url = None):
-    if isinstance(url,QUrl):
-        qurl = url
-    else:
-        if not url: url = unicode(self.cmb.currentText())
-        qurl = self.fixUrl(url)
-    self.setTitle("Loading...")
-    self.webkit.load(qurl)
-    self.webkit.setFocus()
+        self.registerActions()
+        registerShortcuts(self.actions, self)
+        self.showHideMessage()
 
-  def fixUrl(self, url): # FIXME
-    """ entra string, sale QUrl """
-    if not url:
-        return QUrl()
-    if url.split(':')[0] == "about":
-        return QUrl(url)
-    search = False
-    if url[:4] in ['http','file']:
-      return QUrl(url)
-    else:
-      try:
-        gethostbyname(url.split('/')[0]) # ingenioso pero feo; con 'bind' local es barato
-      except Exception as e:
-        search = True
-    if search:
-      return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
-    else:
-      return QUrl.fromUserInput(url)
+        # reemplazar el Network Access Manager para saber qué contenido está pidiendo
+        self.netmanager = netmanager
+        page.setNetworkAccessManager(self.netmanager)
 
-  # connect (en constructor)
-  def setTitle(self, title):
-    if self.browser:
-      self.browser.tabWidget.setTabText(self.browser.tabWidget.indexOf(self),title[:40])
+    # connect (en constructor)
+    def onUnsupportedContent(self, reply):
+        log("\nUnsupported content %s" % (reply.url().toString()))
 
-  # connection in constructor and action
-  def doSearch(self, s = None):
-    if s is None: s = self.txtSearch.text()
-    self.webkit.findText(s, QWebPage.FindWrapsAroundDocument)
+    # connect (en constructor)
+    def onDownloadRequested(self, request):
+        log("\nDownload Request: " + str(request.url()))
+
+    # connect (en constructor)
+    def loadProgress(self, val):
+        if self.pbar.isVisible():
+            self.pbar.setValue(val)
+
+    # connect (en constructor)
+    def setURL(self, url):
+        self.cmb.setEditText(url.toString())
+
+    # connect (en constructor)
+    def loadStarted(self):
+        self.showProgressBar()
+
+    def showProgressBar(self):
+        self.pbar.setValue(0)
+        self.pbar.setVisible(True)
+
+    # connect (en constructor)
+    def loadFinished(self, success):
+        self.hideProgressBar()
+        if self.cmb.hasFocus():
+            self.webkit.setFocus()
+
+    def hideProgressBar(self, success = False):
+        self.pbar.setVisible(False)
+
+    # connect (en constructor)
+    def onLinkClick(self, qurl):
+        if self.webkit.paste:
+            self.browser.addTab(qurl)
+        else:
+            self.navigate(qurl)
+
+    # connect (en constructor)
+    def onLinkHovered(self, link, title, content):
+        if link or title:
+            if title and not link:
+                self.statusbar.showMessage(title)
+            elif link and not title:
+                self.statusbar.showMessage(link)
+            elif link and title:
+                self.statusbar.showMessage("%s (%s)" % (title, link))
+        else:
+            self.showHideMessage()
+
+    # en constructor
+    def showHideMessage(self):
+        self.statusbar.showMessage("(press %s to hide this)" % (self.actions["togglestatus"][1]))
+
+    def registerActions(self):
+        self.actions["addressnav"]  = [self.navigate, "Enter|Ctrl+J", self.cmb, "Navigate to the url in the address bar"]
+        self.actions["reload"]      = [self.webkit.reload, "F5|R", "Reload the current page"]
+        self.actions["back"]        = [self.back, "Alt+Left", "Go back in history"]
+        self.actions["fwd"]         = [self.fwd, "Alt+Right", "Go forward in history"]
+        self.actions["search"] = [self.initSearch, "G", "Start a search"]
+        self.actions["stopsearch"]  = [self.stopOrHideSearch, "Escape", self.fraSearch, "Stop current load or searching"]
+        self.actions["findnext"]    = [self.doSearch, "Return", self.txtSearch, "Next match for current search"]
+        self.actions["togglestatus"]= [self.toggleStatus, "Ctrl+Space", "Toggle visibility of status bar"]
+        # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
+        self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0, 40), "J", "Scrolls down"]
+        self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0, -40), "K", "Scrolls down"]
+        self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
+        self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
+        self.actions["zoomin"]    = [lambda: self.zoom(1),   "Ctrl+Up", "Zoom into page"]
+        self.actions["zoomout"]   = [lambda: self.zoom(-1),  "Ctrl+Down", "Zoom out of page"]
+        self.actions["go"]        = [self.cmb.setFocus, "Ctrl+L", "Focus address bar"]
+
+    # action (en registerActions)
+    def toggleScript(self):
+        """ Activa o desactiva javascript, y notifica cambiando el color del address bar """
+        if self.webkit.settings().testAttribute(QWebSettings.JavascriptEnabled):
+            self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
+            self.cmb.setStyleSheet("QComboBox { background-color: #fff; }")
+        else:
+            self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
+            self.cmb.setStyleSheet("QComboBox { background-color: #ddf; }")
+
+    # action (en registerActions)
+    def toggleStatus(self):
+        self.statusbar.setVisible(not self.statusbar.isVisible())
+
+    # action (en registerActions)
+    def stopOrHideSearch(self):
+        if self.fraSearch.isVisible():
+            self.fraSearch.setVisible(False)
+            self.webkit.setFocus()
+        else:
+            self.webkit.stop()
+
+    # auxiliar; action (en registerActions)
+    def zoom(self, lvl):
+        self.webkit.setZoomFactor(self.webkit.zoomFactor() + (lvl * 0.25))
+
+    # action (en registerActions)
+    def initSearch(self):
+        self.showSearch()
+
+    def showSearch(self):
+        self.txtSearch.setText("")
+        self.fraSearch.setVisible(True)
+        self.txtSearch.setFocus()
+
+    # action (en registerActions)
+    def fwd(self):
+        self.webkit.history().forward()
+
+    # action (en registerActions)
+    def back(self):
+        self.webkit.history().back()
+
+    # action (en registerActions)
+    def navigate(self, url = None):
+        if isinstance(url, QUrl):
+            qurl = url
+        else:
+            if not url: url = unicode(self.cmb.currentText())
+            qurl = self.fixUrl(url)
+        self.setTitle("Loading...")
+        self.webkit.load(qurl)
+        self.webkit.setFocus()
+
+    def fixUrl(self, url): # FIXME
+        """ entra string, sale QUrl """
+        if not url:
+            return QUrl()
+        if url.split(':')[0] == "about":
+            return QUrl(url)
+        search = False
+        if url[:4] in ['http', 'file']:
+            return QUrl(url)
+        else:
+            try:
+                gethostbyname(url.split('/')[0]) # ingenioso pero feo; con 'bind' local es barato
+            except Exception as e:
+                search = True
+        if search:
+            return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
+        else:
+            return QUrl.fromUserInput(url)
+
+    # connect (en constructor)
+    def setTitle(self, title):
+        if self.browser:
+            self.browser.tabWidget.setTabText(self.browser.tabWidget.indexOf(self), title[:40])
+
+    # connection in constructor and action
+    def doSearch(self, s = None):
+        if s is None: s = self.txtSearch.text()
+        self.webkit.findText(s, QWebPage.FindWrapsAroundDocument)

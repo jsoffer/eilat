@@ -116,9 +116,9 @@ def main():
     mainwin.show()
 
     if sitio:
-        mainwin.addTab(sitio)
+        mainwin.add_tab(sitio)
     else:
-        mainwin.addTab()
+        mainwin.add_tab()
 
     def end_call():
         """ The browser is closing - save cookies, if required.

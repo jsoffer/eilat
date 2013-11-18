@@ -44,77 +44,72 @@ from libeilat import registerShortcuts
 #from signal import signal, SIGUSR1
 
 class MainWin(QMainWindow):
-  """ Esta ventana guarda las tabs """
-  def __init__(self, netmanager, cb):
-    QMainWindow.__init__(self, None)
-    self.netmanager = netmanager
-    self.cb = cb
-    self.downloader = None
-    self.actions = dict()
-    self.registerActions()
-    self.showStatusBar = False
-    self.appname = "Eilat Browser"
-    self.maxTitleLen = 40
+    """ Esta ventana guarda las tabs """
+    def __init__(self, netmanager, cb):
+        QMainWindow.__init__(self, None)
+        self.netmanager = netmanager
+        self.cb = cb
+        self.downloader = None
+        self.actions = dict()
+        self.register_actions()
+        self.showStatusBar = False
+        self.appname = "Eilat Browser"
+        self.tabWidget = QTabWidget(self)
 
-    self.mkGui()
-    registerShortcuts(self.actions, self)
+        self.setWindowTitle(self.appname)
+        self.tabWidget.tabBar().setMovable(True)
+        self.setCentralWidget(self.tabWidget)
+        self.tabWidget.setTabsClosable(True)
 
-  # run (en constructor)
-  def mkGui(self):
-    self.setWindowTitle(self.appname)
-    self.tabWidget = QTabWidget(self)
-    self.tabWidget.tabBar().setMovable(True)
-    self.setCentralWidget(self.tabWidget)
-    self.tabWidget.setTabsClosable(True)
+        self.tabWidget.tabCloseRequested.connect(self.del_tab)
+        registerShortcuts(self.actions, self)
 
-    self.tabWidget.tabCloseRequested.connect(self.delTab)
+    def register_actions(self):
+        self.actions["newtab"]    = [self.add_tab,       "Ctrl+T", "Open new tab"]
+        self.actions["paste"] = [lambda: self.add_tab(unicode(self.cb.text(QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
+        self.actions["closetab"]  = [self.del_tab,       "Ctrl+W", "Close current tab"]
+        self.actions["tabprev"]   = [lambda: self.inc_tab(-1),       "N|Ctrl+PgUp", "Switch to previous tab"]
+        self.actions["tabnext"]   = [self.inc_tab,       "M|Ctrl+PgDown", "Switch to next tab"]
+        self.actions["close"]     = [self.close,        "Ctrl+Q", "Close application"]
 
-  def registerActions(self):
-    self.actions["newtab"]    = [self.addTab,       "Ctrl+T", "Open new tab"]
-    self.actions["paste"] = [lambda: self.addTab(unicode(self.cb.text(QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
-    self.actions["closetab"]  = [self.delTab,       "Ctrl+W", "Close current tab"]
-    self.actions["tabprev"]   = [lambda: self.incTab(-1),       "N|Ctrl+PgUp", "Switch to previous tab"]
-    self.actions["tabnext"]   = [self.incTab,       "M|Ctrl+PgDown", "Switch to next tab"]
-    self.actions["close"]     = [self.close,        "Ctrl+Q", "Close application"]
+    # aux. action (en registerActions)
+    def inc_tab(self, incby = 1):
+        if self.tabWidget.count() < 2:
+            return
+        idx = self.tabWidget.currentIndex()
+        idx += incby
+        if idx < 0:
+            idx = self.tabWidget.count()-1
+        elif idx >= self.tabWidget.count():
+            idx = 0
+        self.tabWidget.setCurrentIndex(idx)
+        self.tabWidget.currentWidget().webkit.setFocus()
 
-  # aux. action (en registerActions)
-  def incTab(self, incby = 1):
-    if self.tabWidget.count() < 2:
-      return
-    idx = self.tabWidget.currentIndex()
-    idx += incby
-    if idx < 0:
-      idx = self.tabWidget.count()-1;
-    elif idx >= self.tabWidget.count():
-      idx = 0
-    self.tabWidget.setCurrentIndex(idx)
-    self.tabWidget.currentWidget().webkit.setFocus()
+    # action y connect en llamada en constructor
+    def del_tab(self, idx = None):
+        if not idx:
+            idx = self.tabWidget.currentIndex()
+        self.tabWidget.widget(idx).webkit.stop()
+        self.tabWidget.widget(idx).deleteLater()
+        self.tabWidget.removeTab(idx)
+        if len(self.tabWidget) == 0:
+            self.close()
+        else:
+            self.tabWidget.currentWidget().webkit.setFocus()
 
-  # action y connect en llamada en constructor
-  def delTab(self, idx = None):
-    if not idx:
-      idx = self.tabWidget.currentIndex()
-    self.tabWidget.widget(idx).webkit.stop()
-    self.tabWidget.widget(idx).deleteLater()
-    self.tabWidget.removeTab(idx)
-    if len(self.tabWidget) == 0:
-      self.close()
-    else:
-      self.tabWidget.currentWidget().webkit.setFocus()
+    # action (en registerActions)
+    # externo en eilat.py, crea la primera tab
+    def add_tab(self, url = None):
+        tab = WebTab(browser=self, netmanager=self.netmanager)
+        self.tabWidget.addTab(tab, "New tab")
+        self.tabWidget.setCurrentWidget(tab)
+        if url:
+            tab.navigate(url)
+        else:
+            tab.cmb.setFocus()
 
-  # action (en registerActions)
-  # externo en eilat.py, crea la primera tab
-  def addTab(self, url = None):
-    tab = WebTab(browser=self, netmanager=self.netmanager)
-    self.tabWidget.addTab(tab, "New tab")
-    self.tabWidget.setCurrentWidget(tab)
-    if url:
-      tab.navigate(url)
-    else:
-      tab.cmb.setFocus()
-
-  # Implemented, it's recognized and runs at close
-  def closeEvent(self, e):
-    print "MainWin.closeEvent"
-    e.accept()
-    self.close()
+    # Implemented, it's recognized and runs at close
+    #def closeEvent(self, e):
+    #    print "MainWin.closeEvent"
+    #    e.accept()
+    #    self.close()
