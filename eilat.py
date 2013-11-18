@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     def endCall():
         print "END"
-        if cookies_storage:
+        if COOKIE_FILE:
             print "SAVING COOKIES"
             fh = open(COOKIE_FILE,"w")
             for cookie in cookiejar.allCookies():
