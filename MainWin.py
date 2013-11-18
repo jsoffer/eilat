@@ -92,12 +92,10 @@ class MainWin(QMainWindow):
     self.actions["tabnext"]   = [self.incTab,       "M|Ctrl+PgDown", "Switch to next tab"]
     self.actions["go"]        = [self.focusAddress, "Ctrl+L", "Focus address bar"]
     self.actions["close"]     = [self.close,        "Ctrl+Q", "Close application"]
-    self.actions["zoomin"]    = [lambda: self.zoom(1),   "Ctrl+Up", "Zoom into page"]
-    self.actions["zoomout"]   = [lambda: self.zoom(-1),  "Ctrl+Down", "Zoom out of page"]
 
   # aux. action (en registerActions)
-  def zoom(self, lvl):
-    self.tabs[self.tabWidget.currentIndex()].zoom(lvl)
+  #def zoom(self, lvl):
+  #  self.tabs[self.tabWidget.currentIndex()].zoom(lvl)
 
   # aux. action (en registerActions)
   def incTab(self, incby = 1):

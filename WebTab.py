@@ -48,6 +48,7 @@ class WebTab(QtGui.QWidget):
   """ Cada tab contiene una página web """
   def __init__(self, browser, netmanager, actions=None, parent=None):
     QtGui.QWidget.__init__(self, parent)
+    self.tabindex = browser.tabWidget.currentIndex() + 1
     self.actions = dict()
 
     self.browser = browser
@@ -191,6 +192,8 @@ class WebTab(QtGui.QWidget):
     self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0,-40), "K", "Scrolls down"]
     self.actions["togglejs"] = [self.toggleScript, "Q", "Switches javascript on/off"]
     self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
+    self.actions["zoomin"]    = [lambda: self.zoom(1),   "Ctrl+Up", "Zoom into page"]
+    self.actions["zoomout"]   = [lambda: self.zoom(-1),  "Ctrl+Down", "Zoom out of page"]
 
   # action (en registerActions)
   def toggleScript(self):
@@ -278,7 +281,8 @@ class WebTab(QtGui.QWidget):
   def setTitle(self, title):
     if self.browser:
       #self.browser.setTabTitle(self, title)
-      self.browser.tabWidget.setTabText(self.browser.tabWidget.currentIndex(),title[:40])
+      #self.browser.tabWidget.setTabText(self.browser.tabWidget.currentIndex(),title[:40])
+      self.browser.tabWidget.setTabText(self.tabindex,title[:40])
 
   # connection in constructor and action
   def doSearch(self, s = None):
