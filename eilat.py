@@ -39,11 +39,7 @@ davydm@gmail.com
 
 """
 
-import sip
-sip.setapi('QString',2)
-
 from PyQt4.QtGui import QApplication
-from PyQt4.QtCore import QTimer
 from PyQt4.QtNetwork import QNetworkProxy
 
 # local
@@ -58,79 +54,79 @@ def atEnd():
 
 if __name__ == "__main__":
 
-  # Considerations:
-  # Will use proxy? (if not google, fb, twitter... then yes)
-  use_proxy = True
-  # Which whitelist will use instead?
-  hosts_whitelist = None
-  # Will allow cookies? Which? Where are they saved?
-  cookies_allowed = ["github.com", "linkedin.com"]
-  cookies_storage = None
+    # Considerations:
+    # Will use proxy? (if not google, fb, twitter... then yes)
+    USE_PROXY = True
+    # Which whitelist will use instead?
+    WHITELIST = None
+    # Will allow cookies? Which? Where are they saved?
+    COOKIE_ALLOW = ["github.com", "linkedin.com"]
+    COOKIE_FILE = None
 
-  if len(argv) == 2:
-      sitio = argv[1]
-      if (sitio.split('.')[-2:] == ["facebook","com"]):
-          print "FACEBOOK"
-          use_proxy = False
-          hosts_whitelist = ["facebook.com", "akamaihd.net", "fbcdn.net"]
-          cookies_allowed = ["facebook.com"]
-          cookies_storage = "fbcookies.cj"
-      elif (sitio.split('.')[-2:] == ["twitter","com"]):
-          print "TWITTER"
-          use_proxy = False
-          hosts_whitelist = ["twitter.com", "twimg.com"]
-          cookies_allowed = ["twitter.com"]
-          cookies_storage = "twcookies.cj"
-      elif (sitio.split('.')[-2:] == ["google","com"]):
-          print "GOOGLE"
-          use_proxy = False
-          hosts_whitelist = ["google.com","google.com.mx","googleusercontent.com","gstatic.com","googleapis.com"]
-          cookies_allowed = ["google.com"]
-          cookies_storage = "gcookies.cj"
-      else:
-          print "GENERAL"
-  else:
-      sitio = None
-      print "EMPTY"
+    if len(argv) == 2:
+        SITIO = argv[1]
+        if (SITIO.split('.')[-2:] == ["facebook","com"]):
+            print "FACEBOOK"
+            USE_PROXY = False
+            WHITELIST = ["facebook.com", "akamaihd.net", "fbcdn.net"]
+            COOKIE_ALLOW = ["facebook.com"]
+            COOKIE_FILE = "fbcookies.cj"
+        elif (SITIO.split('.')[-2:] == ["twitter","com"]):
+            print "TWITTER"
+            USE_PROXY = False
+            WHITELIST = ["twitter.com", "twimg.com"]
+            COOKIE_ALLOW = ["twitter.com"]
+            COOKIE_FILE = "twcookies.cj"
+        elif (SITIO.split('.')[-2:] == ["google","com"]):
+            print "GOOGLE"
+            USE_PROXY = False
+            WHITELIST = [
+                    "google.com",
+                    "google.com.mx",
+                    "googleusercontent.com",
+                    "gstatic.com",
+                    "googleapis.com"]
+            COOKIE_ALLOW = ["google.com"]
+            COOKIE_FILE = "gcookies.cj"
+        else:
+            print "GENERAL"
+    else:
+        SITIO = None
+        print "EMPTY"
 
-  # Proxy
-  if use_proxy:
-      proxy = QNetworkProxy()
-      proxy.setType(QNetworkProxy.HttpProxy)
-      proxy.setHostName('localhost');
-      proxy.setPort(3128)
-      QNetworkProxy.setApplicationProxy(proxy);
+    # Proxy
+    if USE_PROXY:
+        proxy = QNetworkProxy()
+        proxy.setType(QNetworkProxy.HttpProxy)
+        proxy.setHostName('localhost')
+        proxy.setPort(3128)
+        QNetworkProxy.setApplicationProxy(proxy)
 
-  app = QApplication([])
+    app = QApplication([])
 
-  # This timer allows catching signals even if the app is inactive
-  # timer = QTimer()
-  # timer.start(5000)
-  # timer.timeout.connect(lambda: None)
+    cb = app.clipboard()
+    netmanager = InterceptNAM(whitelist = WHITELIST)
+    cookiejar = CookieJar(allowed = COOKIE_ALLOW, storage = COOKIE_FILE)
+    netmanager.setCookieJar(cookiejar)
 
-  cb = app.clipboard()
-  netmanager = InterceptNAM(whitelist = hosts_whitelist)
-  cookiejar = CookieJar(allowed = cookies_allowed, storage = cookies_storage)
-  netmanager.setCookieJar(cookiejar)
+    app.setApplicationName("Eilat")
+    app.setApplicationVersion("1.002")
+    mainwin = MainWin(netmanager, cb)
+    mainwin.show()
 
-  app.setApplicationName("Eilat")
-  app.setApplicationVersion("1.002")
-  mainwin = MainWin(netmanager, cb)
-  mainwin.show()
+    if SITIO:
+        mainwin.addTab(SITIO)
+    else:
+        mainwin.addTab()
 
-  if sitio:
-      mainwin.addTab(sitio)
-  else:
-      mainwin.addTab()
-
-  def endCall():
-      print "END"
-      if cookies_storage:
-          print "SAVING COOKIES"
-          fh = open(cookies_storage,"w")
-          for cookie in cookiejar.allCookies():
-              fh.write(cookie.toRawForm()+"\n")
-          fh.flush()
-          fh.close()
-  app.lastWindowClosed.connect(endCall)
-  app.exec_()
+    def endCall():
+        print "END"
+        if cookies_storage:
+            print "SAVING COOKIES"
+            fh = open(COOKIE_FILE,"w")
+            for cookie in cookiejar.allCookies():
+                fh.write(cookie.toRawForm()+"\n")
+            fh.flush()
+            fh.close()
+    app.lastWindowClosed.connect(endCall)
+    app.exec_()
