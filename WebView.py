@@ -38,12 +38,18 @@ from PyQt4.QtWebKit import QWebView
 from PyQt4.QtCore import Qt
 
 class WebView(QWebView):
-  """ Una página web con contenedor, para poner en una tab """
-  def __init__(self, parent = None):
-    super(WebView, self).__init__(parent)
-    self.parent = parent
-    self.paste = False
+    """ Una página web con contenedor, para poner en una tab
 
-  def mousePressEvent(self, event):
-      self.paste = (event.buttons() & Qt.MiddleButton)
-      return QWebView.mousePressEvent(self,event)
+    """
+    def __init__(self, parent = None):
+        super(WebView, self).__init__(parent)
+        self.parent = parent
+        self.paste = False
+
+    def mousePressEvent(self, event):
+        """ Reimplementation from base class. Detects middle clicks
+        and sets self.paste
+
+        """
+        self.paste = (event.buttons() & Qt.MiddleButton)
+        return QWebView.mousePressEvent(self, event)
