@@ -114,7 +114,7 @@ if __name__ == "__main__":
   netmanager.setCookieJar(cookiejar)
 
   app.setApplicationName("Eilat")
-  app.setApplicationVersion("1.001")
+  app.setApplicationVersion("1.002")
   mainwin = MainWin(netmanager, cb)
   mainwin.show()
 
