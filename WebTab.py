@@ -124,6 +124,8 @@ class WebTab(QtGui.QWidget):
     self.netmanager = netmanager
     page.setNetworkAccessManager(self.netmanager)
 
+    self.cmb.setFocus()
+
   # connect (en constructor)
   def onUnsupportedContent(self, reply):
     log("\nUnsupported content %s" % (reply.url().toString()))
@@ -194,6 +196,7 @@ class WebTab(QtGui.QWidget):
     self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
     self.actions["zoomin"]    = [lambda: self.zoom(1),   "Ctrl+Up", "Zoom into page"]
     self.actions["zoomout"]   = [lambda: self.zoom(-1),  "Ctrl+Down", "Zoom out of page"]
+    self.actions["go"]        = [self.cmb.setFocus, "Ctrl+L", "Focus address bar"]
 
   # action (en registerActions)
   def toggleScript(self):

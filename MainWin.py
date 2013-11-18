@@ -56,7 +56,6 @@ class MainWin(QMainWindow):
     self.registerActions()
     self.showStatusBar = False
     self.appname = "Eilat Browser"
-    self.tabs = []
     self.maxTitleLen = 40
 
     self.mkGui()
@@ -73,29 +72,13 @@ class MainWin(QMainWindow):
 
     self.tabWidget.tabCloseRequested.connect(self.delTab)
 
-  #def stopJavascript(self, p, q):
-  #  log("STOPPING JAVASCRIPT GLOBALLY")
-  #  for t in self.tabs:
-  #    t.stopScript()
-
-  #def toggleStatusVisiblity(self):
-  #  """ Muestra/oculta status bar. Afecta a todas las tabs """
-  #  self.showStatusBar = not self.showStatusBar
-  #  for t in self.tabs:
-  #    t.setStatusVisibility(self.showStatusBar)
-
   def registerActions(self):
     self.actions["newtab"]    = [self.addTab,       "Ctrl+T", "Open new tab"]
     self.actions["paste"] = [lambda: self.addTab(unicode(self.cb.text(QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
     self.actions["closetab"]  = [self.delTab,       "Ctrl+W", "Close current tab"]
     self.actions["tabprev"]   = [lambda: self.incTab(-1),       "N|Ctrl+PgUp", "Switch to previous tab"]
     self.actions["tabnext"]   = [self.incTab,       "M|Ctrl+PgDown", "Switch to next tab"]
-    self.actions["go"]        = [self.focusAddress, "Ctrl+L", "Focus address bar"]
     self.actions["close"]     = [self.close,        "Ctrl+Q", "Close application"]
-
-  # aux. action (en registerActions)
-  #def zoom(self, lvl):
-  #  self.tabs[self.tabWidget.currentIndex()].zoom(lvl)
 
   # aux. action (en registerActions)
   def incTab(self, incby = 1):
@@ -110,41 +93,24 @@ class MainWin(QMainWindow):
       idx = 0
     self.tabWidget.setCurrentIndex(idx)
 
-  # action (en registerActions)
-  def focusAddress(self):
-    self.tabs[self.tabWidget.currentIndex()].cmb.setFocus()
-
   # action y connect en llamada en constructor
-  def delTab(self, idx = -1):
-    if idx >= len(self.tabs):
-      return
-    if idx == -1:
+  def delTab(self, idx = None):
+    if not idx:
       idx = self.tabWidget.currentIndex()
-    t = self.tabs.pop(idx)
-    t.webkit.stop()
+    self.tabWidget.widget(idx).webkit.stop()
+    self.tabWidget.widget(idx).deleteLater()
     self.tabWidget.removeTab(idx)
-    t.deleteLater()
-    if len(self.tabs) == 0:
+    if len(self.tabWidget) == 0:
       self.close()
-    else:
-      self.focusWeb()
 
   # action (en registerActions)
   # externo en eilat.py, crea la primera tab
   def addTab(self, url = None):
     tab = WebTab(browser=self, actions=self.tabactions, netmanager=self.netmanager)
     self.tabWidget.addTab(tab, "New tab")
-    self.tabs.append(tab)
     self.tabWidget.setCurrentWidget(tab)
     if url:
       tab.navigate(url)
-      self.focusWeb()
-    else:
-      self.focusAddress()
-    #return self.tabs[self.tabWidget.currentIndex()]
-
-  def focusWeb(self):
-    self.tabs[self.tabWidget.currentIndex()].webkit.setFocus()
 
   # Implemented, it's recognized and runs at close
   def closeEvent(self, e):
