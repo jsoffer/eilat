@@ -49,53 +49,54 @@ from CookieJar import CookieJar
 
 from sys import argv
 
-def atEnd():
-    print "CLOSE"
+def main():
+    """ Catch the url (if any); then choose adequate defaults and build
+    a browser window. Save cookies, if appropiate, at close.
 
-if __name__ == "__main__":
+    """
 
     # Considerations:
     # Will use proxy? (if not google, fb, twitter... then yes)
-    USE_PROXY = True
+    use_proxy = True
     # Which whitelist will use instead?
-    WHITELIST = None
+    host_whitelist = None
     # Will allow cookies? Which? Where are they saved?
-    COOKIE_ALLOW = ["github.com", "linkedin.com"]
-    COOKIE_FILE = None
+    cookie_allow = ["github.com", "linkedin.com"]
+    cookie_file = None
 
     if len(argv) == 2:
-        SITIO = argv[1]
-        if (SITIO.split('.')[-2:] == ["facebook","com"]):
+        sitio = argv[1]
+        if (sitio.split('.')[-2:] == ["facebook","com"]):
             print "FACEBOOK"
-            USE_PROXY = False
-            WHITELIST = ["facebook.com", "akamaihd.net", "fbcdn.net"]
-            COOKIE_ALLOW = ["facebook.com"]
-            COOKIE_FILE = "fbcookies.cj"
-        elif (SITIO.split('.')[-2:] == ["twitter","com"]):
+            use_proxy = False
+            host_whitelist = ["facebook.com", "akamaihd.net", "fbcdn.net"]
+            cookie_allow = ["facebook.com"]
+            cookie_file = "fbcookies.cj"
+        elif (sitio.split('.')[-2:] == ["twitter","com"]):
             print "TWITTER"
-            USE_PROXY = False
-            WHITELIST = ["twitter.com", "twimg.com"]
-            COOKIE_ALLOW = ["twitter.com"]
-            COOKIE_FILE = "twcookies.cj"
-        elif (SITIO.split('.')[-2:] == ["google","com"]):
+            use_proxy = False
+            host_whitelist = ["twitter.com", "twimg.com"]
+            cookie_allow = ["twitter.com"]
+            cookie_file = "twcookies.cj"
+        elif (sitio.split('.')[-2:] == ["google","com"]):
             print "GOOGLE"
-            USE_PROXY = False
-            WHITELIST = [
+            use_proxy = False
+            host_whitelist = [
                     "google.com",
                     "google.com.mx",
                     "googleusercontent.com",
                     "gstatic.com",
                     "googleapis.com"]
-            COOKIE_ALLOW = ["google.com"]
-            COOKIE_FILE = "gcookies.cj"
+            cookie_allow = ["google.com"]
+            cookie_file = "gcookies.cj"
         else:
             print "GENERAL"
     else:
-        SITIO = None
+        sitio = None
         print "EMPTY"
 
     # Proxy
-    if USE_PROXY:
+    if use_proxy:
         proxy = QNetworkProxy()
         proxy.setType(QNetworkProxy.HttpProxy)
         proxy.setHostName('localhost')
@@ -104,29 +105,34 @@ if __name__ == "__main__":
 
     app = QApplication([])
 
-    cb = app.clipboard()
-    netmanager = InterceptNAM(whitelist = WHITELIST)
-    cookiejar = CookieJar(allowed = COOKIE_ALLOW, storage = COOKIE_FILE)
+    clipboard = app.clipboard()
+    netmanager = InterceptNAM(whitelist = host_whitelist)
+    cookiejar = CookieJar(allowed = cookie_allow, storage = cookie_file)
     netmanager.setCookieJar(cookiejar)
 
     app.setApplicationName("Eilat")
     app.setApplicationVersion("1.002")
-    mainwin = MainWin(netmanager, cb)
+    mainwin = MainWin(netmanager, clipboard)
     mainwin.show()
 
-    if SITIO:
-        mainwin.addTab(SITIO)
+    if sitio:
+        mainwin.addTab(sitio)
     else:
         mainwin.addTab()
 
-    def endCall():
+    def end_call():
+        """ The browser is closing - save cookies, if required.
+
+        """
         print "END"
-        if COOKIE_FILE:
+        if cookie_file:
             print "SAVING COOKIES"
-            fh = open(COOKIE_FILE,"w")
-            for cookie in cookiejar.allCookies():
-                fh.write(cookie.toRawForm()+"\n")
-            fh.flush()
-            fh.close()
-    app.lastWindowClosed.connect(endCall)
+            with open(cookie_file, "w") as savefile:
+                for cookie in cookiejar.allCookies():
+                    savefile.write(cookie.toRawForm()+"\n")
+
+    app.lastWindowClosed.connect(end_call)
     app.exec_()
+
+if __name__ == "__main__":
+    main()
