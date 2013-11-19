@@ -56,17 +56,17 @@ class WebTab(QtGui.QWidget):
         self.grid = QtGui.QGridLayout(self)
         self.grid.setSpacing(0)
         self.grid.setVerticalSpacing(0)
-        self.grid.setContentsMargins(0,0,0,0)
+        self.grid.setContentsMargins(0, 0, 0, 0)
 
         # webkit: la parte que entra a internet
         # aquí se configura, cada tab tiene opciones independientes
         self.webkit = WebView(self)
         self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.webkit.linkClicked.connect(self.onLinkClick)
-        self.webkit.settings().setAttribute(QWebSettings.PluginsEnabled,False)
-        self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled,False)
-        #self.webkit.settings().setAttribute(QWebSettings.SpatialNavigationEnabled,True)
-        #self.webkit.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled,True)
+        self.webkit.settings().setAttribute(QWebSettings.PluginsEnabled, False)
+        self.webkit.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
+        #self.webkit.settings().setAttribute(QWebSettings.SpatialNavigationEnabled, True)
+        #self.webkit.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
 
         # address bar
         self.cmb = QtGui.QComboBox()
@@ -83,11 +83,11 @@ class WebTab(QtGui.QWidget):
         self.fraSearch = QtGui.QFrame()
         self.searchGrid = QtGui.QGridLayout(self.fraSearch)
         self.searchGrid.setSpacing(0)
-        self.searchGrid.setContentsMargins(0,0,0,0)
+        self.searchGrid.setContentsMargins(0, 0, 0, 0)
         self.lblSearch = QtGui.QLabel("Find in page:")
         self.txtSearch = QtGui.QLineEdit()
-        self.searchGrid.addWidget(self.lblSearch, 0,0)
-        self.searchGrid.addWidget(self.txtSearch, 0,1)
+        self.searchGrid.addWidget(self.lblSearch, 0, 0)
+        self.searchGrid.addWidget(self.txtSearch, 0, 1)
         self.fraSearch.setVisible(False)
 
         self.statusbar = QtGui.QStatusBar()
@@ -160,7 +160,7 @@ class WebTab(QtGui.QWidget):
     # connect (en constructor)
     def onLinkClick(self, qurl):
         if self.webkit.paste:
-            self.browser.addTab(qurl)
+            self.browser.add_tab(qurl)
         else:
             self.navigate(qurl)
 
@@ -188,7 +188,7 @@ class WebTab(QtGui.QWidget):
         self.actions["search"] = [self.initSearch, "G", "Start a search"]
         self.actions["stopsearch"]  = [self.stopOrHideSearch, "Escape", self.fraSearch, "Stop current load or searching"]
         self.actions["findnext"]    = [self.doSearch, "Return", self.txtSearch, "Next match for current search"]
-        self.actions["togglestatus"]= [self.toggleStatus, "Ctrl+Space", "Toggle visibility of status bar"]
+        self.actions["togglestatus"] = [self.toggleStatus, "Ctrl+Space", "Toggle visibility of status bar"]
         # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
         self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0, 40), "J", "Scrolls down"]
         self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0, -40), "K", "Scrolls down"]
