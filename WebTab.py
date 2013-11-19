@@ -38,6 +38,7 @@ import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl
 
+from functools import partial
 
 # local
 from WebView import WebView
@@ -120,18 +121,12 @@ class WebTab(QtGui.QWidget):
 
         def scroll(delta):
             """ One-time callback for QShortcut """
-            def ret():
-                """ return a lambda to pass argument to callback """
-                self.webkit.page().mainFrame().scroll(0, delta)
-            return ret
+            self.webkit.page().mainFrame().scroll(0, delta)
 
         def zoom(lvl):
             """ One-time callback for QShortcut """
-            def ret():
-                """ return a lambda to pass argument to callback """
-                factor = self.webkit.zoomFactor() + (lvl * 0.25)
-                self.webkit.setZoomFactor(factor)
-            return ret
+            factor = self.webkit.zoomFactor() + (lvl * 0.25)
+            self.webkit.setZoomFactor(factor)
 
         for (shortcut, owner, callback) in [
                 ("Ctrl+L", self, self.cmb.setFocus),
@@ -142,10 +137,10 @@ class WebTab(QtGui.QWidget):
                 ("Alt+Right", self, self.webkit.history().forward),
                 ("Ctrl+Space", self, toggle_status),
                 ("Q", self, self.toggle_script),
-                ("J", self, scroll(40)),
-                ("K", self, scroll(-40)),
-                ("Ctrl+Up", self, zoom(1)),
-                ("Ctrl+Down", self, zoom(-1)),
+                ("J", self, partial(scroll, 40)),
+                ("K", self, partial(scroll, -40)),
+                ("Ctrl+Up", self, partial(zoom, 1)),
+                ("Ctrl+Down", self, partial(zoom, -1)),
                 ("G", self, show_search),
                 ("Return", self.search_frame, self.do_search),
                 ("Escape", self.search_frame, hide_search)
