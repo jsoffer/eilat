@@ -34,7 +34,6 @@
 
 """
 
-from PyQt4.QtGui import QShortcut
 from PyQt4.QtCore import QUrl
 
 import socket

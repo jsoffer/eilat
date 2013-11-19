@@ -44,7 +44,7 @@ class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
     """
-    def __init__(self, parent = None):
+    def __init__(self, netmanager, parent = None):
         super(WebView, self).__init__(parent)
         self.paste = False
 
@@ -52,6 +52,11 @@ class WebView(QWebView):
                 lambda k: log("D: " + k.url().toString()))
         self.page().unsupportedContent.connect(
                 lambda k: log("U: " + k.url().toString()))
+
+        self.page().setForwardUnsupportedContent(True)
+
+        # replace the Network Access Manager (log connections)
+        self.page().setNetworkAccessManager(netmanager)
 
         for (shortcut, callback) in [
                 ("Alt+Left", self.history().back),

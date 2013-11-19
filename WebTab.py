@@ -42,7 +42,7 @@ from functools import partial
 
 # local
 from WebView import WebView
-from libeilat import log, fix_url
+from libeilat import fix_url
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -53,7 +53,7 @@ class WebTab(QtGui.QWidget):
 
         # webkit: la parte que entra a internet
         # aquí se configura, cada tab tiene opciones independientes
-        self.webkit = WebView(self)
+        self.webkit = WebView(netmanager)
         self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.webkit.linkClicked.connect(self.on_link_click)
         self.webkit.settings().setAttribute(
@@ -92,8 +92,6 @@ class WebTab(QtGui.QWidget):
 
         self.search_frame.search_line.textChanged.connect(self.do_search)
 
-        page.setForwardUnsupportedContent(True)
-
         # layout
         grid = QtGui.QGridLayout(self)
         grid.setSpacing(0)
@@ -106,9 +104,6 @@ class WebTab(QtGui.QWidget):
         grid.addWidget(self.cmb, 0, 0)
         grid.addWidget(self.pbar, 3, 0)
         grid.addWidget(self.statusbar, 4, 0)
-
-        # replace the Network Access Manager (log connections)
-        page.setNetworkAccessManager(netmanager)
 
         def toggle_status():
             """ One-time callback for QShortcut """
