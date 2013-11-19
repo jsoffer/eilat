@@ -38,11 +38,10 @@ import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl
 
-from socket import gethostbyname
 
 # local
 from WebView import WebView
-from libeilat import log, register_shortcuts
+from libeilat import log, register_shortcuts, fixUrl
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -183,7 +182,7 @@ class WebTab(QtGui.QWidget):
         # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
         self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0, 40), "J", "Scrolls down"]
         self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0, -40), "K", "Scrolls down"]
-        self.actions["getfocus"] = [lambda: self.webkit.setFocus(), "H", "Aquires focus for the webkit"]
+        self.actions["getfocus"] = [self.webkit.setFocus, "H", "Aquires focus for the webkit"]
         self.actions["zoomin"]    = [lambda: self.zoom(1),   "Ctrl+Up", "Zoom into page"]
         self.actions["zoomout"]   = [lambda: self.zoom(-1),  "Ctrl+Down", "Zoom out of page"]
         self.actions["search"] = [self.showSearch, "G", "Start a search"]
@@ -228,29 +227,10 @@ class WebTab(QtGui.QWidget):
             qurl = url
         else:
             if not url: url = unicode(self.cmb.currentText())
-            qurl = self.fixUrl(url)
+            qurl = fixUrl(url)
         self.setTitle("Loading...")
         self.webkit.load(qurl)
         self.webkit.setFocus()
-
-    def fixUrl(self, url): # FIXME
-        """ entra string, sale QUrl """
-        if not url:
-            return QUrl()
-        if url.split(':')[0] == "about":
-            return QUrl(url)
-        search = False
-        if url[:4] in ['http', 'file']:
-            return QUrl(url)
-        else:
-            try: # ingenioso pero feo; con 'bind' local es barato
-                gethostbyname(url.split('/')[0])
-            except Exception as e:
-                search = True
-        if search:
-            return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
-        else:
-            return QUrl.fromUserInput(url)
 
     # connect (en constructor)
     def setTitle(self, title):
@@ -264,9 +244,9 @@ class WebTab(QtGui.QWidget):
 
     # action (en registerActions)
     def showSearch(self):
-         self.search_frame.search("")
-         self.search_frame.setVisible(True)
-         self.search_frame.focus_text()
+        self.search_frame.search("")
+        self.search_frame.setVisible(True)
+        self.search_frame.focus_text()
 
     # action (en registerActions)
     def stopOrHideSearch(self):
