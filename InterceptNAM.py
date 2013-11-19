@@ -63,9 +63,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.db_conn = postgresql_connect("dbname=pguser user=pguser")
         self.db_cursor = self.db_conn.cursor()
 
-    # Reimplemented from PyQt
-    # pylint: disable=C0103
-    def createRequest(self, operation, request, data):
+    def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests,
         matches requests with replies. Stores on a PostgreSQL database.
 
@@ -167,4 +165,8 @@ class InterceptNAM(QNetworkAccessManager):
         self.db_conn.commit()
         self.count += 1
         return response
+
+    # Clean reimplement for Qt
+    # pylint: disable=C0103
+    createRequest = create_request
     # pylint: enable=C0103
