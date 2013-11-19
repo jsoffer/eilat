@@ -45,33 +45,6 @@ def log(text):
     """
     print(text)
 
-def register_shortcuts(actions, default_owner):
-    """ Takes lists of [fun, key, (opt) owner, description], creates
-    QShortCuts
-
-    """
-    for action in actions:
-        shortcut = actions[action][1]
-        if shortcut.lower() == "none":
-            continue
-        # allow multiple shortcuts with keys delimited by |
-        shortcuts = shortcut.split("|")
-        for shortcut in shortcuts:
-            shortcut = shortcut.strip()
-            if shortcut == "":
-                continue
-            callback = actions[action][0]
-            if len(actions[action]) == 2:
-                owner = default_owner
-            else:
-                if type(actions[action][2]) != str:
-                    owner = actions[action][2]
-                elif len(actions[action]) == 4:
-                    owner = actions[action][3]
-                else:
-                    owner = default_owner
-            QShortcut(shortcut, owner, callback)
-
 def fix_url(url):
     """ entra string, sale QUrl """
     if not url:
