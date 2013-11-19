@@ -46,6 +46,12 @@ from PyQt4.Qt import QUrl
 #from libeilat import log
 
 class InterceptNAM(QNetworkAccessManager):
+    """ Reimplements the Network Access Manager to see what's being requested
+    by web pages, besides of the page itself. Has primitive support to allow
+    requests only from whitelisted sites.
+
+    """
+
     def __init__(self, parent=None, whitelist=None):
         super(InterceptNAM, self).__init__(parent)
         print "INIT InterceptNAM"
@@ -59,77 +65,77 @@ class InterceptNAM(QNetworkAccessManager):
 
 
     def createRequest(self, operation, request, data):
+        """ Reimplemented to intercept requests. Stops blacklisted requests,
+        matches requests with replies. Stores on a PostgreSQL database.
 
-        # Storables:
-        # + datetime: timestamp
-        # * operation
-        #    * if POST: query
-        # * request:
-        #     + url: toString
-        #     * scheme, path, host, fragment, port, query (json)
-        #           varchar(10), (2048) (256), (2048), (-), JSON
-        #     + originatingObject (frame): parentFrame (recursive), requesterUrl
-        #           ???
-        #     * headers (request, json): JSON
-        #     - priority
-        # * data: split as query (json)
-
-        #qurl = request.url()
-        # falta puerto, fragmento...
-        #url = unicode(qurl.scheme() + "://" + qurl.host() + qurl.path())
-        #if operation == QNetworkAccessManager.PostOperation:
-        #    post_str =  unicode(data.peek(4096))
-        #    if post_str:
-        #        try:
-        #            print "POST < " + " ".join(map(lambda (a,b): "("+a+" => "+b+")", map(lambda k: k.split('='), post_str.split('&'))))
-        #        except:
-        #            print post_str
-        #    else:
-        #        print "POST < ()"
-        #if qurl.scheme() == "data":
-        #    print "<-- " + url.split(',')[0]
-        #else:
-        #    if qurl.hasQuery():
-        #        print "QRY  < " + " ".join((map(lambda (a,b): unicode("(" + a + " => " + b +")"), qurl.queryItems())))
-        #    print "<"+unicode(operation)+"< " + url
-
-        if (request.url().scheme() in ['data','file']) or (request.url().host() == 'localhost'):
-            return QNetworkAccessManager.createRequest(self, operation, request, data)
+        """
+        if (request.url().scheme() in ['data','file']
+                or request.url().host() == 'localhost'):
+            return QNetworkAccessManager.createRequest(
+                    self, operation, request, data)
 
         if self.whitelist:
-            #if not any(map(lambda k: request.url().host()[-len(k):] == k, self.whitelist)):
-            if not any([request.url().host()[-len(k):] == k for k in self.whitelist]):
+            if not any(
+                    [request.url().host()[-len(k):] == k
+                        for k in self.whitelist]):
                 print "FILTERING %s" % request.url().toString()
-                return QNetworkAccessManager.createRequest(self, operation, QNetworkRequest(QUrl("about:blank")), data)
+                return QNetworkAccessManager.createRequest(
+                        self,
+                        operation,
+                        QNetworkRequest(QUrl("about:blank")),
+                        data)
 
-        response = QNetworkAccessManager.createRequest(self, operation, request, data)
-        #response.error.connect(lambda k: log(response.errorString() + "|||" + errorData[k]))
+        response = QNetworkAccessManager.createRequest(
+                self, operation, request, data)
+
         def filtra(cookies):
+            """ Converts a [(key,value)] list of cookies first to a dictionary
+            and then to JSON. Single quotes are duplicated to allow PostgreSQL
+            storage (a double single quote inside a string is a escape).
+
+            """
             ret = {}
             for (key, value) in cookies:
                 ret[unicode(key)] = unicode(value)
             return json.dumps(ret).replace("'","''")
 
         def escape(data):
+            """ Escape quotes and limit the data length. """
             return data.replace("'","''")[:4095]
 
         def indice(reply, idx):
+            """ This function returns a closure enclosing the current index
+            and its associated reply. This is required since there's no
+            knowing when (if at all) a request will be replied to; once it
+            happens, the index will surely have changed.
+
+            The 'cheatgc' list is required because of a bug where the reference
+            for the 'reply' and 'idx' objects is lost sometimes after 'ret'
+            completes, despite having created a closure referencing them. By
+            appending to the list, garbage collection is prevented.
+
+            """
             # please don't do garbage collection...
             self.cheatgc.append(reply)
             self.cheatgc.append(idx)
             def ret():
-                try:
-                    # Storables:
-                    # + reply's datetime
-                    # + k (indice)
-                    # * ID de sesión y de instancia de navegador
-                    #   reply:
-                    #    + headers (reply)
-                    #    - url: mismos campos (puede variar desde el request)
+                """ Closure; freezes 'reply' and 'idx' so they will be
+                accessible at the time the request finalizes and this closure
+                is called.
 
+                """
+                try:
                     encabezados = filtra(reply.rawHeaderPairs())
-                    (statuscode, unknown_other) = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute).toInt()
-                    query = """INSERT INTO reply (at, instance, id, url, status, t) values (now(), %s, %s, '%s', %s, '%s')""" % (self.instance_id, idx, escape(reply.url().toString()), statuscode, encabezados)
+                    (statuscode, _) = reply.attribute(
+                            QNetworkRequest.HttpStatusCodeAttribute).toInt()
+                    query = """INSERT INTO reply
+                    (at, instance, id, url, status, t)
+                    values (now(), %s, %s, '%s', %s, '%s')""" % (
+                            self.instance_id,
+                            idx,
+                            escape(reply.url().toString()),
+                            statuscode,
+                            encabezados)
                     self.db_cursor.execute(query)
                     self.db_conn.commit()
 
@@ -143,13 +149,18 @@ class InterceptNAM(QNetworkAccessManager):
 
             return ret
         response.finished.connect(indice(response, self.count))
-        #log(unicode(self.count) + " > " + request.url().toString() + " [" +request.originatingObject().requestedUrl().toString() + "]")
         root = request.originatingObject().parentFrame()
         frame = request.originatingObject()
         while root:
             frame = root
             root = root.parentFrame()
-        query = "INSERT INTO request (at, instance, id, url, frame) values (now(), %s, %s, '%s','%s')" % (self.instance_id, self.count, escape(request.url().toString()), escape(frame.url().host()))
+        query = """INSERT INTO request
+        (at, instance, id, url, frame)
+        values (now(), %s, %s, '%s','%s')""" % (
+                self.instance_id,
+                self.count,
+                escape(request.url().toString()),
+                escape(frame.url().host()))
         self.db_cursor.execute(query)
         self.db_conn.commit()
         self.count += 1
