@@ -77,6 +77,7 @@ class WebTab(QtGui.QWidget):
         self.pbar.setMaximumHeight(7)
 
         self.search_frame = SearchFrame()
+        self.search_frame.search_line
 
         self.statusbar = QtGui.QStatusBar()
         self.statusbar.setVisible(False)
@@ -114,6 +115,7 @@ class WebTab(QtGui.QWidget):
         def hide_search():
             """ One-time callback for QShortcut """
             if self.search_frame.isVisible():
+                self.search_frame.search_line.setText("")
                 self.search_frame.setVisible(False)
                 self.webkit.setFocus()
             else:
@@ -130,11 +132,7 @@ class WebTab(QtGui.QWidget):
 
         for (shortcut, owner, callback) in [
                 ("Ctrl+L", self, self.cmb.setFocus),
-                ("Ctrl+J", self.cmb, self.navigate),
-                ("F5", self, self.webkit.reload),
-                ("R", self, self.webkit.reload),
-                ("Alt+Left", self, self.webkit.history().back),
-                ("Alt+Right", self, self.webkit.history().forward),
+                ("Ctrl+J", self, self.navigate),
                 ("Ctrl+Space", self, toggle_status),
                 ("Q", self, self.toggle_script),
                 ("J", self, partial(scroll, 40)),
@@ -225,12 +223,6 @@ class WebTab(QtGui.QWidget):
                 self.statusbar.showMessage("%s (%s)" % (title, link))
         else:
             self.statusbar.showMessage("")
-
-    # en constructor
-    def show_hide_message(self):
-        """ Shown in status bar when nothing is happening """
-        message = "(press %s to hide this)"
-        self.statusbar.showMessage(message)
 
     # action (en register_actions)
     def navigate(self, url = None):
