@@ -50,12 +50,6 @@ class WebTab(QtGui.QWidget):
 
         self.browser = browser
 
-        # layout
-        self.grid = QtGui.QGridLayout(self)
-        self.grid.setSpacing(0)
-        self.grid.setVerticalSpacing(0)
-        self.grid.setContentsMargins(0, 0, 0, 0)
-
         # webkit: la parte que entra a internet
         # aquí se configura, cada tab tiene opciones independientes
         self.webkit = WebView(self)
@@ -86,13 +80,6 @@ class WebTab(QtGui.QWidget):
         self.statusbar = QtGui.QStatusBar()
         self.statusbar.setVisible(False)
         self.statusbar.setMaximumHeight(25)
-
-        self.grid.addWidget(self.webkit, 1, 0)
-        self.grid.setRowStretch(1, 1)
-        self.grid.addWidget(self.search_frame, 2, 0)
-        self.grid.addWidget(self.cmb, 0, 0)
-        self.grid.addWidget(self.pbar, 3, 0)
-        self.grid.addWidget(self.statusbar, 4, 0)
 
         self.webkit.loadStarted.connect(self.show_progress_bar)
         self.webkit.loadFinished.connect(self.load_finished)
@@ -165,7 +152,18 @@ class WebTab(QtGui.QWidget):
                 ]:
             QtGui.QShortcut(shortcut, owner, callback)
 
-        self.show_hide_message()
+        # layout
+        grid = QtGui.QGridLayout(self)
+        grid.setSpacing(0)
+        grid.setVerticalSpacing(0)
+        grid.setContentsMargins(0, 0, 0, 0)
+
+        grid.addWidget(self.webkit, 1, 0)
+        grid.setRowStretch(1, 1)
+        grid.addWidget(self.search_frame, 2, 0)
+        grid.addWidget(self.cmb, 0, 0)
+        grid.addWidget(self.pbar, 3, 0)
+        grid.addWidget(self.statusbar, 4, 0)
 
         # replace the Network Access Manager (log connections)
         page.setNetworkAccessManager(netmanager)
@@ -231,7 +229,7 @@ class WebTab(QtGui.QWidget):
             elif link and title:
                 self.statusbar.showMessage("%s (%s)" % (title, link))
         else:
-            self.show_hide_message()
+            self.statusbar.showMessage("")
 
     # en constructor
     def show_hide_message(self):
