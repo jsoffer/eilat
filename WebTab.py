@@ -156,6 +156,7 @@ class WebTab(QtGui.QWidget):
         """ Activa o desactiva javascript, y notifica cambiando el color
         del address bar
 
+        Callback for shortcut action
         """
         if self.webkit.settings().testAttribute(
                 QWebSettings.JavascriptEnabled):
@@ -190,8 +191,8 @@ class WebTab(QtGui.QWidget):
     # connect (en constructor)
     def on_link_click(self, qurl):
         """ Callback for connection. Reads the 'paste' attribute from
-        the extended QWebView to know if a middle click requested open
-        on new tab.
+        the extended QWebView to know if a middle click requested to open
+        on a new tab.
 
         """
         if self.webkit.paste:
@@ -217,10 +218,12 @@ class WebTab(QtGui.QWidget):
 
     # action (en register_actions)
     def navigate(self, url = None):
-        """ Send this tab to the url. If 'url' is already a QUrl (for example
-        if it comes from a href click), just send it. Otherwise, check if the
-        "url" is actually one, partial or otherwise; if it's not, construct
-        a web search.
+        """ Open the url on this tab. If 'url' is already a QUrl
+        (if it comes from a href click), just send it. Otherwise,
+        it comes either from the address bar or the PRIMARY
+        clipboard through a keyboard shortcut.
+        Check if the "url" is actually one, partial or otherwise;
+        if it's not, construct a web search.
 
         If 'url' is None, extract it directly from the address bar.
 
@@ -240,9 +243,8 @@ class WebTab(QtGui.QWidget):
         """ Go upwards to the web browser's tab widget and set this
         tab's title
         """
-        if self.browser:
-            self.browser.tab_widget.setTabText(
-                    self.browser.tab_widget.indexOf(self), title[:40])
+        self.browser.tab_widget.setTabText(
+                self.browser.tab_widget.indexOf(self), title[:40])
 
     # connection in constructor and action
     def do_search(self, search = None):
