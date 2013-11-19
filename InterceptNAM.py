@@ -35,7 +35,7 @@
 """
 
 import json
-import psycopg2 as postgres
+from psycopg2 import connect as postgresql_connect
 
 from time import time
 
@@ -60,7 +60,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.cheatgc = []
         self.whitelist = whitelist
 
-        self.db_conn = postgres.connect("dbname=pguser user=pguser")
+        self.db_conn = postgresql_connect("dbname=pguser user=pguser")
         self.db_cursor = self.db_conn.cursor()
 
 
@@ -144,7 +144,8 @@ class InterceptNAM(QNetworkAccessManager):
                     self.cheatgc.remove(reply)
                     self.cheatgc.remove(idx)
                     print "[%s]" % (len(self.cheatgc))
-                except NameError:
+                except NameError as name_error:
+                    print name_error
                     print "Except NameError!"
 
             return ret

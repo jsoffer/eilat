@@ -47,7 +47,6 @@ class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
     def __init__(self, browser, netmanager, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self.actions = dict()
 
         self.browser = browser
 
@@ -219,7 +218,7 @@ class WebTab(QtGui.QWidget):
             self.navigate(qurl)
 
     # connect (en constructor)
-    def on_link_hovered(self, link, title, content):
+    def on_link_hovered(self, link, title, _):
         """ The mouse is over an image or link. Does it have href?
         Does it have a title? Display on status bar.
 
