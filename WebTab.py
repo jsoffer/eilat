@@ -41,7 +41,7 @@ from PyQt4.QtCore import QUrl
 
 # local
 from WebView import WebView
-from libeilat import log, register_shortcuts, fix_url
+from libeilat import log, fix_url
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -114,8 +114,27 @@ class WebTab(QtGui.QWidget):
 
         page.setForwardUnsupportedContent(True)
 
-        self.register_actions()
-        register_shortcuts(self.actions, self)
+        actions = [
+            ("Ctrl+L", self, self.cmb.setFocus),
+            ("Ctrl+J", self.cmb, self.navigate),
+            ("F5", self, self.webkit.reload),
+            ("R", self, self.webkit.reload),
+            ("Alt+Left", self, self.back),
+            ("Alt+Right", self, self.fwd),
+            ("Ctrl+Space", self, self.toggle_status),
+            ("Q", self, self.toggle_script),
+            ("J", self, lambda: self.webkit.page().mainFrame().scroll(0, 40)),
+            ("K", self, lambda: self.webkit.page().mainFrame().scroll(0, -40)),
+            ("Ctrl+Up", self, lambda: self.zoom(1)),
+            ("Ctrl+Down", self, lambda: self.zoom(-1)),
+            ("G", self, self.show_search),
+            ("Return", self.search_frame, self.do_search),
+            ("Escape", self.search_frame, self.hide_search)
+            ]
+
+        for (shortcut, owner, callback) in actions:
+            QtGui.QShortcut(shortcut, owner, callback)
+
         self.show_hide_message()
 
         # replace the Network Access Manager (log connections)
@@ -161,25 +180,7 @@ class WebTab(QtGui.QWidget):
     # en constructor
     def show_hide_message(self):
         message = "(press %s to hide this)"
-        self.statusbar.showMessage(message % (self.actions["togglestatus"][1]))
-
-    def register_actions(self):
-        self.actions["go"]        = [self.cmb.setFocus, "Ctrl+L", "Focus address bar"]
-        self.actions["addressnav"]  = [self.navigate, "Enter|Ctrl+J", self.cmb, "Navigate to the url in the address bar"]
-        self.actions["reload"]      = [self.webkit.reload, "F5|R", "Reload the current page"]
-        self.actions["back"]        = [self.back, "Alt+Left", "Go back in history"]
-        self.actions["fwd"]         = [self.fwd, "Alt+Right", "Go forward in history"]
-        self.actions["togglestatus"] = [self.toggle_status, "Ctrl+Space", "Toggle visibility of status bar"]
-        self.actions["togglejs"] = [self.toggle_script, "Q", "Switches javascript on/off"]
-        # el scroll debería ser el mismo de apretar flecha arriba / flecha abajo
-        self.actions["scrolldown"] = [lambda: self.webkit.page().mainFrame().scroll(0, 40), "J", "Scrolls down"]
-        self.actions["scrollup"] = [lambda: self.webkit.page().mainFrame().scroll(0, -40), "K", "Scrolls down"]
-        self.actions["getfocus"] = [self.webkit.setFocus, "H", "Aquires focus for the webkit"]
-        self.actions["zoomin"]    = [lambda: self.zoom(1),   "Ctrl+Up", "Zoom into page"]
-        self.actions["zoomout"]   = [lambda: self.zoom(-1),  "Ctrl+Down", "Zoom out of page"]
-        self.actions["search"] = [self.show_search, "G", "Start a search"]
-        self.actions["findnext"]    = [self.do_search, "Return", self.search_frame, "Next match for current search"]
-        self.actions["stopsearch"]  = [self.hide_search, "Escape", self.search_frame, "Stop current load or searching"]
+        self.statusbar.showMessage(message)
 
     # action (en register_actions)
     def toggle_script(self):
