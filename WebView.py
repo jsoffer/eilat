@@ -46,6 +46,8 @@ class WebView(QWebView):
         self.parent = parent
         self.paste = False
 
+    # Reimplemented from PyQt
+    # pylint: disable=C0103
     def mousePressEvent(self, event):
         """ Reimplementation from base class. Detects middle clicks
         and sets self.paste
@@ -53,3 +55,4 @@ class WebView(QWebView):
         """
         self.paste = (event.buttons() & Qt.MiddleButton)
         return QWebView.mousePressEvent(self, event)
+    # pylint: enable=C0103

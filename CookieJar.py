@@ -76,6 +76,8 @@ class CookieJar(QNetworkCookieJar):
                 print "LOAD COOKIES: empty?"
 
 
+    # Reimplemented from PyQt
+    # pylint: disable=C0103
     def setCookiesFromUrl(self, cookies, url):
         """ Reimplementation from base class. Prevents cookies from being set
         if not from whitelisted domains.
@@ -88,3 +90,4 @@ class CookieJar(QNetworkCookieJar):
         if ret:
             log(format_cookie(url, ret))
         return QNetworkCookieJar.setCookiesFromUrl(self, ret, url)
+    # pylint: enable=C0103
