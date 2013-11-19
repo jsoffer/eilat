@@ -77,7 +77,6 @@ class WebTab(QtGui.QWidget):
         self.pbar.setMaximumHeight(7)
 
         self.search_frame = SearchFrame()
-        self.search_frame.search_line
 
         self.statusbar = QtGui.QStatusBar()
         self.statusbar.setVisible(False)
@@ -91,16 +90,25 @@ class WebTab(QtGui.QWidget):
                 lambda url: self.cmb.setEditText(url.toString()))
         self.webkit.page().linkHovered.connect(self.on_link_hovered)
 
-        # el contenido de la tab (los datos, no el contenedor)
-        page = self.webkit.page()
-
-        page.downloadRequested.connect(
-                lambda k: log("D: " + k.url().toString()))
-        page.unsupportedContent.connect(
-                lambda k: log("U: " + k.url().toString()))
         self.search_frame.search_line.textChanged.connect(self.do_search)
 
         page.setForwardUnsupportedContent(True)
+
+        # layout
+        grid = QtGui.QGridLayout(self)
+        grid.setSpacing(0)
+        grid.setVerticalSpacing(0)
+        grid.setContentsMargins(0, 0, 0, 0)
+
+        grid.addWidget(self.webkit, 1, 0)
+        grid.setRowStretch(1, 1)
+        grid.addWidget(self.search_frame, 2, 0)
+        grid.addWidget(self.cmb, 0, 0)
+        grid.addWidget(self.pbar, 3, 0)
+        grid.addWidget(self.statusbar, 4, 0)
+
+        # replace the Network Access Manager (log connections)
+        page.setNetworkAccessManager(netmanager)
 
         def toggle_status():
             """ One-time callback for QShortcut """
@@ -108,7 +116,6 @@ class WebTab(QtGui.QWidget):
 
         def show_search():
             """ One-time callback for QShortcut """
-            self.search_frame.search("")
             self.search_frame.setVisible(True)
             self.search_frame.search_line.setFocus()
 
@@ -144,22 +151,6 @@ class WebTab(QtGui.QWidget):
                 ("Escape", self.search_frame, hide_search)
                 ]:
             QtGui.QShortcut(shortcut, owner, callback)
-
-        # layout
-        grid = QtGui.QGridLayout(self)
-        grid.setSpacing(0)
-        grid.setVerticalSpacing(0)
-        grid.setContentsMargins(0, 0, 0, 0)
-
-        grid.addWidget(self.webkit, 1, 0)
-        grid.setRowStretch(1, 1)
-        grid.addWidget(self.search_frame, 2, 0)
-        grid.addWidget(self.cmb, 0, 0)
-        grid.addWidget(self.pbar, 3, 0)
-        grid.addWidget(self.statusbar, 4, 0)
-
-        # replace the Network Access Manager (log connections)
-        page.setNetworkAccessManager(netmanager)
 
     def toggle_script(self):
         """ Activa o desactiva javascript, y notifica cambiando el color
@@ -260,7 +251,7 @@ class WebTab(QtGui.QWidget):
 
         """
         if search is None:
-            search = self.search_frame.search()
+            search = self.search_frame.search_line.text()
         self.webkit.findText(search, QWebPage.FindWrapsAroundDocument)
 
 class SearchFrame(QtGui.QFrame):
@@ -280,13 +271,3 @@ class SearchFrame(QtGui.QFrame):
         self.search_grid.addWidget(self.label, 0, 0)
         self.search_grid.addWidget(self.search_line, 0, 1)
         self.setVisible(False)
-
-    def search(self, text = None):
-        """ Sets or gets the content of the line edit, depending on
-        if it was called with or without arguments.
-
-        """
-        if text:
-            self.search_line.setText(text)
-        else:
-            return self.search_line.text()
