@@ -37,6 +37,8 @@
 from PyQt4.Qt import QClipboard
 from PyQt4.QtGui import QMainWindow, QTabWidget, QShortcut
 
+from functools import partial
+
 # local
 from WebTab import WebTab
 
@@ -70,8 +72,8 @@ class MainWin(QMainWindow):
                 ("Ctrl+T", self.add_tab),
                 ("Y", new_tab_clipboard),
                 ("Ctrl+W", self.del_tab),
-                ("N", lambda: self.inc_tab(-1)),
-                ("Ctrl+PgUp", lambda: self.inc_tab(-1)),
+                ("N", partial(self.inc_tab, -1)),
+                ("Ctrl+PgUp", partial(self.inc_tab, -1)),
                 ("M", self.inc_tab),
                 ("Ctrl+PgDown", self.inc_tab),
                 ("Ctrl+Q", self.close)
