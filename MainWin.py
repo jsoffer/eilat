@@ -35,11 +35,10 @@
 """
 
 from PyQt4.Qt import QClipboard
-from PyQt4.QtGui import QMainWindow, QTabWidget
+from PyQt4.QtGui import QMainWindow, QTabWidget, QShortcut
 
 # local
 from WebTab import WebTab
-from libeilat import register_shortcuts
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
@@ -48,7 +47,6 @@ class MainWin(QMainWindow):
         self.netmanager = netmanager
         self.clipboard = clipboard
         self.actions = dict()
-        self.register_actions()
         self.appname = "Eilat Browser"
         self.tab_widget = QTabWidget(self)
 
@@ -58,18 +56,36 @@ class MainWin(QMainWindow):
         self.tab_widget.setTabsClosable(True)
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
-        register_shortcuts(self.actions, self)
 
-    def register_actions(self):
-        self.actions["newtab"]    = [self.add_tab,       "Ctrl+T", "Open new tab"]
-        self.actions["paste"] = [lambda: self.add_tab(unicode(self.clipboard.text(QClipboard.Selection)).strip()), "Y", "Access to clipboard"]
-        self.actions["closetab"]  = [self.del_tab,       "Ctrl+W", "Close current tab"]
-        self.actions["tabprev"]   = [lambda: self.inc_tab(-1),       "N|Ctrl+PgUp", "Switch to previous tab"]
-        self.actions["tabnext"]   = [self.inc_tab,       "M|Ctrl+PgDown", "Switch to next tab"]
-        self.actions["close"]     = [self.close,        "Ctrl+Q", "Close application"]
+        def new_tab_clipboard():
+            """ One-use callback for QShortcut.
+            Reads the content of the PRIMARY clipboard and navigates to it
+            on a new tab.
+
+            """
+            url = unicode(self.clipboard.text(QClipboard.Selection)).strip()
+            self.add_tab(url)
+
+        for (shortcut, callback) in [
+                ("Ctrl+T", self.add_tab),
+                ("Y", new_tab_clipboard),
+                ("Ctrl+W", self.del_tab),
+                ("N", lambda: self.inc_tab(-1)),
+                ("Ctrl+PgUp", lambda: self.inc_tab(-1)),
+                ("M", self.inc_tab),
+                ("Ctrl+PgDown", self.inc_tab),
+                ("Ctrl+Q", self.close)
+                ]:
+            QShortcut(shortcut, self, callback)
 
     # aux. action (en register_actions)
     def inc_tab(self, incby = 1):
+        """ Takes the current tab index, modifies wrapping around,
+        and sets as current.
+
+        Afterwards the active tab has focus on its webkit area.
+
+        """
         if self.tab_widget.count() < 2:
             return
         idx = self.tab_widget.currentIndex()
@@ -83,6 +99,15 @@ class MainWin(QMainWindow):
 
     # action y connect en llamada en constructor
     def del_tab(self, idx = None):
+        """ Closes a tab. If 'idx' is set, it was called by a
+        tabCloseRequested signal. If not, it was called by a keyboard
+        action and closes the currently active tab.
+
+        Afterwards the active tab has focus on its webkit area.
+
+        It closes the window when deleting the last active tab.
+
+        """
         if not idx:
             idx = self.tab_widget.currentIndex()
         self.tab_widget.widget(idx).webkit.stop()
@@ -96,6 +121,13 @@ class MainWin(QMainWindow):
     # action (en register_actions)
     # externo en eilat.py, crea la primera tab
     def add_tab(self, url = None):
+        """ Creates a new tab, either empty or navegating to the url.
+        Sets itself as the active tab.
+
+        If navegating to an url it gives focus to the webkit area. Otherwise,
+        the address bar is focused.
+
+        """
         tab = WebTab(browser=self, netmanager=self.netmanager)
         self.tab_widget.addTab(tab, "New tab")
         self.tab_widget.setCurrentWidget(tab)
