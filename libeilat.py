@@ -37,7 +37,7 @@
 from PyQt4.QtGui import QShortcut
 from PyQt4.QtCore import QUrl
 
-from socket import gethostbyname
+import socket
 
 def log(text):
     """ Trivial wrap over print
@@ -72,7 +72,7 @@ def register_shortcuts(actions, default_owner):
                     owner = default_owner
             QShortcut(shortcut, owner, callback)
 
-def fixUrl(url):
+def fix_url(url):
     """ entra string, sale QUrl """
     if not url:
         return QUrl()
@@ -83,9 +83,8 @@ def fixUrl(url):
         return QUrl(url)
     else:
         try: # ingenioso pero feo; con 'bind' local es barato
-            gethostbyname(url.split('/')[0])
-        except Exception as e:
-            print e
+            socket.gethostbyname(url.split('/')[0])
+        except socket.error:
             search = True
     if search:
         return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))

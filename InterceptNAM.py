@@ -104,19 +104,19 @@ class InterceptNAM(QNetworkAccessManager):
 
         response = QNetworkAccessManager.createRequest(self, operation, request, data)
         #response.error.connect(lambda k: log(response.errorString() + "|||" + errorData[k]))
-        def filtra(xs):
+        def filtra(cookies):
             ret = {}
-            for (p, q) in xs:
-                ret[unicode(p)] = unicode(q)
+            for (key, value) in cookies:
+                ret[unicode(key)] = unicode(value)
             return json.dumps(ret).replace("'","''")
 
-        def s(x):
-            return x.replace("'","''")[:4095]
+        def escape(data):
+            return data.replace("'","''")[:4095]
 
-        def indice(r, k):
+        def indice(reply, idx):
             # please don't do garbage collection...
-            self.cheatgc.append(r)
-            self.cheatgc.append(k)
+            self.cheatgc.append(reply)
+            self.cheatgc.append(idx)
             def ret():
                 try:
                     # Storables:
@@ -127,24 +127,19 @@ class InterceptNAM(QNetworkAccessManager):
                     #    + headers (reply)
                     #    - url: mismos campos (puede variar desde el request)
 
-                    encabezados = filtra(r.rawHeaderPairs())
-                    (statuscode, unknown_other) = r.attribute(QNetworkRequest.HttpStatusCodeAttribute).toInt()
-                    query = """INSERT INTO reply (at, instance, id, url, status, t) values (now(), %s, %s, '%s', %s, '%s')""" % (self.instance_id, k, s(r.url().toString()), statuscode, encabezados)
+                    encabezados = filtra(reply.rawHeaderPairs())
+                    (statuscode, unknown_other) = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute).toInt()
+                    query = """INSERT INTO reply (at, instance, id, url, status, t) values (now(), %s, %s, '%s', %s, '%s')""" % (self.instance_id, idx, escape(reply.url().toString()), statuscode, encabezados)
                     self.db_cursor.execute(query)
                     self.db_conn.commit()
 
                     # ...until we're done with the request
                     # (pyqt/sip related trouble)
-                    try:
-                        self.cheatgc.remove(r)
-                        self.cheatgc.remove(k)
-                        print "[%s]" % (len(self.cheatgc))
-                    except Exception as e:
-                        print ">>> Exception: %s" % (e)
+                    self.cheatgc.remove(reply)
+                    self.cheatgc.remove(idx)
+                    print "[%s]" % (len(self.cheatgc))
                 except NameError:
                     print "Except NameError!"
-                except Exception as e:
-                    print "+++ Except %s" % (e)
 
             return ret
         response.finished.connect(indice(response, self.count))
@@ -154,7 +149,7 @@ class InterceptNAM(QNetworkAccessManager):
         while root:
             frame = root
             root = root.parentFrame()
-        query = "INSERT INTO request (at, instance, id, url, frame) values (now(), %s, %s, '%s','%s')" % (self.instance_id, self.count, s(request.url().toString()), s(frame.url().host()))
+        query = "INSERT INTO request (at, instance, id, url, frame) values (now(), %s, %s, '%s','%s')" % (self.instance_id, self.count, escape(request.url().toString()), escape(frame.url().host()))
         self.db_cursor.execute(query)
         self.db_conn.commit()
         self.count += 1
