@@ -61,6 +61,11 @@ meaning that javascript should be disabled there.
 Go back to xkcd. Press **g**. A text entry should appear just over the address bar.
 Write **p**, **e**, **r** letter by letter to find the string "Permanent".
 
+postgresql tables:
+
+=> create table request (at_time timestamp NOT NULL, instance int NOT NULL, idx int NOT NULL, op varchar(10), scheme varchar(10), host varchar(256) NOT NULL, port int, path varchar(2048), fragment varchar(2048), query JSON, headers JSON, data JSON);
+=> create table reply (at_time timestamp NOT NULL, instance int NOT NULL, idx int NOT NULL, status int, scheme varchar(10), host varchar(256) NOT NULL, port int, path varchar(2048), fragment varchar(2048), query JSON, headers JSON);
+
 Search Server
 =============
 
