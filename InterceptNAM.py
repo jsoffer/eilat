@@ -91,7 +91,7 @@ class InterceptNAM(QNetworkAccessManager):
             ret = {}
             for (key, value) in cookies:
                 ret[unicode(key)] = unicode(value)
-            return json.dumps(ret).replace("'","''")
+            return json.dumps(ret)
 
         def indice(reply, idx):
             """ This function returns a closure enclosing the current index
