@@ -43,6 +43,20 @@ class DatabaseLog(object):
         self.db_conn = postgresql_connect("dbname=pguser user=pguser")
         self.db_cursor = self.db_conn.cursor()
 
+        q_prepare_sreq = (
+                "PREPARE store_request AS " +
+                "INSERT INTO request " +
+                "(at, instance, id, url, frame)" +
+                "values (now(), $1, $2, $3, $4)")
+        self.db_cursor.execute(q_prepare_sreq)
+
+        q_prepare_srep = (
+                "PREPARE store_reply AS " +
+                "INSERT INTO reply " +
+                "(at, instance, id, url, status, t)" +
+                "values (now(), $1, $2, $3, $4, $5)")
+        self.db_cursor.execute(q_prepare_srep)
+
     def run(self, query):
         """ Execute a query, store it. This is not the proper way.
         The 'commit' should happen only once after a page is complete.
@@ -55,15 +69,11 @@ class DatabaseLog(object):
 
     def store_request(self, instance_id, idx, url, frame):
         """ Fill the table 'request' """
-        query = """ INSERT INTO request
-            (at, instance, id, url, frame)
-            values (now(), %s, %s, '%s','%s') """
+        query = "EXECUTE store_request (%s, %s, '%s', '%s')"
         self.run(query % (instance_id, idx, escape(url), escape(frame)))
 
     def store_reply(self, instance_id, idx, url, status, headers):
         """ Fill the table 'reply' """
-        query = """ INSERT INTO reply
-            (at, instance, id, url, status, t)
-            values (now(), %s, %s, '%s', %s, '%s') """
+        query = "EXECUTE store_reply (%s, %s, '%s', %s, '%s')"
         self.run(query %
                 (instance_id, idx, escape(url), status, escape(headers)))
