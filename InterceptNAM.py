@@ -118,13 +118,15 @@ class InterceptNAM(QNetworkAccessManager):
                     encabezados = filtra(reply.rawHeaderPairs())
                     (statuscode, _) = reply.attribute(
                             QNetworkRequest.HttpStatusCodeAttribute).toInt()
+
                     if self.log:
-                        self.log.store_reply(
-                                self.instance_id,
-                                idx,
-                                reply.url().toString(),
-                                statuscode,
-                                encabezados)
+                        self.log.store_reply({
+                            "id": self.instance_id,
+                            "idx": idx,
+                            "url": unicode(reply.url().toString()),
+                            "status": statuscode,
+                            "headers": encabezados })
+
                     # ...until we're done with the request
                     # (pyqt/sip related trouble)
                     self.cheatgc.remove(reply)
@@ -138,15 +140,17 @@ class InterceptNAM(QNetworkAccessManager):
         response.finished.connect(indice(response, self.count))
         root = request.originatingObject().parentFrame()
         frame = request.originatingObject()
+
         while root:
             frame = root
             root = root.parentFrame()
+
         if self.log:
-            self.log.store_request(
-                    self.instance_id,
-                    self.count,
-                    request.url().toString(),
-                    frame.url().host())
+            self.log.store_request({
+                "id": self.instance_id,
+                "idx": self.count,
+                "url": unicode(request.url().toString()),
+                "frame": unicode(frame.url().host()) })
 
         self.count += 1
         return response

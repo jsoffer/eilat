@@ -35,7 +35,6 @@
 """
 
 from psycopg2 import connect as postgresql_connect
-from libeilat import escape
 
 class DatabaseLog(object):
     """ A database layer to be shared through all the application run """
@@ -67,13 +66,16 @@ class DatabaseLog(object):
         self.db_cursor.execute(query)
         self.db_conn.commit()
 
-    def store_request(self, instance_id, idx, url, frame):
+    def store_request(self, dictionary):
         """ Fill the table 'request' """
-        query = "EXECUTE store_request (%s, %s, '%s', '%s')"
-        self.run(query % (instance_id, idx, escape(url), escape(frame)))
+        query = ( "EXECUTE store_request " +
+                "(%(id)s, %(idx)s, %(url)s, %(frame)s)")
+        self.db_cursor.execute(query, dictionary)
+        self.db_conn.commit()
 
-    def store_reply(self, instance_id, idx, url, status, headers):
+    def store_reply(self, dictionary):
         """ Fill the table 'reply' """
-        query = "EXECUTE store_reply (%s, %s, '%s', %s, '%s')"
-        self.run(query %
-                (instance_id, idx, escape(url), status, escape(headers)))
+        query = ( "EXECUTE store_reply " +
+                "(%(id)s, %(idx)s, %(url)s, %(status)s, %(headers)s)" )
+        self.db_cursor.execute(query, dictionary)
+        self.db_conn.commit()
