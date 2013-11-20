@@ -46,6 +46,7 @@ from PyQt4.QtNetwork import QNetworkProxy
 from InterceptNAM import InterceptNAM
 from MainWin import MainWin
 from CookieJar import CookieJar
+from DatabaseLog import DatabaseLog
 
 from sys import argv
 
@@ -103,10 +104,12 @@ def main():
         proxy.setPort(3128)
         QNetworkProxy.setApplicationProxy(proxy)
 
+
     app = QApplication([])
 
     clipboard = app.clipboard()
-    netmanager = InterceptNAM(whitelist = host_whitelist)
+    db_log = DatabaseLog()
+    netmanager = InterceptNAM(log = db_log, whitelist = host_whitelist)
     cookiejar = CookieJar(allowed = cookie_allow, storage = cookie_file)
     netmanager.setCookieJar(cookiejar)
 

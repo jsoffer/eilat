@@ -52,7 +52,7 @@ class InterceptNAM(QNetworkAccessManager):
 
     """
 
-    def __init__(self, parent=None, whitelist=None):
+    def __init__(self, log=None, parent=None, whitelist=None):
         super(InterceptNAM, self).__init__(parent)
         print "INIT InterceptNAM"
         self.instance_id = time()
@@ -60,8 +60,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.cheatgc = []
         self.whitelist = whitelist
 
-        self.db_conn = postgresql_connect("dbname=pguser user=pguser")
-        self.db_cursor = self.db_conn.cursor()
+        self.log = log
 
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests,
@@ -127,16 +126,16 @@ class InterceptNAM(QNetworkAccessManager):
                     encabezados = filtra(reply.rawHeaderPairs())
                     (statuscode, _) = reply.attribute(
                             QNetworkRequest.HttpStatusCodeAttribute).toInt()
-                    query = """INSERT INTO reply
-                    (at, instance, id, url, status, t)
-                    values (now(), %s, %s, '%s', %s, '%s')""" % (
-                            self.instance_id,
-                            idx,
-                            escape(reply.url().toString()),
-                            statuscode,
-                            encabezados)
-                    self.db_cursor.execute(query)
-                    self.db_conn.commit()
+                    if self.log:
+                        query = """INSERT INTO reply
+                        (at, instance, id, url, status, t)
+                        values (now(), %s, %s, '%s', %s, '%s')""" % (
+                                self.instance_id,
+                                idx,
+                                escape(reply.url().toString()),
+                                statuscode,
+                                encabezados)
+                        self.log.run(query)
 
                     # ...until we're done with the request
                     # (pyqt/sip related trouble)
@@ -154,15 +153,15 @@ class InterceptNAM(QNetworkAccessManager):
         while root:
             frame = root
             root = root.parentFrame()
-        query = """INSERT INTO request
-        (at, instance, id, url, frame)
-        values (now(), %s, %s, '%s','%s')""" % (
-                self.instance_id,
-                self.count,
-                escape(request.url().toString()),
-                escape(frame.url().host()))
-        self.db_cursor.execute(query)
-        self.db_conn.commit()
+        if self.log:
+            query = """INSERT INTO request
+            (at, instance, id, url, frame)
+            values (now(), %s, %s, '%s','%s')""" % (
+                    self.instance_id,
+                    self.count,
+                    escape(request.url().toString()),
+                    escape(frame.url().host()))
+            self.log.run(query)
         self.count += 1
         return response
 
