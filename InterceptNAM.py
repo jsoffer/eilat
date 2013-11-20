@@ -123,9 +123,11 @@ class InterceptNAM(QNetworkAccessManager):
                         self.log.store_reply({
                             "id": self.instance_id,
                             "idx": idx,
-                            "url": unicode(reply.url().toString()),
+                            "host": unicode(reply.url().host()),
+                            "path": unicode(reply.url().path()),
                             "status": statuscode,
-                            "headers": encabezados })
+                            "headers": encabezados
+                            })
 
                     # ...until we're done with the request
                     # (pyqt/sip related trouble)
@@ -137,20 +139,16 @@ class InterceptNAM(QNetworkAccessManager):
                     print "Except NameError!"
 
             return ret
-        response.finished.connect(indice(response, self.count))
-        root = request.originatingObject().parentFrame()
-        frame = request.originatingObject()
 
-        while root:
-            frame = root
-            root = root.parentFrame()
+        response.finished.connect(indice(response, self.count))
 
         if self.log:
             self.log.store_request({
                 "id": self.instance_id,
                 "idx": self.count,
-                "url": unicode(request.url().toString()),
-                "frame": unicode(frame.url().host()) })
+                "host": unicode(request.url().host()),
+                "path": unicode(request.url().path())
+                })
 
         self.count += 1
         return response

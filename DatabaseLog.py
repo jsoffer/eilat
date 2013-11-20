@@ -42,18 +42,16 @@ class DatabaseLog(object):
         self.db_conn = postgresql_connect("dbname=pguser user=pguser")
         self.db_cursor = self.db_conn.cursor()
 
-        q_prepare_sreq = (
-                "PREPARE store_request AS " +
+        q_prepare_sreq = ( "PREPARE store_request AS " +
                 "INSERT INTO request " +
-                "(at, instance, id, url, frame)" +
+                "(at_time, instance, idx, host, path)" +
                 "values (now(), $1, $2, $3, $4)")
         self.db_cursor.execute(q_prepare_sreq)
 
-        q_prepare_srep = (
-                "PREPARE store_reply AS " +
+        q_prepare_srep = ( "PREPARE store_reply AS " +
                 "INSERT INTO reply " +
-                "(at, instance, id, url, status, t)" +
-                "values (now(), $1, $2, $3, $4, $5)")
+                "(at_time, instance, idx, host, path, status, headers)" +
+                "values (now(), $1, $2, $3, $4, $5, $6)")
         self.db_cursor.execute(q_prepare_srep)
 
     def run(self, query):
@@ -69,13 +67,14 @@ class DatabaseLog(object):
     def store_request(self, dictionary):
         """ Fill the table 'request' """
         query = ( "EXECUTE store_request " +
-                "(%(id)s, %(idx)s, %(url)s, %(frame)s)")
+                "(%(id)s, %(idx)s, %(host)s, %(path)s)")
         self.db_cursor.execute(query, dictionary)
         self.db_conn.commit()
 
     def store_reply(self, dictionary):
         """ Fill the table 'reply' """
         query = ( "EXECUTE store_reply " +
-                "(%(id)s, %(idx)s, %(url)s, %(status)s, %(headers)s)" )
+                "(%(id)s, %(idx)s, %(host)s, %(path)s, " +
+                "%(status)s, %(headers)s)")
         self.db_cursor.execute(query, dictionary)
         self.db_conn.commit()
