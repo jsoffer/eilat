@@ -35,15 +35,11 @@
 """
 
 import json
-from psycopg2 import connect as postgresql_connect
 
 from time import time
 
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
-
-# local
-#from libeilat import log
 
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
@@ -97,10 +93,6 @@ class InterceptNAM(QNetworkAccessManager):
                 ret[unicode(key)] = unicode(value)
             return json.dumps(ret).replace("'","''")
 
-        def escape(data):
-            """ Escape quotes and limit the data length. """
-            return data.replace("'","''")[:4095]
-
         def indice(reply, idx):
             """ This function returns a closure enclosing the current index
             and its associated reply. This is required since there's no
@@ -127,16 +119,12 @@ class InterceptNAM(QNetworkAccessManager):
                     (statuscode, _) = reply.attribute(
                             QNetworkRequest.HttpStatusCodeAttribute).toInt()
                     if self.log:
-                        query = """INSERT INTO reply
-                        (at, instance, id, url, status, t)
-                        values (now(), %s, %s, '%s', %s, '%s')""" % (
+                        self.log.store_reply(
                                 self.instance_id,
                                 idx,
-                                escape(reply.url().toString()),
+                                reply.url().toString(),
                                 statuscode,
                                 encabezados)
-                        self.log.run(query)
-
                     # ...until we're done with the request
                     # (pyqt/sip related trouble)
                     self.cheatgc.remove(reply)
@@ -154,14 +142,12 @@ class InterceptNAM(QNetworkAccessManager):
             frame = root
             root = root.parentFrame()
         if self.log:
-            query = """INSERT INTO request
-            (at, instance, id, url, frame)
-            values (now(), %s, %s, '%s','%s')""" % (
+            self.log.store_request(
                     self.instance_id,
                     self.count,
-                    escape(request.url().toString()),
-                    escape(frame.url().host()))
-            self.log.run(query)
+                    request.url().toString(),
+                    frame.url().host())
+
         self.count += 1
         return response
 

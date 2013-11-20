@@ -62,3 +62,8 @@ def fix_url(url):
         return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
     else:
         return QUrl.fromUserInput(url)
+
+def escape(data):
+    """ Escape quotes and limit the data length. """
+    return data.replace("'","''")[:4095]
+

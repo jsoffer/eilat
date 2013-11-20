@@ -34,10 +34,10 @@
 
 """
 
-import json
 from psycopg2 import connect as postgresql_connect
+from libeilat import escape
 
-class DatabaseLog:
+class DatabaseLog(object):
     """ A database layer to be shared through all the application run """
     def __init__(self):
         self.db_conn = postgresql_connect("dbname=pguser user=pguser")
@@ -52,3 +52,18 @@ class DatabaseLog:
         """
         self.db_cursor.execute(query)
         self.db_conn.commit()
+
+    def store_request(self, instance_id, idx, url, frame):
+        """ Fill the table 'request' """
+        query = """ INSERT INTO request
+            (at, instance, id, url, frame)
+            values (now(), %s, %s, '%s','%s') """
+        self.run(query % (instance_id, idx, escape(url), escape(frame)))
+
+    def store_reply(self, instance_id, idx, url, status, headers):
+        """ Fill the table 'reply' """
+        query = """ INSERT INTO reply
+            (at, instance, id, url, status, t)
+            values (now(), %s, %s, '%s', %s, '%s') """
+        self.run(query %
+                (instance_id, idx, escape(url), status, escape(headers)))
