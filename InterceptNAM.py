@@ -36,13 +36,14 @@
 
 
 from time import time
+from urlparse import parse_qsl
 
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
 
 from libeilat import filtra, notnull
 
-operations = {
+OPERATIONS = {
         1: "HEAD",
         2: "GET",
         3: "PUT",
@@ -92,6 +93,15 @@ class InterceptNAM(QNetworkAccessManager):
 
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
+
+        post_str = None
+        if operation == QNetworkAccessManager.PostOperation:
+            post_str =  unicode(data.peek(4096))
+
+        if post_str:
+            data_json = filtra(parse_qsl(post_str, keep_blank_values=True))
+        else:
+            data_json = None
 
         def indice(reply, idx):
             """ This function returns a closure enclosing the current index
@@ -151,12 +161,14 @@ class InterceptNAM(QNetworkAccessManager):
             self.log.store_request({
                 "id": self.instance_id,
                 "idx": self.count,
-                "op": operations[operation],
+                "op": OPERATIONS[operation],
                 "scheme": unicode(request.url().scheme()),
                 "host": unicode(request.url().host()),
                 "path": unicode(request.url().path()),
                 "query": filtra(request.url().encodedQueryItems()),
-                "fragment": unicode(request.url().fragment())
+                "fragment": notnull(
+                    unicode(request.url().fragment())),
+                "data": data_json
                 })
 
         self.count += 1
