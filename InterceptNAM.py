@@ -34,12 +34,22 @@
 
 """
 
-import json
 
 from time import time
 
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
+
+from libeilat import filtra, notnull
+
+operations = {
+        1: "HEAD",
+        2: "GET",
+        3: "PUT",
+        4: "POST",
+        5: "DELETE",
+        6: "CUSTOM"
+        }
 
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
@@ -63,6 +73,7 @@ class InterceptNAM(QNetworkAccessManager):
         matches requests with replies. Stores on a PostgreSQL database.
 
         """
+
         if (request.url().scheme() in ['data','file']
                 or request.url().host() == 'localhost'):
             return QNetworkAccessManager.createRequest(
@@ -82,17 +93,6 @@ class InterceptNAM(QNetworkAccessManager):
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
-        def filtra(cookies):
-            """ Converts a [(key,value)] list of cookies first to a dictionary
-            and then to JSON. Single quotes are duplicated to allow PostgreSQL
-            storage (a double single quote inside a string is a escape).
-
-            """
-            ret = {}
-            for (key, value) in cookies:
-                ret[unicode(key)] = unicode(value)
-            return json.dumps(ret)
-
         def indice(reply, idx):
             """ This function returns a closure enclosing the current index
             and its associated reply. This is required since there's no
@@ -105,6 +105,7 @@ class InterceptNAM(QNetworkAccessManager):
             appending to the list, garbage collection is prevented.
 
             """
+
             # please don't do garbage collection...
             self.cheatgc.append(reply)
             self.cheatgc.append(idx)
@@ -123,8 +124,12 @@ class InterceptNAM(QNetworkAccessManager):
                         self.log.store_reply({
                             "id": self.instance_id,
                             "idx": idx,
+                            "scheme": unicode(reply.url().scheme()),
                             "host": unicode(reply.url().host()),
                             "path": unicode(reply.url().path()),
+                            "query": filtra(reply.url().encodedQueryItems()),
+                            "fragment": notnull(
+                                unicode(reply.url().fragment())),
                             "status": statuscode,
                             "headers": encabezados
                             })
@@ -146,8 +151,12 @@ class InterceptNAM(QNetworkAccessManager):
             self.log.store_request({
                 "id": self.instance_id,
                 "idx": self.count,
+                "op": operations[operation],
+                "scheme": unicode(request.url().scheme()),
                 "host": unicode(request.url().host()),
-                "path": unicode(request.url().path())
+                "path": unicode(request.url().path()),
+                "query": filtra(request.url().encodedQueryItems()),
+                "fragment": unicode(request.url().fragment())
                 })
 
         self.count += 1

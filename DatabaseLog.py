@@ -44,14 +44,17 @@ class DatabaseLog(object):
 
         q_prepare_sreq = ( "PREPARE store_request AS " +
                 "INSERT INTO request " +
-                "(at_time, instance, idx, host, path)" +
-                "values (now(), $1, $2, $3, $4)")
+                "(at_time, instance, idx, op, " +
+                "scheme, host, path, query, fragment)" +
+                "values (now(), $1, $2, $3, $4, $5, $6, $7, $8)")
         self.db_cursor.execute(q_prepare_sreq)
 
         q_prepare_srep = ( "PREPARE store_reply AS " +
                 "INSERT INTO reply " +
-                "(at_time, instance, idx, host, path, status, headers)" +
-                "values (now(), $1, $2, $3, $4, $5, $6)")
+                "(at_time, instance, idx, " +
+                "scheme, host, path, query, fragment, " +
+                "status, headers)" +
+                "values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9)")
         self.db_cursor.execute(q_prepare_srep)
 
     def run(self, query):
@@ -67,14 +70,16 @@ class DatabaseLog(object):
     def store_request(self, dictionary):
         """ Fill the table 'request' """
         query = ( "EXECUTE store_request " +
-                "(%(id)s, %(idx)s, %(host)s, %(path)s)")
+                "(%(id)s, %(idx)s, %(op)s, " +
+                "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s)")
         self.db_cursor.execute(query, dictionary)
         self.db_conn.commit()
 
     def store_reply(self, dictionary):
         """ Fill the table 'reply' """
         query = ( "EXECUTE store_reply " +
-                "(%(id)s, %(idx)s, %(host)s, %(path)s, " +
+                "(%(id)s, %(idx)s, " +
+                "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s, " +
                 "%(status)s, %(headers)s)")
         self.db_cursor.execute(query, dictionary)
         self.db_conn.commit()

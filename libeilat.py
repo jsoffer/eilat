@@ -37,6 +37,7 @@
 from PyQt4.QtCore import QUrl
 
 import socket
+import json
 
 def log(text):
     """ Trivial wrap over print
@@ -62,3 +63,24 @@ def fix_url(url):
         return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
     else:
         return QUrl.fromUserInput(url)
+
+def filtra(cookies):
+    """ Converts a [(key,value)] list of cookies first to a dictionary
+    and then to JSON. Single quotes are duplicated to allow PostgreSQL
+    storage (a double single quote inside a string is a escape).
+
+    """
+    if not cookies:
+        return None
+    ret = {}
+    for (key, value) in cookies:
+        ret[unicode(key)] = unicode(value)
+    return json.dumps(ret)
+
+def notnull(data):
+    """ Do not insert an empty string on the database """
+    if (not data):
+        return None
+    else:
+        return data
+
