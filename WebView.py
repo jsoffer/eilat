@@ -74,10 +74,6 @@ class WebView(QWebView):
         self.paste = (event.buttons() & Qt.MiddleButton)
         return QWebView.mousePressEvent(self, event)
 
-    def load(self, qurl):
-        print "LOAD: ", unicode(qurl.toString())
-        return QWebView.load(self, qurl)
-
     # Clean reimplement for Qt
     # pylint: disable=C0103
     mousePressEvent = mouse_press_event
