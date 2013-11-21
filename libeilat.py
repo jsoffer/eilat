@@ -57,7 +57,7 @@ def fix_url(url):
     else:
         try: # ingenioso pero feo; con 'bind' local es barato
             socket.gethostbyname(url.split('/')[0])
-        except UnicodeEncodeError, socket.error:
+        except (UnicodeEncodeError, socket.error):
             search = True
     if search:
         return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
