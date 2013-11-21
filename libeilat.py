@@ -66,8 +66,8 @@ def fix_url(url):
 
 def filtra(cookies):
     """ Converts a [(key,value)] list of cookies first to a dictionary
-    and then to JSON. Single quotes are duplicated to allow PostgreSQL
-    storage (a double single quote inside a string is a escape).
+    and then to JSON. Single quotes are NOT escaped (the escape happens
+    when passing the string as second argument to .execute in psycopg)
 
     """
     if not cookies:
