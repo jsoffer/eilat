@@ -45,8 +45,8 @@ class DatabaseLog(object):
         q_prepare_sreq = ( "PREPARE store_request AS " +
                 "INSERT INTO request " +
                 "(at_time, instance, idx, op, " +
-                "scheme, host, path, query, fragment, data)" +
-                "values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9)")
+                "scheme, host, path, query, fragment, data, source)" +
+                "values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)")
         self.db_cursor.execute(q_prepare_sreq)
 
         q_prepare_srep = ( "PREPARE store_reply AS " +
@@ -72,7 +72,7 @@ class DatabaseLog(object):
         query = ( "EXECUTE store_request " +
                 "(%(id)s, %(idx)s, %(op)s, " +
                 "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s, " +
-                "%(data)s)")
+                "%(data)s, %(source)s)")
         self.db_cursor.execute(query, dictionary)
         self.db_conn.commit()
 

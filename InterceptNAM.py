@@ -91,6 +91,8 @@ class InterceptNAM(QNetworkAccessManager):
                         QNetworkRequest(QUrl("about:blank")),
                         data)
 
+
+
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
@@ -148,7 +150,7 @@ class InterceptNAM(QNetworkAccessManager):
                     # (pyqt/sip related trouble)
                     self.cheatgc.remove(reply)
                     self.cheatgc.remove(idx)
-                    print "[%s]" % (len(self.cheatgc))
+                    #print "[%s]" % (len(self.cheatgc))
                 except NameError as name_error:
                     print name_error
                     print "Except NameError!"
@@ -168,7 +170,9 @@ class InterceptNAM(QNetworkAccessManager):
                 "query": filtra(request.url().encodedQueryItems()),
                 "fragment": notnull(
                     unicode(request.url().fragment())),
-                "data": data_json
+                "data": data_json,
+                "source": unicode(
+                    request.originatingObject().requestedUrl().host())
                 })
 
         self.count += 1
