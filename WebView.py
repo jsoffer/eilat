@@ -59,8 +59,8 @@ class WebView(QWebView):
         self.page().setNetworkAccessManager(netmanager)
 
         for (shortcut, callback) in [
-                ("Alt+Left", self.history().back),
-                ("Alt+Right", self.history().forward),
+                ("Alt+Left", self.back),
+                ("Alt+Right", self.forward),
                 ("F5", self.reload),
                 ("R", self.reload)
                 ]:
@@ -73,6 +73,10 @@ class WebView(QWebView):
         """
         self.paste = (event.buttons() & Qt.MiddleButton)
         return QWebView.mousePressEvent(self, event)
+
+    def load(self, qurl):
+        print "LOAD: ", unicode(qurl.toString())
+        return QWebView.load(self, qurl)
 
     # Clean reimplement for Qt
     # pylint: disable=C0103
