@@ -160,6 +160,10 @@ class InterceptNAM(QNetworkAccessManager):
         response.finished.connect(indice(response, self.count))
 
         if self.log:
+            headers = []
+            for header in request.rawHeaderList():
+                headers.append((header, request.rawHeader(header)))
+
             self.log.store_request({
                 "id": self.instance_id,
                 "idx": self.count,
@@ -172,7 +176,8 @@ class InterceptNAM(QNetworkAccessManager):
                     unicode(request.url().fragment())),
                 "data": data_json,
                 "source": unicode(
-                    request.originatingObject().requestedUrl().host())
+                    request.originatingObject().requestedUrl().host()),
+                "headers": filtra(headers)
                 })
 
         self.count += 1
