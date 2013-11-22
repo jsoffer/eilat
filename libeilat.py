@@ -64,16 +64,16 @@ def fix_url(url):
     else:
         return QUrl.fromUserInput(url)
 
-def filtra(cookies):
+def filtra(keyvalues):
     """ Converts a [(key,value)] list of cookies first to a dictionary
     and then to JSON. Single quotes are NOT escaped (the escape happens
     when passing the string as second argument to .execute in psycopg)
 
     """
-    if not cookies:
+    if not keyvalues:
         return None
     ret = {}
-    for (key, value) in cookies:
+    for (key, value) in keyvalues:
         ret[unicode(key)] = unicode(value)
     return json.dumps(ret)
 

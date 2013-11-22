@@ -91,16 +91,11 @@ class InterceptNAM(QNetworkAccessManager):
                         QNetworkRequest(QUrl("about:blank")),
                         data)
 
-
-
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
-        post_str = None
         if operation == QNetworkAccessManager.PostOperation:
             post_str =  unicode(data.peek(4096))
-
-        if post_str:
             data_json = filtra(parse_qsl(post_str, keep_blank_values=True))
         else:
             data_json = None
