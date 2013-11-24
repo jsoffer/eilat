@@ -67,11 +67,14 @@ class WebView(QWebView):
         for (shortcut, callback) in [
                 ("Alt+Left", self.back),
                 ("Alt+Right", self.forward),
-                ("Ctrl+P", handle_enter),
+                ("Ctrl+J", handle_enter),
                 ("F5", self.reload),
                 ("R", self.reload)
                 ]:
-            QtGui.QShortcut(shortcut, self, callback)
+            QtGui.QShortcut(
+                    shortcut, self, callback
+                    ).setContext(
+                            Qt.WidgetWithChildrenShortcut)
 
     def mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks
