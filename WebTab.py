@@ -135,6 +135,7 @@ class WebTab(QtGui.QWidget):
         for (shortcut, owner, callback) in [
                 ("Ctrl+L", self, self.cmb.setFocus),
                 ("Ctrl+J", self, self.navigate),
+                ("Ctrl+M", self, self.web_search),
                 ("Ctrl+Space", self, toggle_status),
                 ("Q", self, self.toggle_script),
                 ("J", self, partial(scroll, 40)),
@@ -232,6 +233,12 @@ class WebTab(QtGui.QWidget):
         self.set_title("Loading...")
         self.webkit.load(qurl)
         self.webkit.setFocus()
+
+    def web_search(self):
+        """ Go directly to search; don't attempt to navigate first """
+        phrase = unicode(self.cmb.currentText())
+        qurl = QUrl("http://localhost:8000/?q=%s" % (phrase.replace(" ", "+")))
+        self.webkit.load(qurl)
 
     # connect (en constructor)
     def set_title(self, title):
