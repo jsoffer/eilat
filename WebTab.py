@@ -36,7 +36,7 @@
 
 import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
-from PyQt4.QtCore import QUrl
+from PyQt4.QtCore import QUrl, Qt
 
 from functools import partial
 
@@ -134,19 +134,22 @@ class WebTab(QtGui.QWidget):
 
         for (shortcut, owner, callback) in [
                 ("Ctrl+L", self, self.cmb.setFocus),
-                ("Ctrl+J", self, self.navigate),
-                ("Ctrl+M", self, self.web_search),
-                ("Ctrl+Space", self, toggle_status),
-                ("Q", self, self.toggle_script),
-                ("J", self, partial(scroll, 40)),
-                ("K", self, partial(scroll, -40)),
+                ("Ctrl+J", self.cmb, self.navigate),
+                ("Ctrl+M", self.cmb, self.web_search),
+                ("Ctrl+Space", self.webkit, toggle_status),
+                ("Q", self.webkit, self.toggle_script),
+                ("J", self.webkit, partial(scroll, 40)),
+                ("K", self.webkit, partial(scroll, -40)),
                 ("Ctrl+Up", self, partial(zoom, 1)),
                 ("Ctrl+Down", self, partial(zoom, -1)),
-                ("G", self, show_search),
+                ("G", self.webkit, show_search),
                 ("Return", self.search_frame, self.do_search),
                 ("Escape", self.search_frame, hide_search)
                 ]:
-            QtGui.QShortcut(shortcut, owner, callback)
+            QtGui.QShortcut(
+                    shortcut, owner, callback
+                    ).setContext(
+                            Qt.WidgetWithChildrenShortcut)
 
     def toggle_script(self):
         """ Activa o desactiva javascript, y notifica cambiando el color
