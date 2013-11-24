@@ -35,7 +35,7 @@
 """
 
 from PyQt4.QtWebKit import QWebView
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, QEvent
 import PyQt4.QtGui as QtGui
 
 from libeilat import log
@@ -58,9 +58,16 @@ class WebView(QWebView):
         # replace the Network Access Manager (log connections)
         self.page().setNetworkAccessManager(netmanager)
 
+        def handle_enter():
+            """ Generate a fake Enter in the webkit, to send a form """
+            enter_event = QtGui.QKeyEvent(
+                    QEvent.KeyPress, Qt.Key_Enter, Qt.KeyboardModifiers())
+            QtGui.QApplication.sendEvent(self, enter_event)
+
         for (shortcut, callback) in [
                 ("Alt+Left", self.back),
                 ("Alt+Right", self.forward),
+                ("Ctrl+P", handle_enter),
                 ("F5", self.reload),
                 ("R", self.reload)
                 ]:
