@@ -135,6 +135,7 @@ class WebTab(QtGui.QWidget):
         for (shortcut, owner, callback) in [
                 ("Ctrl+L", self, self.cmb.setFocus),
                 ("Ctrl+J", self.cmb, self.navigate),
+                ("Return", self.cmb, self.navigate),
                 ("Ctrl+M", self.cmb, self.web_search),
                 ("Ctrl+Space", self.webkit, toggle_status),
                 ("Q", self.webkit, self.toggle_script),
@@ -144,7 +145,7 @@ class WebTab(QtGui.QWidget):
                 ("Ctrl+Down", self, partial(zoom, -1)),
                 ("G", self.webkit, show_search),
                 ("Return", self.search_frame, self.do_search),
-                ("Escape", self.search_frame, hide_search)
+                ("Escape", self, hide_search)
                 ]:
             QtGui.QShortcut(
                     shortcut, owner, callback
