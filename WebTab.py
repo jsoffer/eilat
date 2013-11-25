@@ -147,6 +147,7 @@ class WebTab(QtGui.QWidget):
             ("Ctrl+Down", self, partial(zoom, -1)),
             ("G", self.webkit, show_search),
             ("Return", self.search_frame, self.do_search),
+            ("Ctrl+J", self.search_frame, self.do_search),
             ("Escape", self, hide_search)
             ])
 
@@ -279,6 +280,10 @@ class SearchFrame(QtGui.QFrame):
         self.search_grid.addWidget(self.label, 0, 0)
         self.search_grid.addWidget(self.search_line, 0, 1)
         self.setVisible(False)
+
+        set_shortcuts([
+            ("Ctrl+H", self, self.search_line.backspace),
+            ])
 
 class AddressBar(QtGui.QLineEdit):
     """ A command line of sorts; receives addresses, search terms or
