@@ -60,7 +60,9 @@ def fix_url(url):
         except (UnicodeEncodeError, socket.error):
             search = True
     if search:
-        return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
+        #return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
+        return QUrl(
+                "http://duckduckgo.com/html/?q=%s" % (url.replace(" ", "+")))
     else:
         return QUrl.fromUserInput(url)
 
