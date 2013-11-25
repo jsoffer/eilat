@@ -36,6 +36,7 @@
 
 from PyQt4.Qt import QClipboard
 from PyQt4.QtGui import QMainWindow, QTabWidget, QShortcut
+from PyQt4.QtCore import Qt
 
 from functools import partial
 
@@ -136,7 +137,7 @@ class MainWin(QMainWindow):
         if url:
             tab.navigate(url)
         else:
-            tab.cmb.setFocus()
+            tab.address_bar.setFocus()
 
     # Implemented, it's recognized and runs at close
     #def closeEvent(self, e):

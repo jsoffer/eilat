@@ -66,8 +66,8 @@ class WebTab(QtGui.QWidget):
         #       QWebSettings.DeveloperExtrasEnabled, True)
 
         # address bar
-        self.cmb = QtGui.QComboBox()
-        self.cmb.setEditable(True)
+        self.address_bar = AddressBar()
+        self.address_bar.setEditable(True)
 
         # progress bar
         self.pbar = QtGui.QProgressBar()
@@ -87,7 +87,7 @@ class WebTab(QtGui.QWidget):
         self.webkit.titleChanged.connect(self.set_title)
         self.webkit.loadProgress.connect(self.load_progress)
         self.webkit.urlChanged.connect(
-                lambda url: self.cmb.setEditText(url.toString()))
+                lambda url: self.address_bar.setEditText(url.toString()))
         self.webkit.page().linkHovered.connect(self.on_link_hovered)
 
         self.search_frame.search_line.textChanged.connect(self.do_search)
@@ -101,7 +101,7 @@ class WebTab(QtGui.QWidget):
         grid.addWidget(self.webkit, 1, 0)
         grid.setRowStretch(1, 1)
         grid.addWidget(self.search_frame, 2, 0)
-        grid.addWidget(self.cmb, 0, 0)
+        grid.addWidget(self.address_bar, 0, 0)
         grid.addWidget(self.pbar, 3, 0)
         grid.addWidget(self.statusbar, 4, 0)
 
@@ -122,6 +122,7 @@ class WebTab(QtGui.QWidget):
                 self.webkit.setFocus()
             else:
                 self.webkit.stop()
+                self.webkit.setFocus()
 
         def scroll(delta):
             """ One-time callback for QShortcut """
@@ -133,10 +134,10 @@ class WebTab(QtGui.QWidget):
             self.webkit.setZoomFactor(factor)
 
         for (shortcut, owner, callback) in [
-                ("Ctrl+L", self, self.cmb.setFocus),
-                ("Ctrl+J", self.cmb, self.navigate),
-                ("Return", self.cmb, self.navigate),
-                ("Ctrl+M", self.cmb, self.web_search),
+                ("Ctrl+L", self, self.address_bar.setFocus),
+                ("Ctrl+J", self.address_bar, self.navigate),
+                ("Return", self.address_bar, self.navigate),
+                ("Ctrl+M", self.address_bar, self.web_search),
                 ("Ctrl+Space", self.webkit, toggle_status),
                 ("Q", self.webkit, self.toggle_script),
                 ("J", self.webkit, partial(scroll, 40)),
@@ -162,11 +163,13 @@ class WebTab(QtGui.QWidget):
                 QWebSettings.JavascriptEnabled):
             self.webkit.settings().setAttribute(
                     QWebSettings.JavascriptEnabled, False)
-            self.cmb.setStyleSheet("QComboBox { background-color: #fff; }")
+            self.address_bar.setStyleSheet(
+                    "QComboBox { background-color: #fff; }")
         else:
             self.webkit.settings().setAttribute(
                     QWebSettings.JavascriptEnabled, True)
-            self.cmb.setStyleSheet("QComboBox { background-color: #ddf; }")
+            self.address_bar.setStyleSheet(
+                    "QComboBox { background-color: #ddf; }")
 
     def load_progress(self, val):
         """ Callback for connection """
@@ -183,7 +186,7 @@ class WebTab(QtGui.QWidget):
     def load_finished(self, success):
         """ Callback for connection """
         self.pbar.setVisible(False)
-        if self.cmb.hasFocus():
+        if self.address_bar.hasFocus():
             self.webkit.setFocus()
         if not success:
             print "loadFinished: failed"
@@ -232,7 +235,7 @@ class WebTab(QtGui.QWidget):
             qurl = url
         else:
             if not url:
-                url = unicode(self.cmb.currentText())
+                url = unicode(self.address_bar.currentText())
             qurl = fix_url(url)
         self.set_title("Loading...")
         self.webkit.load(qurl)
@@ -240,7 +243,7 @@ class WebTab(QtGui.QWidget):
 
     def web_search(self):
         """ Go directly to search; don't attempt to navigate first """
-        phrase = unicode(self.cmb.currentText())
+        phrase = unicode(self.address_bar.currentText())
         qurl = QUrl("http://localhost:8000/?q=%s" % (phrase.replace(" ", "+")))
         self.webkit.load(qurl)
 
@@ -279,3 +282,11 @@ class SearchFrame(QtGui.QFrame):
         self.search_grid.addWidget(self.label, 0, 0)
         self.search_grid.addWidget(self.search_line, 0, 1)
         self.setVisible(False)
+
+class AddressBar(QtGui.QComboBox):
+    """ A command line of sorts; receives addresses, search terms or
+    app-defined commands
+
+    """
+
+
