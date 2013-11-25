@@ -67,7 +67,7 @@ class WebTab(QtGui.QWidget):
 
         # address bar
         self.address_bar = AddressBar()
-        self.address_bar.setEditable(True)
+        #self.address_bar.setEditable(True)
 
         # progress bar
         self.pbar = QtGui.QProgressBar()
@@ -87,7 +87,7 @@ class WebTab(QtGui.QWidget):
         self.webkit.titleChanged.connect(self.set_title)
         self.webkit.loadProgress.connect(self.load_progress)
         self.webkit.urlChanged.connect(
-                lambda url: self.address_bar.setEditText(url.toString()))
+                lambda url: self.address_bar.setText(url.toString()))
         self.webkit.page().linkHovered.connect(self.on_link_hovered)
 
         self.search_frame.search_line.textChanged.connect(self.do_search)
@@ -235,7 +235,7 @@ class WebTab(QtGui.QWidget):
             qurl = url
         else:
             if not url:
-                url = unicode(self.address_bar.currentText())
+                url = unicode(self.address_bar.text())
             qurl = fix_url(url)
         self.set_title("Loading...")
         self.webkit.load(qurl)
@@ -283,10 +283,11 @@ class SearchFrame(QtGui.QFrame):
         self.search_grid.addWidget(self.search_line, 0, 1)
         self.setVisible(False)
 
-class AddressBar(QtGui.QComboBox):
+class AddressBar(QtGui.QLineEdit):
     """ A command line of sorts; receives addresses, search terms or
     app-defined commands
 
     """
 
-
+    def __init__(self):
+        super(AddressBar, self).__init__()

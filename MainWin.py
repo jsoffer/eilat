@@ -36,7 +36,6 @@
 
 from PyQt4.Qt import QClipboard
 from PyQt4.QtGui import QMainWindow, QTabWidget, QShortcut
-from PyQt4.QtCore import Qt
 
 from functools import partial
 
