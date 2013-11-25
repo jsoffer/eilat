@@ -38,7 +38,7 @@ from PyQt4.QtWebKit import QWebView
 from PyQt4.QtCore import Qt, QEvent
 import PyQt4.QtGui as QtGui
 
-from libeilat import log
+from libeilat import set_shortcuts, log
 
 class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
@@ -64,17 +64,13 @@ class WebView(QWebView):
                     QEvent.KeyPress, Qt.Key_Enter, Qt.KeyboardModifiers())
             QtGui.QApplication.sendEvent(self, enter_event)
 
-        for (shortcut, callback) in [
-                ("Alt+Left", self.back),
-                ("Alt+Right", self.forward),
-                ("Ctrl+J", handle_enter),
-                ("F5", self.reload),
-                ("R", self.reload)
-                ]:
-            QtGui.QShortcut(
-                    shortcut, self, callback
-                    ).setContext(
-                            Qt.WidgetWithChildrenShortcut)
+        set_shortcuts([
+            ("Alt+Left", self, self.back),
+            ("Alt+Right", self, self.forward),
+            ("Ctrl+J", self, handle_enter),
+            ("F5", self, self.reload),
+            ("R", self, self.reload)
+            ])
 
     def mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks

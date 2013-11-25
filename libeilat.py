@@ -34,7 +34,8 @@
 
 """
 
-from PyQt4.QtCore import QUrl
+from PyQt4.QtCore import QUrl, Qt
+import PyQt4.QtGui as QtGui
 
 import socket
 import json
@@ -86,3 +87,12 @@ def notnull(data):
     else:
         return data
 
+def set_shortcuts(lista):
+    """ Creates QShortcuts from a list of (key, owner, callback) 3-tuples
+
+    """
+    for (shortcut, owner, callback) in lista:
+        QtGui.QShortcut(
+                shortcut, owner, callback
+                ).setContext(
+                        Qt.WidgetWithChildrenShortcut)

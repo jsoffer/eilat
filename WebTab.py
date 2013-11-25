@@ -36,13 +36,13 @@
 
 import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
-from PyQt4.QtCore import QUrl, Qt
+from PyQt4.QtCore import QUrl
 
 from functools import partial
 
 # local
 from WebView import WebView
-from libeilat import fix_url
+from libeilat import set_shortcuts, fix_url
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -133,25 +133,22 @@ class WebTab(QtGui.QWidget):
             factor = self.webkit.zoomFactor() + (lvl * 0.25)
             self.webkit.setZoomFactor(factor)
 
-        for (shortcut, owner, callback) in [
-                ("Ctrl+L", self, self.address_bar.setFocus),
-                ("Ctrl+J", self.address_bar, self.navigate),
-                ("Return", self.address_bar, self.navigate),
-                ("Ctrl+M", self.address_bar, self.web_search),
-                ("Ctrl+Space", self.webkit, toggle_status),
-                ("Q", self.webkit, self.toggle_script),
-                ("J", self.webkit, partial(scroll, 40)),
-                ("K", self.webkit, partial(scroll, -40)),
-                ("Ctrl+Up", self, partial(zoom, 1)),
-                ("Ctrl+Down", self, partial(zoom, -1)),
-                ("G", self.webkit, show_search),
-                ("Return", self.search_frame, self.do_search),
-                ("Escape", self, hide_search)
-                ]:
-            QtGui.QShortcut(
-                    shortcut, owner, callback
-                    ).setContext(
-                            Qt.WidgetWithChildrenShortcut)
+        set_shortcuts([
+            ("Ctrl+L", self, self.address_bar.setFocus),
+            ("Ctrl+L", self.address_bar, self.webkit.setFocus),
+            ("Ctrl+J", self.address_bar, self.navigate),
+            ("Return", self.address_bar, self.navigate),
+            ("Ctrl+M", self.address_bar, self.web_search),
+            ("Ctrl+Space", self.webkit, toggle_status),
+            ("Q", self.webkit, self.toggle_script),
+            ("J", self.webkit, partial(scroll, 40)),
+            ("K", self.webkit, partial(scroll, -40)),
+            ("Ctrl+Up", self, partial(zoom, 1)),
+            ("Ctrl+Down", self, partial(zoom, -1)),
+            ("G", self.webkit, show_search),
+            ("Return", self.search_frame, self.do_search),
+            ("Escape", self, hide_search)
+            ])
 
     def toggle_script(self):
         """ Activa o desactiva javascript, y notifica cambiando el color
@@ -289,5 +286,9 @@ class AddressBar(QtGui.QLineEdit):
 
     """
 
-    def __init__(self):
-        super(AddressBar, self).__init__()
+    def __init__(self, parent = None):
+        super(AddressBar, self).__init__(parent)
+
+        set_shortcuts([
+            ("Ctrl+H", self, self.backspace),
+            ])

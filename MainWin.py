@@ -35,12 +35,13 @@
 """
 
 from PyQt4.Qt import QClipboard
-from PyQt4.QtGui import QMainWindow, QTabWidget, QShortcut
+from PyQt4.QtGui import QMainWindow, QTabWidget
 
 from functools import partial
 
 # local
 from WebTab import WebTab
+from libeilat import set_shortcuts
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
@@ -68,17 +69,16 @@ class MainWin(QMainWindow):
             url = unicode(self.clipboard.text(QClipboard.Selection)).strip()
             self.add_tab(url)
 
-        for (shortcut, callback) in [
-                ("Ctrl+T", self.add_tab),
-                ("Y", new_tab_clipboard),
-                ("Ctrl+W", self.del_tab),
-                ("N", partial(self.inc_tab, -1)),
-                ("Ctrl+PgUp", partial(self.inc_tab, -1)),
-                ("M", self.inc_tab),
-                ("Ctrl+PgDown", self.inc_tab),
-                ("Ctrl+Q", self.close)
-                ]:
-            QShortcut(shortcut, self, callback)
+        set_shortcuts([
+            ("Ctrl+T", self, self.add_tab),
+            ("Y", self, new_tab_clipboard),
+            ("Ctrl+W", self, self.del_tab),
+            ("N", self, partial(self.inc_tab, -1)),
+            ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
+            ("M", self, self.inc_tab),
+            ("Ctrl+PgDown", self, self.inc_tab),
+            ("Ctrl+Q", self, self.close)
+            ])
 
     # aux. action (en register_actions)
     def inc_tab(self, incby = 1):
