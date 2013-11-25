@@ -116,13 +116,13 @@ class WebTab(QtGui.QWidget):
 
         def hide_search():
             """ One-time callback for QShortcut """
-            if self.search_frame.isVisible():
-                self.search_frame.search_line.setText("")
-                self.search_frame.setVisible(False)
-                self.webkit.setFocus()
-            else:
-                self.webkit.stop()
-                self.webkit.setFocus()
+            #if self.search_frame.isVisible():
+            self.search_frame.search_line.setText("")
+            self.search_frame.setVisible(False)
+            self.webkit.setFocus()
+            #else:
+            #    self.webkit.stop()
+            #    self.webkit.setFocus()
 
         def scroll(delta):
             """ One-time callback for QShortcut """
@@ -134,7 +134,7 @@ class WebTab(QtGui.QWidget):
             self.webkit.setZoomFactor(factor)
 
         set_shortcuts([
-            ("Ctrl+L", self, self.address_bar.setFocus),
+            ("Ctrl+L", self.webkit, self.address_bar.setFocus),
             ("Ctrl+L", self.address_bar, self.webkit.setFocus),
             ("Ctrl+J", self.address_bar, self.navigate),
             ("Return", self.address_bar, self.navigate),
@@ -148,7 +148,7 @@ class WebTab(QtGui.QWidget):
             ("G", self.webkit, show_search),
             ("Return", self.search_frame, self.do_search),
             ("Ctrl+J", self.search_frame, self.do_search),
-            ("Escape", self, hide_search)
+            ("Escape", self.search_frame, hide_search)
             ])
 
     def toggle_script(self):
