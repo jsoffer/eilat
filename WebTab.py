@@ -161,13 +161,11 @@ class WebTab(QtGui.QWidget):
                 QWebSettings.JavascriptEnabled):
             self.webkit.settings().setAttribute(
                     QWebSettings.JavascriptEnabled, False)
-            self.address_bar.setStyleSheet(
-                    "QComboBox { background-color: #fff; }")
+            self.address_bar.set_color()
         else:
             self.webkit.settings().setAttribute(
                     QWebSettings.JavascriptEnabled, True)
-            self.address_bar.setStyleSheet(
-                    "QComboBox { background-color: #ddf; }")
+            self.address_bar.set_color((230, 230, 255))
 
     def load_progress(self, val):
         """ Callback for connection """
@@ -297,3 +295,10 @@ class AddressBar(QtGui.QLineEdit):
         set_shortcuts([
             ("Ctrl+H", self, self.backspace),
             ])
+
+        self.set_color()
+
+    def set_color(self, rgb = (255, 255, 255)):
+        """ Sets the background color of the address bar """
+        self.setStyleSheet(
+                "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)
