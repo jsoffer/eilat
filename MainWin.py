@@ -60,15 +60,15 @@ class MainWin(QMainWindow):
         self.setCentralWidget(self.tab_widget)
         self.tab_widget.setTabsClosable(True)
 
-        self.database = QSqlDatabase("QPSQL")
-        self.database.open("pguser", "pguser")
+        database = QSqlDatabase("QPSQL")
+        database.open("pguser", "pguser")
 
-        self.query = QSqlQuery("select t from test", self.database)
+        query = QSqlQuery("select t from test", self.database)
 
-        self.model = QSqlQueryModel()
-        self.model.setQuery(self.query)
+        model = QSqlQueryModel()
+        model.setQuery(query)
         self.completer = QCompleter()
-        self.completer.setModel(self.model)
+        self.completer.setModel(model)
         self.completer.setCompletionMode(QCompleter.InlineCompletion)
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
