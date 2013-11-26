@@ -63,7 +63,7 @@ class MainWin(QMainWindow):
         database = QSqlDatabase("QPSQL")
         database.open("pguser", "pguser")
 
-        query = QSqlQuery("select t from test", self.database)
+        query = QSqlQuery("select distinct concat(host,path) from request", database)
 
         model = QSqlQueryModel()
         model.setQuery(query)
