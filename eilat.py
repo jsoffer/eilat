@@ -109,8 +109,10 @@ def main():
 
     clipboard = app.clipboard()
     db_log = DatabaseLog()
-    netmanager = InterceptNAM(log = db_log, whitelist = host_whitelist)
-    cookiejar = CookieJar(allowed = cookie_allow, storage = cookie_file)
+    netmanager = InterceptNAM(
+            parent = app, log = db_log, whitelist = host_whitelist)
+    cookiejar = CookieJar(
+            parent = app, allowed = cookie_allow, storage = cookie_file)
     netmanager.setCookieJar(cookiejar)
 
     app.setApplicationName("Eilat")

@@ -35,7 +35,7 @@
 """
 
 from PyQt4.Qt import QClipboard
-from PyQt4.QtGui import QMainWindow, QTabWidget
+from PyQt4.QtGui import QMainWindow, QTabWidget, QCompleter
 
 from functools import partial
 
@@ -45,8 +45,8 @@ from libeilat import set_shortcuts
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
-    def __init__(self, netmanager, clipboard):
-        QMainWindow.__init__(self, None)
+    def __init__(self, netmanager, clipboard, parent = None):
+        super(MainWin, self).__init__(parent)
         self.netmanager = netmanager
         self.clipboard = clipboard
         self.actions = dict()
@@ -57,6 +57,8 @@ class MainWin(QMainWindow):
         self.tab_widget.tabBar().setMovable(True)
         self.setCentralWidget(self.tab_widget)
         self.tab_widget.setTabsClosable(True)
+
+        self.completer = QCompleter(["foo", "bar", "baz"])
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
@@ -131,6 +133,8 @@ class MainWin(QMainWindow):
 
         """
         tab = WebTab(browser=self, netmanager=self.netmanager)
+        tab.address_bar.setCompleter(self.completer)
+
         self.tab_widget.addTab(tab, "New tab")
         self.tab_widget.setCurrentWidget(tab)
         if url:

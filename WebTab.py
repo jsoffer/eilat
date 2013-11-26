@@ -47,13 +47,13 @@ from libeilat import set_shortcuts, fix_url
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
     def __init__(self, browser, netmanager, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        super(WebTab, self).__init__(self, parent)
 
         self.browser = browser
 
         # webkit: la parte que entra a internet
         # aquí se configura, cada tab tiene opciones independientes
-        self.webkit = WebView(netmanager)
+        self.webkit = WebView(netmanager, parent = self)
         self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.webkit.linkClicked.connect(self.on_link_click)
         self.webkit.settings().setAttribute(
@@ -66,19 +66,19 @@ class WebTab(QtGui.QWidget):
         #       QWebSettings.DeveloperExtrasEnabled, True)
 
         # address bar
-        self.address_bar = AddressBar()
+        self.address_bar = AddressBar(parent = self)
         #self.address_bar.setEditable(True)
 
         # progress bar
-        self.pbar = QtGui.QProgressBar()
+        self.pbar = QtGui.QProgressBar(self)
         self.pbar.setRange(0, 100)
         self.pbar.setTextVisible(False)
         self.pbar.setVisible(False)
         self.pbar.setMaximumHeight(7)
 
-        self.search_frame = SearchFrame()
+        self.search_frame = SearchFrame(parent = self)
 
-        self.statusbar = QtGui.QStatusBar()
+        self.statusbar = QtGui.QStatusBar(self)
         self.statusbar.setVisible(False)
         self.statusbar.setMaximumHeight(25)
 
@@ -148,7 +148,8 @@ class WebTab(QtGui.QWidget):
             ("G", self.webkit, show_search),
             ("Return", self.search_frame, self.do_search),
             ("Ctrl+J", self.search_frame, self.do_search),
-            ("Escape", self.search_frame, hide_search)
+            ("Escape", self.search_frame, hide_search),
+            ("Escape", self.address_bar, self.webkit.setFocus)
             ])
 
     def toggle_script(self):
@@ -234,6 +235,9 @@ class WebTab(QtGui.QWidget):
                 url = unicode(self.address_bar.text())
             qurl = fix_url(url)
         self.set_title("Loading...")
+        #print self.address_bar.completer().completionModel().columnCount()
+        #print self.address_bar.completer().completionModel().rowCount()
+        #print self.address_bar.completer().completionModel().data(0)
         self.webkit.load(qurl)
         self.webkit.setFocus()
 
@@ -267,8 +271,8 @@ class SearchFrame(QtGui.QFrame):
 
     """
 
-    def __init__(self):
-        super(SearchFrame, self).__init__()
+    def __init__(self, parent = None):
+        super(SearchFrame, self).__init__(parent)
 
         self.search_grid = QtGui.QGridLayout(self)
         self.search_grid.setSpacing(0)
