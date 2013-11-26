@@ -47,7 +47,7 @@ from libeilat import set_shortcuts, fix_url
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
     def __init__(self, browser, netmanager, parent=None):
-        super(WebTab, self).__init__(self, parent)
+        super(WebTab, self).__init__(parent)
 
         self.browser = browser
 

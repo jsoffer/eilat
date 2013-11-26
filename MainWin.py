@@ -132,7 +132,9 @@ class MainWin(QMainWindow):
         the address bar is focused.
 
         """
-        tab = WebTab(browser=self, netmanager=self.netmanager)
+        tab = WebTab(
+                browser = self, netmanager = self.netmanager,
+                parent = self.tab_widget)
         tab.address_bar.setCompleter(self.completer)
 
         self.tab_widget.addTab(tab, "New tab")
