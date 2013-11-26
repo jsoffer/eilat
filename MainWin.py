@@ -37,6 +37,8 @@
 from PyQt4.Qt import QClipboard
 from PyQt4.QtGui import QMainWindow, QTabWidget, QCompleter
 
+from PyQt4.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel
+
 from functools import partial
 
 # local
@@ -58,7 +60,16 @@ class MainWin(QMainWindow):
         self.setCentralWidget(self.tab_widget)
         self.tab_widget.setTabsClosable(True)
 
-        self.completer = QCompleter(["foo", "bar", "baz"])
+        self.database = QSqlDatabase("QPSQL")
+        self.database.open("pguser", "pguser")
+
+        self.query = QSqlQuery("select t from test", self.database)
+
+        self.model = QSqlQueryModel()
+        self.model.setQuery(self.query)
+        self.completer = QCompleter()
+        self.completer.setModel(self.model)
+        self.completer.setCompletionMode(QCompleter.InlineCompletion)
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
@@ -81,6 +92,7 @@ class MainWin(QMainWindow):
             ("Ctrl+PgDown", self, self.inc_tab),
             ("Ctrl+Q", self, self.close)
             ])
+
 
     # aux. action (en register_actions)
     def inc_tab(self, incby = 1):
