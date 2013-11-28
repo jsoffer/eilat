@@ -76,7 +76,7 @@ class MainWin(QMainWindow):
 
         model = QSqlQueryModel()
         model.setQuery(query)
-        self.completer = TreeCompleter()
+        self.completer = QCompleter()
         self.completer.setModel(model)
         #self.completer.setCompletionMode(QCompleter.InlineCompletion)
 
