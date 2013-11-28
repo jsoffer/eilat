@@ -36,7 +36,7 @@
 
 import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
-from PyQt4.QtCore import QUrl
+from PyQt4.QtCore import QUrl, Qt, QEvent
 
 from functools import partial
 
@@ -132,10 +132,31 @@ class WebTab(QtGui.QWidget):
             factor = self.webkit.zoomFactor() + (lvl * 0.25)
             self.webkit.setZoomFactor(factor)
 
+        def navigate_completion(down = True):
+            """ Sends an "arrow press" to the completion popup to navigate
+            results.
+
+            Not the best way to do this. It would be better to find out what
+            function is being called by that arrow press.
+
+            """
+
+            if down:
+                event = QtGui.QKeyEvent(
+                        QEvent.KeyPress, Qt.Key_Down, Qt.KeyboardModifiers())
+            else:
+                event = QtGui.QKeyEvent(
+                        QEvent.KeyPress, Qt.Key_Up, Qt.KeyboardModifiers())
+
+            QtGui.QApplication.sendEvent(
+                    self.address_bar.completer().popup(), event)
+
         set_shortcuts([
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
-            ("Ctrl+L", self.address_bar, self.webkit.setFocus),
+            #("Ctrl+L", self.address_bar, self.webkit.setFocus),
             ("Ctrl+J", self.address_bar, self.navigate),
+            ("Ctrl+O", self.address_bar, navigate_completion),
+            ("Ctrl+P", self.address_bar, partial(navigate_completion, False)),
             ("Return", self.address_bar, self.navigate),
             ("Ctrl+M", self.address_bar, self.web_search),
             ("Ctrl+Space", self.webkit, toggle_status),
