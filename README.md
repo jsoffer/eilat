@@ -66,6 +66,15 @@ postgresql tables:
 => create table request (at_time timestamp NOT NULL, instance int NOT NULL, idx int NOT NULL, op varchar(10), scheme varchar(10), host varchar(256) NOT NULL, port int, path varchar(2048), fragment varchar(2048), query JSON, headers JSON, data JSON, source varchar(256));
 => create table reply (at_time timestamp NOT NULL, instance int NOT NULL, idx int NOT NULL, status int, scheme varchar(10), host varchar(256) NOT NULL, port int, path varchar(2048), fragment varchar(2048), query JSON, headers JSON);
 
+defined function(s):
+
+pguser=> create or replace function is_bookmarkable(varchar) returns boolean as $$
+BEGIN
+return ($1 not like '%.jpg' and $1 not like '%.png' and $1 not like '%.gif' and $1 not like '%.css' and $1 not like '%.js' and $1 not like '%.ico' and $1 not like '%.jpeg' and $1 not like '%.ttf' and $1 not like '%.JPG');
+END
+$$
+language plpgsql ;
+
 Search Server
 =============
 

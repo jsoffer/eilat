@@ -67,6 +67,10 @@ class MainWin(QMainWindow):
         query = QSqlQuery(
                 "select concat(host, path) h, count(*) c from reply " +
                 "where status between 200 and 399 " +
+                "and is_bookmarkable(path) " +
+                "and host not like '%google.%' " +
+                "and host not like '%facebook.%' " +
+                "and host not like '%twitter.%' " +
                 "group by h " +
                 "order by c desc", database)
 
@@ -185,7 +189,7 @@ class TreeCompleter(QCompleter):
             data_list.prepend(self.model().data(index).toString())
             index = index.parent()
         ret = data_list.join("/")
-        print "path from index: %s" % (ret)
+        print "path from index: %s" % (data_list.join(" :: "))
         return ret
 
     # Clean reimplement for Qt
