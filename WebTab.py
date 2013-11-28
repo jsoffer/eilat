@@ -67,7 +67,6 @@ class WebTab(QtGui.QWidget):
 
         # address bar
         self.address_bar = AddressBar(parent = self)
-        #self.address_bar.setEditable(True)
 
         # progress bar
         self.pbar = QtGui.QProgressBar(self)
@@ -228,6 +227,8 @@ class WebTab(QtGui.QWidget):
         If 'url' is None, extract it directly from the address bar.
 
         """
+        self.address_bar.completer().popup().close()
+
         if isinstance(url, QUrl):
             qurl = url
         else:
@@ -235,9 +236,6 @@ class WebTab(QtGui.QWidget):
                 url = unicode(self.address_bar.text())
             qurl = fix_url(url)
         self.set_title("Loading...")
-        #print self.address_bar.completer().completionModel().columnCount()
-        #print self.address_bar.completer().completionModel().rowCount()
-        #print self.address_bar.completer().completionModel().data(0)
         self.webkit.load(qurl)
         self.webkit.setFocus()
 
@@ -306,3 +304,13 @@ class AddressBar(QtGui.QLineEdit):
         """ Sets the background color of the address bar """
         self.setStyleSheet(
                 "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)
+
+    def focus_out_event(self, event):
+        """ Close completion if it's open while the tab is changed """
+        self.completer().popup().close()
+        super(AddressBar, self).focusOutEvent(event)
+
+    # Clean reimplement for Qt
+    # pylint: disable=C0103
+    focusOutEvent = focus_out_event
+    # pylint: enable=C0103
