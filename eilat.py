@@ -62,7 +62,7 @@ def main():
     # Which whitelist will use instead?
     host_whitelist = None
     # Will allow cookies? Which? Where are they saved?
-    cookie_allow = ["github.com", "linkedin.com"]
+    cookie_allow = ["github.com", "linkedin.com", "freerepublic.com"]
     cookie_file = None
 
     if len(argv) == 2:
