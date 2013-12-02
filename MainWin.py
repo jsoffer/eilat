@@ -150,7 +150,6 @@ class MainWin(QMainWindow):
         """
         tab = WebTab(
                 browser = self, netmanager = self.netmanager,
-                model = self.model,
                 parent = self.tab_widget)
 
         self.tab_widget.addTab(tab, "New tab")
