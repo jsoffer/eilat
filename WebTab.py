@@ -46,14 +46,14 @@ from libeilat import set_shortcuts, fix_url
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
-    def __init__(self, browser, netmanager, parent=None):
+    def __init__(self, browser, parent=None):
         super(WebTab, self).__init__(parent)
 
         self.browser = browser
 
         # webkit: la parte que entra a internet
         # aquí se configura, cada tab tiene opciones independientes
-        self.webkit = WebView(netmanager, parent = self)
+        self.webkit = WebView(browser.netmanager, parent = self)
         self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.webkit.linkClicked.connect(self.on_link_click)
         self.webkit.settings().setAttribute(
