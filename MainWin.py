@@ -68,17 +68,12 @@ class MainWin(QMainWindow):
                 "select concat(host, path) h, count(*) c from reply " +
                 "where status between 200 and 399 " +
                 "and is_bookmarkable(path) " +
-                "and host not like '%google.%' " +
-                "and host not like '%facebook.%' " +
-                "and host not like '%twitter.%' " +
+                "and host not in (select host from filtro) " +
                 "group by h " +
                 "order by c desc", database)
 
-        model = QSqlQueryModel()
-        model.setQuery(query)
-        self.completer = QCompleter()
-        self.completer.setModel(model)
-        #self.completer.setCompletionMode(QCompleter.InlineCompletion)
+        self.model = QSqlQueryModel()
+        self.model.setQuery(query)
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
@@ -155,8 +150,8 @@ class MainWin(QMainWindow):
         """
         tab = WebTab(
                 browser = self, netmanager = self.netmanager,
+                model = self.model,
                 parent = self.tab_widget)
-        tab.address_bar.setCompleter(self.completer)
 
         self.tab_widget.addTab(tab, "New tab")
         self.tab_widget.setCurrentWidget(tab)

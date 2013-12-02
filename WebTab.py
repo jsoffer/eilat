@@ -46,7 +46,7 @@ from libeilat import set_shortcuts, fix_url
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
-    def __init__(self, browser, netmanager, parent=None):
+    def __init__(self, browser, netmanager, model, parent=None):
         super(WebTab, self).__init__(parent)
 
         self.browser = browser
@@ -103,6 +103,8 @@ class WebTab(QtGui.QWidget):
         grid.addWidget(self.address_bar, 0, 0)
         grid.addWidget(self.pbar, 3, 0)
         grid.addWidget(self.statusbar, 4, 0)
+
+        self.address_bar.setCompleter(QtGui.QCompleter(model, self))
 
         def toggle_status():
             """ One-time callback for QShortcut """
@@ -326,12 +328,12 @@ class AddressBar(QtGui.QLineEdit):
         self.setStyleSheet(
                 "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)
 
-    def focus_out_event(self, event):
-        """ Close completion if it's open while the tab is changed """
-        self.completer().popup().close()
-        super(AddressBar, self).focusOutEvent(event)
+    #def focus_out_event(self, event):
+    #    """ Close completion if it's open while the tab is changed """
+    #    self.completer().popup().close()
+    #    super(AddressBar, self).focusOutEvent(event)
 
     # Clean reimplement for Qt
     # pylint: disable=C0103
-    focusOutEvent = focus_out_event
+    #focusOutEvent = focus_out_event
     # pylint: enable=C0103
