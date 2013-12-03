@@ -75,21 +75,38 @@ class InterceptNAM(QNetworkAccessManager):
 
         """
 
-        if (request.url().scheme() in ['data','file']
-                or request.url().host() == 'localhost'):
+        def es_url_local(url):
+            """ Temporary predicate for cleaner code
+            Is the URL not making an external request?
+
+            """
+            return ((url.scheme() in ['data','file']) or
+                    (request.url().host() == 'localhost'))
+
+        def usando_whitelist(url):
+            """ Temporary predicate for cleaner code
+            If 'whitelist' active, is the URL host listed on it? Allow to pass.
+            If 'whitelist' is not active, allow too.
+
+            """
+            return (self.whitelist and
+                    (not any(
+                        [url().host()[-len(k):] == k
+                            for k in self.whitelist])))
+
+        if es_url_local(request.url()):
             return QNetworkAccessManager.createRequest(
                     self, operation, request, data)
 
-        if self.whitelist:
-            if not any(
-                    [request.url().host()[-len(k):] == k
-                        for k in self.whitelist]):
-                print "FILTERING %s" % request.url().toString()
-                return QNetworkAccessManager.createRequest(
-                        self,
-                        operation,
-                        QNetworkRequest(QUrl("about:blank")),
-                        data)
+
+        if (usando_whitelist(request.url()) or
+                request.url().path()[-3:] == 'ttf'):
+            print "FILTERING %s" % request.url().toString()
+            return QNetworkAccessManager.createRequest(
+                self,
+                operation,
+                QNetworkRequest(QUrl("about:blank")),
+                data)
 
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
