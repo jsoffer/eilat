@@ -92,14 +92,11 @@ def set_shortcuts(lista):
 
     """
     for (shortcut, owner, callback) in lista:
-        QtGui.QShortcut(
-                shortcut, owner, callback
-                ).setContext(
-                        Qt.WidgetWithChildrenShortcut)
-
+        QtGui.QShortcut(shortcut, owner, callback).setContext(
+                Qt.WidgetWithChildrenShortcut)
 
 def es_url_local(url):
-    """ Temporary predicate for cleaner code
+    """ Predicate for create_request
     Is the URL not making an external request?
 
     """
@@ -107,7 +104,7 @@ def es_url_local(url):
             (url.host() == 'localhost'))
 
 def usando_whitelist(whitelist, url):
-    """ Temporary predicate for cleaner code
+    """ Predicate for create_request
     If 'whitelist' active, is the URL host listed on it? Allow to pass.
     If 'whitelist' is not active, allow too.
 
