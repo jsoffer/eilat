@@ -117,7 +117,7 @@ def main():
     netmanager.setCookieJar(cookiejar)
 
     app.setApplicationName("Eilat")
-    app.setApplicationVersion("1.2.001")
+    app.setApplicationVersion("1.2.002")
     mainwin = MainWin(netmanager, clipboard)
 
     mainwin.show()
