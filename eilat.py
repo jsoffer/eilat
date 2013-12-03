@@ -48,8 +48,6 @@ from MainWin import MainWin
 from CookieJar import CookieJar
 from DatabaseLog import DatabaseLog
 
-from libeilat import set_shortcuts
-
 from sys import argv
 
 def main():
