@@ -41,7 +41,7 @@ from urlparse import parse_qsl
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
 
-from libeilat import filtra, notnull, es_url_local, usando_whitelist
+from libeilat import filtra, notnull, es_url_local, usando_whitelist, es_font
 
 OPERATIONS = {
         1: "HEAD",
@@ -80,7 +80,7 @@ class InterceptNAM(QNetworkAccessManager):
                     self, operation, request, data)
 
         if (usando_whitelist(self.whitelist, request.url()) or
-                request.url().path()[-3:] == 'ttf'):
+                es_font(request.url())):
             print "FILTERING %s" % request.url().toString()
             return QNetworkAccessManager.createRequest(
                 self,
