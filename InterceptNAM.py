@@ -41,7 +41,7 @@ from urlparse import parse_qsl
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
 
-from libeilat import filtra, notnull
+from libeilat import filtra, notnull, es_url_local, usando_whitelist
 
 OPERATIONS = {
         1: "HEAD",
@@ -75,31 +75,11 @@ class InterceptNAM(QNetworkAccessManager):
 
         """
 
-        def es_url_local(url):
-            """ Temporary predicate for cleaner code
-            Is the URL not making an external request?
-
-            """
-            return ((url.scheme() in ['data','file']) or
-                    (url.host() == 'localhost'))
-
-        def usando_whitelist(url):
-            """ Temporary predicate for cleaner code
-            If 'whitelist' active, is the URL host listed on it? Allow to pass.
-            If 'whitelist' is not active, allow too.
-
-            """
-            return (self.whitelist and
-                    (not any(
-                        [url.host()[-len(k):] == k
-                            for k in self.whitelist])))
-
         if es_url_local(request.url()):
             return QNetworkAccessManager.createRequest(
                     self, operation, request, data)
 
-
-        if (usando_whitelist(request.url()) or
+        if (usando_whitelist(self.whitelist, request.url()) or
                 request.url().path()[-3:] == 'ttf'):
             print "FILTERING %s" % request.url().toString()
             return QNetworkAccessManager.createRequest(

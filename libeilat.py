@@ -96,3 +96,23 @@ def set_shortcuts(lista):
                 shortcut, owner, callback
                 ).setContext(
                         Qt.WidgetWithChildrenShortcut)
+
+
+def es_url_local(url):
+    """ Temporary predicate for cleaner code
+    Is the URL not making an external request?
+
+    """
+    return ((url.scheme() in ['data','file']) or
+            (url.host() == 'localhost'))
+
+def usando_whitelist(whitelist, url):
+    """ Temporary predicate for cleaner code
+    If 'whitelist' active, is the URL host listed on it? Allow to pass.
+    If 'whitelist' is not active, allow too.
+
+    """
+    return (whitelist and
+            (not any(
+                [url.host()[-len(k):] == k
+                    for k in whitelist])))
