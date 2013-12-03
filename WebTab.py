@@ -323,6 +323,11 @@ class AddressBar(QtGui.QLineEdit):
         self.set_color()
         self.setCompleter(QtGui.QCompleter(model, self))
 
+    def __del__(self):
+        print "DELETE"
+        self.completer().popup().close()
+        super(AddressBar, self).__del__()
+
     def set_color(self, rgb = (255, 255, 255)):
         """ Sets the background color of the address bar """
         self.setStyleSheet(

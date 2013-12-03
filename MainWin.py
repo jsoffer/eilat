@@ -35,7 +35,7 @@
 """
 
 from PyQt4.Qt import QClipboard
-from PyQt4.QtGui import QMainWindow, QTabWidget, QCompleter
+from PyQt4.QtGui import QMainWindow, QTabWidget, QCompleter, QApplication
 from PyQt4.QtCore import QStringList
 
 from PyQt4.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel
@@ -94,7 +94,7 @@ class MainWin(QMainWindow):
             ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
             ("M", self, self.inc_tab),
             ("Ctrl+PgDown", self, self.inc_tab),
-            ("Ctrl+Q", self, self.close)
+            ("Ctrl+Q", self, QApplication.closeAllWindows)
             ])
 
 

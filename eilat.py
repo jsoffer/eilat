@@ -39,7 +39,7 @@ davydm@gmail.com
 
 """
 
-from PyQt4.QtGui import QApplication
+import PyQt4.QtGui as QtGui
 from PyQt4.QtNetwork import QNetworkProxy
 
 # local
@@ -47,6 +47,8 @@ from InterceptNAM import InterceptNAM
 from MainWin import MainWin
 from CookieJar import CookieJar
 from DatabaseLog import DatabaseLog
+
+from libeilat import set_shortcuts
 
 from sys import argv
 
@@ -105,7 +107,8 @@ def main():
         QNetworkProxy.setApplicationProxy(proxy)
 
 
-    app = QApplication([])
+    app = QtGui.QApplication([])
+
 
     clipboard = app.clipboard()
     db_log = DatabaseLog()
@@ -118,6 +121,7 @@ def main():
     app.setApplicationName("Eilat")
     app.setApplicationVersion("1.2.001")
     mainwin = MainWin(netmanager, clipboard)
+
     mainwin.show()
 
     if sitio:
