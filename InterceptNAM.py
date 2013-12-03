@@ -81,7 +81,7 @@ class InterceptNAM(QNetworkAccessManager):
 
             """
             return ((url.scheme() in ['data','file']) or
-                    (request.url().host() == 'localhost'))
+                    (url.host() == 'localhost'))
 
         def usando_whitelist(url):
             """ Temporary predicate for cleaner code
@@ -91,7 +91,7 @@ class InterceptNAM(QNetworkAccessManager):
             """
             return (self.whitelist and
                     (not any(
-                        [url().host()[-len(k):] == k
+                        [url.host()[-len(k):] == k
                             for k in self.whitelist])))
 
         if es_url_local(request.url()):
