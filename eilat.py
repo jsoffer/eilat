@@ -64,21 +64,22 @@ def main():
     # Will allow cookies? Which? Where are they saved?
     cookie_allow = ["github.com", "linkedin.com", "freerepublic.com"]
     cookie_file = None
+    prefix = ""
 
     if len(argv) == 2:
         sitio = argv[1]
         if (sitio.split('.')[-2:] == ["facebook","com"]):
-            print "FACEBOOK"
             use_proxy = False
             host_whitelist = ["facebook.com", "akamaihd.net", "fbcdn.net"]
             cookie_allow = ["facebook.com"]
             cookie_file = "fbcookies.cj"
+            prefix = "FB"
         elif (sitio.split('.')[-2:] == ["twitter","com"]):
-            print "TWITTER"
             use_proxy = False
             host_whitelist = ["twitter.com", "twimg.com"]
             cookie_allow = ["twitter.com"]
             cookie_file = "twcookies.cj"
+            prefix = "TW"
         elif (sitio.split('.')[-2:] == ["google","com"]):
             print "GOOGLE"
             use_proxy = False
@@ -90,6 +91,7 @@ def main():
                     "googleapis.com"]
             cookie_allow = ["google.com"]
             cookie_file = "gcookies.cj"
+            prefix = "G"
         else:
             print "GENERAL"
     else:
@@ -107,11 +109,11 @@ def main():
 
     app = QtGui.QApplication([])
 
-
     clipboard = app.clipboard()
     db_log = DatabaseLog()
     netmanager = InterceptNAM(
-            parent = app, log = db_log, whitelist = host_whitelist)
+            parent = app, name = prefix,
+            log = db_log, whitelist = host_whitelist)
     cookiejar = CookieJar(
             parent = app, allowed = cookie_allow, storage = cookie_file)
     netmanager.setCookieJar(cookiejar)

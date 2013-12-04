@@ -50,13 +50,12 @@ class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
     def __init__(self, netmanager, clipboard, parent = None):
         super(MainWin, self).__init__(parent)
+        self.setWindowTitle("Eilat Browser " + netmanager.name)
+
         self.netmanager = netmanager
         self.clipboard = clipboard
-        self.actions = dict()
-        self.appname = "Eilat Browser"
-        self.tab_widget = QTabWidget(self)
 
-        self.setWindowTitle(self.appname)
+        self.tab_widget = QTabWidget(self)
         self.tab_widget.tabBar().setMovable(True)
         self.setCentralWidget(self.tab_widget)
         self.tab_widget.setTabsClosable(True)
@@ -77,7 +76,7 @@ class MainWin(QMainWindow):
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
-        def new_tab_clipboard():
+        def new_tab_from_clipboard():
             """ One-use callback for QShortcut.
             Reads the content of the PRIMARY clipboard and navigates to it
             on a new tab.
@@ -88,7 +87,7 @@ class MainWin(QMainWindow):
 
         set_shortcuts([
             ("Ctrl+T", self, self.add_tab),
-            ("Y", self, new_tab_clipboard),
+            ("Y", self, new_tab_from_clipboard),
             ("Ctrl+W", self, self.del_tab),
             ("N", self, partial(self.inc_tab, -1)),
             ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
@@ -96,7 +95,6 @@ class MainWin(QMainWindow):
             ("Ctrl+PgDown", self, self.inc_tab),
             ("Ctrl+Q", self, QApplication.closeAllWindows)
             ])
-
 
     # aux. action (en register_actions)
     def inc_tab(self, incby = 1):

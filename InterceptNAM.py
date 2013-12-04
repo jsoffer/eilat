@@ -59,14 +59,15 @@ class InterceptNAM(QNetworkAccessManager):
 
     """
 
-    def __init__(self, log=None, parent=None, whitelist=None):
+    def __init__(self, name, log=None, parent=None, whitelist=None):
         super(InterceptNAM, self).__init__(parent)
         print "INIT InterceptNAM"
         self.instance_id = time()
         self.count = 0
         self.cheatgc = []
-        self.whitelist = whitelist
 
+        self.whitelist = whitelist
+        self.name = name
         self.log = log
 
     def create_request(self, operation, request, data):
