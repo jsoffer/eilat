@@ -109,6 +109,7 @@ def es_font(url):
 
     """
     return ((url.path()[-3:] == 'ttf') or
+            (url.scheme() == 'data' and url.path()[:4] == 'font') or
             (url.path()[-3:] == 'svg' and
                 "font" in url.path()))
 
