@@ -116,13 +116,9 @@ class WebTab(QtGui.QWidget):
 
         def hide_search():
             """ One-time callback for QShortcut """
-            #if self.search_frame.isVisible():
-            self.search_frame.search_line.setText("")
+            #self.search_frame.search_line.setText("")
             self.search_frame.setVisible(False)
             self.webkit.setFocus()
-            #else:
-            #    self.webkit.stop()
-            #    self.webkit.setFocus()
 
         def scroll(delta):
             """ One-time callback for QShortcut """
@@ -249,6 +245,8 @@ class WebTab(QtGui.QWidget):
         If 'url' is None, extract it directly from the address bar.
 
         """
+
+        self.search_frame.setVisible(False)
         self.address_bar.completer().popup().close()
 
         if isinstance(url, QUrl):
