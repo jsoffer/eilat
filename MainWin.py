@@ -126,7 +126,7 @@ class MainWin(QMainWindow):
         It closes the window when deleting the last active tab.
 
         """
-        if not idx:
+        if idx is None:
             idx = self.tab_widget.currentIndex()
         self.tab_widget.widget(idx).webkit.stop()
         self.tab_widget.widget(idx).deleteLater()

@@ -122,12 +122,12 @@ def main():
     app.setApplicationVersion("1.2.002")
     mainwin = MainWin(netmanager, clipboard)
 
-    mainwin.show()
-
     if sitio:
         mainwin.add_tab(sitio)
     else:
         mainwin.add_tab()
+
+    mainwin.show()
 
     def end_call():
         """ The browser is closing - save cookies, if required.
