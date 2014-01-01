@@ -168,5 +168,4 @@ TLDS = ["ac", "academy", "ad", "ae", "aero", "af", "ag", "ai", "al", "am", "an",
 
 def real_host(url):
     """ Extracts the last not-tld term from the url """
-    return [i for i in url.split('.') if i not in TLDS][0]
-    #return filter(lambda k: k not in TLDS, url.split('.'))[-1]
+    return [i for i in url.split('.') if i not in TLDS][-1]
