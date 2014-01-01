@@ -41,6 +41,7 @@ from PyQt4.QtCore import QStringList
 from PyQt4.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel
 
 from functools import partial
+from os.path import expanduser
 
 # local
 from WebTab import WebTab
@@ -51,6 +52,8 @@ class MainWin(QMainWindow):
     def __init__(self, netmanager, clipboard, parent = None):
         super(MainWin, self).__init__(parent)
         self.setWindowTitle("Eilat Browser " + netmanager.name)
+
+        self.css_path = expanduser("~/.css/")
 
         self.netmanager = netmanager
         self.clipboard = clipboard

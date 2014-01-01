@@ -60,8 +60,6 @@ class WebTab(QtGui.QWidget):
                 QWebSettings.PluginsEnabled, False)
         self.webkit.settings().setAttribute(
                 QWebSettings.JavascriptEnabled, False)
-        #self.webkit.settings().setUserStyleSheetUrl(
-        #        QUrl.fromLocalFile('/home/jaime/test.css'))
         #self.webkit.settings().setAttribute(
         #       QWebSettings.SpatialNavigationEnabled, True)
         #self.webkit.settings().setAttribute(
@@ -259,7 +257,15 @@ class WebTab(QtGui.QWidget):
                 url = unicode(self.address_bar.text())
             qurl = fix_url(url)
         self.set_title("Loading...")
-        print real_host(qurl.host())
+
+        host_id = real_host(qurl.host())
+        #css_path = "~/.css/" + host_id + ".css"
+        #css_file = expanduser(unicode(css_path))
+        css_file = self.browser.css_path + host_id + ".css"
+        print css_file
+        self.webkit.settings().setUserStyleSheetUrl(
+                QUrl.fromLocalFile(css_file))
+
         self.webkit.load(qurl)
         self.webkit.setFocus()
 
