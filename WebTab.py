@@ -262,7 +262,6 @@ class WebTab(QtGui.QWidget):
         #css_path = "~/.css/" + host_id + ".css"
         #css_file = expanduser(unicode(css_path))
         css_file = self.browser.css_path + host_id + ".css"
-        print css_file
         self.webkit.settings().setUserStyleSheetUrl(
                 QUrl.fromLocalFile(css_file))
 

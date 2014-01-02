@@ -35,8 +35,7 @@
 """
 
 from PyQt4.Qt import QClipboard
-from PyQt4.QtGui import QMainWindow, QTabWidget, QCompleter, QApplication
-from PyQt4.QtCore import QStringList
+from PyQt4.QtGui import QMainWindow, QTabWidget, QApplication
 
 from PyQt4.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel
 
@@ -179,30 +178,3 @@ class MainWin(QMainWindow):
     #    print "MainWin.closeEvent"
     #    e.accept()
     #    self.close()
-
-class TreeCompleter(QCompleter):
-    """ Completer that implements splitPath and pathFromIndex to
-    allow completion part-by-part on '/' separated strings
-
-    """
-    def __init__(self):
-        super(TreeCompleter, self).__init__()
-
-    def path_from_index(self, index):
-        """ Reimplemented. Finds part of a path given the index of
-        the last part required.
-
-        """
-        data_list = QStringList()
-        while index.isValid():
-            data_list.prepend(self.model().data(index).toString())
-            index = index.parent()
-        ret = data_list.join("/")
-        print "path from index: %s" % (data_list.join(" :: "))
-        return ret
-
-    # Clean reimplement for Qt
-    # pylint: disable=C0103
-    splitPath = lambda self, path: path.split("/")
-    pathFromIndex = path_from_index
-    # pylint: enable=C0103
