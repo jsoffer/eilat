@@ -50,6 +50,13 @@ from DatabaseLog import DatabaseLog
 
 from sys import argv
 
+def all_urls(tab_widget):
+    """
+    Prints all the urls held on a tab widget
+    """
+    for i in range(tab_widget.count()):
+        print tab_widget.widget(i).webkit.url().toString()
+
 def main():
     """ Catch the url (if any); then choose adequate defaults and build
     a browser window. Save cookies, if appropiate, at close.
@@ -134,8 +141,7 @@ def main():
 
         """
         print "END"
-        for i in range(mainwin.tab_widget.count()):
-            print mainwin.tab_widget.widget(i).webkit.url().toString()
+        all_urls(mainwin.tab_widget)
         if cookie_file:
             print "SAVING COOKIES"
             with open(cookie_file, "w") as savefile:
