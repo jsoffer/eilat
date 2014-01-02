@@ -53,6 +53,7 @@ class MainWin(QMainWindow):
         super(MainWin, self).__init__(parent)
         self.setWindowTitle("Eilat Browser " + netmanager.name)
 
+        self.last_closed = None
         self.css_path = expanduser("~/.css/")
 
         self.netmanager = netmanager
@@ -88,9 +89,19 @@ class MainWin(QMainWindow):
             url = unicode(self.clipboard.text(QClipboard.Selection)).strip()
             self.add_tab(url)
 
+        def restore_last_closed():
+            """ One-use callback for QShortcut.
+            Opens a fresh new tab with the url address of the last tab closed
+            """
+            if self.last_closed is not None:
+                url = self.last_closed
+                self.add_tab(url)
+                self.last_closed = None
+
         set_shortcuts([
             ("Ctrl+T", self, self.add_tab),
             ("Y", self, new_tab_from_clipboard),
+            ("U", self, restore_last_closed),
             ("Ctrl+W", self, self.del_tab),
             ("N", self, partial(self.inc_tab, -1)),
             ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
@@ -132,6 +143,9 @@ class MainWin(QMainWindow):
         if idx is None:
             idx = self.tab_widget.currentIndex()
         self.tab_widget.widget(idx).webkit.stop()
+
+        self.last_closed = self.tab_widget.widget(idx).webkit.url()
+
         self.tab_widget.widget(idx).deleteLater()
         self.tab_widget.removeTab(idx)
         if len(self.tab_widget) == 0:
