@@ -134,6 +134,8 @@ def main():
 
         """
         print "END"
+        for i in range(mainwin.tab_widget.count()):
+            print mainwin.tab_widget.widget(i).webkit.url()
         if cookie_file:
             print "SAVING COOKIES"
             with open(cookie_file, "w") as savefile:
