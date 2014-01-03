@@ -7,7 +7,7 @@ minimalistic browser levering off of Python, PyQt and Webkit
 Original: https://code.google.com/p/foobrowser/
 davydm@gmail.com
 
-  Copyright (c) 2012, Davyd McColl; 2013, Jaime Soffer
+  Copyright (c) 2012, Davyd McColl; 2013, 2014 Jaime Soffer
 
    All rights reserved.
 
@@ -126,7 +126,7 @@ def main():
     netmanager.setCookieJar(cookiejar)
 
     app.setApplicationName("Eilat")
-    app.setApplicationVersion("1.2.002")
+    app.setApplicationVersion("1.2.003")
     mainwin = MainWin(netmanager, clipboard)
 
     if sitio:
