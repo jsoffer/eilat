@@ -40,12 +40,6 @@ import PyQt4.QtGui as QtGui
 import socket
 import json
 
-def log(text):
-    """ Trivial wrap over print
-
-    """
-    print(text)
-
 def fix_url(url):
     """ entra string, sale QUrl """
     if not url:

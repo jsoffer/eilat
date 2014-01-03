@@ -34,11 +34,13 @@
 
 """
 
+from __future__ import print_function
+
 from PyQt4.QtWebKit import QWebView
 from PyQt4.QtCore import Qt, QEvent
 import PyQt4.QtGui as QtGui
 
-from libeilat import set_shortcuts, log
+from libeilat import set_shortcuts
 
 class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
@@ -49,9 +51,9 @@ class WebView(QWebView):
         self.paste = False
 
         self.page().downloadRequested.connect(
-                lambda k: log("D: " + k.url().toString()))
+                lambda k: print("D: " + k.url().toString()))
         self.page().unsupportedContent.connect(
-                lambda k: log("U: " + k.url().toString()))
+                lambda k: print("U: " + k.url().toString()))
 
         self.page().setForwardUnsupportedContent(True)
 

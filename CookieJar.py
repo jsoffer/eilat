@@ -35,7 +35,6 @@
 """
 
 from PyQt4.QtNetwork import QNetworkCookieJar, QNetworkCookie
-from libeilat import log
 
 def format_cookie(url, cookies):
     """ Constructs a log message from a list of cookies and the host
@@ -73,7 +72,7 @@ class CookieJar(QNetworkCookieJar):
                     cookies = [x for y in cookies for x in y] # flatten
                     self.setAllCookies(cookies)
             except IOError:
-                print "LOAD COOKIES: empty?"
+                print("LOAD COOKIES: empty?")
 
 
     def set_cookies_from_url(self, cookies, url):
@@ -86,7 +85,7 @@ class CookieJar(QNetworkCookieJar):
         else:
             ret = cookies
         if ret:
-            log(format_cookie(url, ret))
+            print(format_cookie(url, ret))
         return QNetworkCookieJar.setCookiesFromUrl(self, ret, url)
 
     # Clean reimplement for Qt
