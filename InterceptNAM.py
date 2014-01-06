@@ -34,12 +34,15 @@
 
 """
 
+from __future__ import unicode_literals
 
 from time import time
 from urlparse import parse_qsl
 
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
+
+from PyQt4.QtCore import QString
 
 from libeilat import filtra, notnull, es_url_local, usando_whitelist, es_font
 
@@ -96,7 +99,7 @@ class InterceptNAM(QNetworkAccessManager):
                 self, operation, request, data)
 
         if operation == QNetworkAccessManager.PostOperation:
-            post_str =  unicode(data.peek(4096))
+            post_str =  unicode(QString.fromLocal8Bit(data.peek(4096)))
             data_json = filtra(parse_qsl(post_str, keep_blank_values=True))
         else:
             data_json = None
