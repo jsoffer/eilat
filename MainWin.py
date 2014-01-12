@@ -49,7 +49,7 @@ from libeilat import set_shortcuts
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
-    def __init__(self, netmanager, clipboard, parent = None):
+    def __init__(self, netmanager, clipboard, parent=None):
         super(MainWin, self).__init__(parent)
         if netmanager is not None:
             self.setWindowTitle("Eilat Browser " + netmanager.name)
@@ -108,8 +108,6 @@ class MainWin(QMainWindow):
             ("Y", self, new_tab_from_clipboard),
             ("U", self, restore_last_closed),
             ("Ctrl+W", self, self.del_tab),
-            ("Ctrl+K", self, lambda :
-                self.tab_widget.tabBar().tabCloseRequested.emit(0)),
             ("N", self, partial(self.inc_tab, -1)),
             ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
             ("M", self, self.inc_tab),
@@ -118,7 +116,7 @@ class MainWin(QMainWindow):
             ])
 
     # aux. action (en register_actions)
-    def inc_tab(self, incby = 1):
+    def inc_tab(self, incby=1):
         """ Takes the current tab index, modifies wrapping around,
         and sets as current.
 
@@ -137,7 +135,7 @@ class MainWin(QMainWindow):
         self.tab_widget.currentWidget().webkit.setFocus()
 
     # action y connect en llamada en constructor
-    def del_tab(self, idx = None):
+    def del_tab(self, idx=None):
         """ Closes a tab. If 'idx' is set, it was called by a
         tabCloseRequested signal. If not, it was called by a keyboard
         action and closes the currently active tab.
@@ -162,7 +160,7 @@ class MainWin(QMainWindow):
 
     # action (en register_actions)
     # externo en eilat.py, crea la primera tab
-    def add_tab(self, url = None):
+    def add_tab(self, url=None):
         """ Creates a new tab, either empty or navegating to the url.
         Sets itself as the active tab.
 
@@ -170,9 +168,7 @@ class MainWin(QMainWindow):
         the address bar is focused.
 
         """
-        tab = WebTab(
-                browser = self,
-                parent = self.tab_widget)
+        tab = WebTab(browser=self, parent=self.tab_widget)
 
         self.tab_widget.addTab(tab, "New tab")
         self.tab_widget.setCurrentWidget(tab)

@@ -46,7 +46,7 @@ class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
     """
-    def __init__(self, netmanager, parent = None):
+    def __init__(self, netmanager, parent=None):
         super(WebView, self).__init__(parent)
         self.paste = False
 
@@ -58,7 +58,8 @@ class WebView(QWebView):
         self.page().setForwardUnsupportedContent(True)
 
         # replace the Network Access Manager (log connections)
-        self.page().setNetworkAccessManager(netmanager)
+        if netmanager is not None:
+            self.page().setNetworkAccessManager(netmanager)
 
         def handle_enter():
             """ Generate a fake Enter in the webkit, to send a form """

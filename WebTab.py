@@ -53,7 +53,7 @@ class WebTab(QtGui.QWidget):
 
         # webkit: la parte que entra a internet
         # aquí se configura, cada tab tiene opciones independientes
-        self.webkit = WebView(browser.netmanager, parent = self)
+        self.webkit = WebView(browser.netmanager, parent=self)
         self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.webkit.linkClicked.connect(self.on_link_click)
         self.webkit.settings().setAttribute(
@@ -66,7 +66,7 @@ class WebTab(QtGui.QWidget):
         #       QWebSettings.DeveloperExtrasEnabled, True)
 
         # address bar
-        self.address_bar = AddressBar(model = browser.model, parent = self)
+        self.address_bar = AddressBar(model=browser.model, parent=self)
 
         # progress bar
         self.pbar = QtGui.QProgressBar(self)
@@ -75,7 +75,7 @@ class WebTab(QtGui.QWidget):
         self.pbar.setVisible(False)
         self.pbar.setMaximumHeight(7)
 
-        self.search_frame = SearchFrame(parent = self)
+        self.search_frame = SearchFrame(parent=self)
 
         self.statusbar = QtGui.QStatusBar(self)
         self.statusbar.setVisible(False)
@@ -130,7 +130,7 @@ class WebTab(QtGui.QWidget):
             factor = self.webkit.zoomFactor() + (lvl * 0.25)
             self.webkit.setZoomFactor(factor)
 
-        def navigate_completion(down = True):
+        def navigate_completion(down=True):
             """ Sends an "arrow press" to the completion popup to navigate
             results.
 
@@ -235,7 +235,7 @@ class WebTab(QtGui.QWidget):
             self.statusbar.showMessage("")
 
     # action (en register_actions)
-    def navigate(self, url = None):
+    def navigate(self, url=None):
         """ Open the url on this tab. If 'url' is already a QUrl
         (if it comes from a href click), just send it. Otherwise,
         it comes either from the address bar or the PRIMARY
@@ -283,7 +283,7 @@ class WebTab(QtGui.QWidget):
                 self.browser.tab_widget.indexOf(self), title[:40])
 
     # connection in constructor and action
-    def do_search(self, search = None):
+    def do_search(self, search=None):
         """ Find text on the currently loaded web page. If no text
         is provided, it's extracted from the search widget.
 
@@ -298,7 +298,7 @@ class SearchFrame(QtGui.QFrame):
 
     """
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super(SearchFrame, self).__init__(parent)
 
         self.search_grid = QtGui.QGridLayout(self)
@@ -320,7 +320,7 @@ class AddressBar(QtGui.QLineEdit):
 
     """
 
-    def __init__(self, model, parent = None):
+    def __init__(self, model, parent=None):
         super(AddressBar, self).__init__(parent)
 
         set_shortcuts([
@@ -330,7 +330,7 @@ class AddressBar(QtGui.QLineEdit):
         self.set_color()
         self.setCompleter(QtGui.QCompleter(model, self))
 
-    def set_color(self, rgb = (255, 255, 255)):
+    def set_color(self, rgb=(255, 255, 255)):
         """ Sets the background color of the address bar """
         self.setStyleSheet(
                 "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)

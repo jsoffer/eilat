@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 """
@@ -75,19 +75,19 @@ def main():
 
     if len(argv) == 2:
         sitio = argv[1]
-        if (sitio.split('.')[-2:] == ["facebook","com"]):
+        if (sitio.split('.')[-2:] == ["facebook", "com"]):
             use_proxy = False
             host_whitelist = ["facebook.com", "akamaihd.net", "fbcdn.net"]
             cookie_allow = ["facebook.com"]
             cookie_file = "fbcookies.cj"
             prefix = "FB"
-        elif (sitio.split('.')[-2:] == ["twitter","com"]):
+        elif (sitio.split('.')[-2:] == ["twitter", "com"]):
             use_proxy = False
             host_whitelist = ["twitter.com", "twimg.com"]
             cookie_allow = ["twitter.com"]
             cookie_file = "twcookies.cj"
             prefix = "TW"
-        elif (sitio.split('.')[-2:] == ["google","com"]):
+        elif (sitio.split('.')[-2:] == ["google", "com"]):
             print "GOOGLE"
             use_proxy = False
             host_whitelist = [
@@ -119,10 +119,10 @@ def main():
     clipboard = app.clipboard()
     db_log = DatabaseLog()
     netmanager = InterceptNAM(
-            parent = app, name = prefix,
-            log = db_log, whitelist = host_whitelist)
+            parent=app, name=prefix,
+            log=db_log, whitelist=host_whitelist)
     cookiejar = CookieJar(
-            parent = app, allowed = cookie_allow, storage = cookie_file)
+            parent=app, allowed=cookie_allow, storage=cookie_file)
     netmanager.setCookieJar(cookiejar)
 
     app.setApplicationName("Eilat")

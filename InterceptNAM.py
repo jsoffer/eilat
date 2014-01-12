@@ -99,7 +99,7 @@ class InterceptNAM(QNetworkAccessManager):
                 self, operation, request, data)
 
         if operation == QNetworkAccessManager.PostOperation:
-            post_str =  unicode(QString.fromLocal8Bit(data.peek(4096)))
+            post_str = unicode(QString.fromLocal8Bit(data.peek(4096)))
             data_json = filtra(parse_qsl(post_str, keep_blank_values=True))
         else:
             data_json = None

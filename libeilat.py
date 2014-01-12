@@ -78,7 +78,7 @@ def filtra(keyvalues):
 
 def notnull(data):
     """ Do not insert an empty string on the database """
-    if (not data):
+    if not data:
         return None
     else:
         return data
@@ -96,7 +96,7 @@ def es_url_local(url):
     Is the URL not making an external request?
 
     """
-    return ((url.scheme() in ['data','file']) or
+    return ((url.scheme() in ['data', 'file']) or
             (url.host() == 'localhost'))
 
 def es_font(url):

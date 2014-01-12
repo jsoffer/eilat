@@ -34,6 +34,8 @@
 
 """
 
+from __future__ import print_function
+
 from PyQt4.QtNetwork import QNetworkCookieJar, QNetworkCookie
 
 def format_cookie(url, cookies):
@@ -48,7 +50,7 @@ def format_cookie(url, cookies):
             cookie.name(),
             cookie.value())
         for cookie in cookies])
-    return (prefix + suffix)
+    return prefix + suffix
 
 class CookieJar(QNetworkCookieJar):
     """ Logs and intercepts cookies; part of the Network Access Manager
@@ -59,14 +61,14 @@ class CookieJar(QNetworkCookieJar):
 
         """
         super(CookieJar, self).__init__(parent)
-        print "INIT CookieJar"
-        if not allowed:
+        print("INIT CookieJar")
+        if allowed is None:
             self.allowed = []
         else:
             self.allowed = allowed
         if storage:
             try:
-                with open(storage,"r") as readfile:
+                with open(storage, "r") as readfile:
                     cookies = [QNetworkCookie.parseCookies(k)
                             for k in readfile.readlines()]
                     cookies = [x for y in cookies for x in y] # flatten
