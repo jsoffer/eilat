@@ -35,7 +35,8 @@
 """
 
 from PyQt4.Qt import QClipboard
-from PyQt4.QtGui import QMainWindow, QTabWidget, QApplication
+from PyQt4.QtGui import QMainWindow, QTabWidget, QApplication, QTabBar
+from PyQt4.QtCore import Qt
 
 from PyQt4.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel
 
@@ -50,7 +51,10 @@ class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
     def __init__(self, netmanager, clipboard, parent = None):
         super(MainWin, self).__init__(parent)
-        self.setWindowTitle("Eilat Browser " + netmanager.name)
+        if netmanager is not None:
+            self.setWindowTitle("Eilat Browser " + netmanager.name)
+        else:
+            self.setWindowTitle("TESTING Eilat Browser")
 
         self.last_closed = None
         self.css_path = expanduser("~/.css/")
@@ -59,6 +63,7 @@ class MainWin(QMainWindow):
         self.clipboard = clipboard
 
         self.tab_widget = QTabWidget(self)
+        self.tab_widget.setTabBar(MidClickTabBar())
         self.tab_widget.tabBar().setMovable(True)
         self.setCentralWidget(self.tab_widget)
         self.tab_widget.setTabsClosable(True)
@@ -85,8 +90,9 @@ class MainWin(QMainWindow):
             on a new tab.
 
             """
-            url = unicode(self.clipboard.text(QClipboard.Selection)).strip()
-            self.add_tab(url)
+            if self.clipboard is not None:
+                url = unicode(self.clipboard.text(QClipboard.Selection)).strip()
+                self.add_tab(url)
 
         def restore_last_closed():
             """ One-use callback for QShortcut.
@@ -102,6 +108,8 @@ class MainWin(QMainWindow):
             ("Y", self, new_tab_from_clipboard),
             ("U", self, restore_last_closed),
             ("Ctrl+W", self, self.del_tab),
+            ("Ctrl+K", self, lambda :
+                self.tab_widget.tabBar().tabCloseRequested.emit(0)),
             ("N", self, partial(self.inc_tab, -1)),
             ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
             ("M", self, self.inc_tab),
@@ -178,3 +186,16 @@ class MainWin(QMainWindow):
     #    print "MainWin.closeEvent"
     #    e.accept()
     #    self.close()
+
+class MidClickTabBar(QTabBar):
+    """ Overloads middle click to close the clicked tab """
+    def mouse_release_event(self, event):
+        """ Emits the "close tab" signal if a middle click happened """
+        if event.button() == Qt.MidButton:
+            self.tabCloseRequested.emit(self.tabAt(event.pos()))
+        super(MidClickTabBar, self).mouseReleaseEvent(event)
+
+    # Clean reimplement for Qt
+    # pylint: disable=C0103
+    mouseReleaseEvent = mouse_release_event
+    # pylint: enable=C0103
