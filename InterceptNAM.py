@@ -34,7 +34,7 @@
 
 """
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 from time import time
 from urlparse import parse_qsl
@@ -64,7 +64,7 @@ class InterceptNAM(QNetworkAccessManager):
 
     def __init__(self, name, log=None, parent=None, whitelist=None):
         super(InterceptNAM, self).__init__(parent)
-        print "INIT InterceptNAM"
+        print("INIT InterceptNAM")
         self.instance_id = time()
         self.count = 0
         self.cheatgc = []
@@ -85,7 +85,7 @@ class InterceptNAM(QNetworkAccessManager):
 
         if (usando_whitelist(self.whitelist, request.url()) or
                 es_font(request.url())):
-            print "FILTERING %s" % request.url().toString()[:255]
+            #print("FILTERING %s" % request.url().toString()[:255])
             return QNetworkAccessManager.createRequest(
                 self,
                 operation,
@@ -120,6 +120,7 @@ class InterceptNAM(QNetworkAccessManager):
             # please don't do garbage collection...
             self.cheatgc.append(reply)
             self.cheatgc.append(idx)
+
             def ret():
                 """ Closure; freezes 'reply' and 'idx' so they will be
                 accessible at the time the request finalizes and this closure
@@ -151,8 +152,8 @@ class InterceptNAM(QNetworkAccessManager):
                     self.cheatgc.remove(idx)
                     #print "[%s]" % (len(self.cheatgc))
                 except NameError as name_error:
-                    print name_error
-                    print "Except NameError!"
+                    print(name_error)
+                    print("Except NameError!")
 
             return ret
 

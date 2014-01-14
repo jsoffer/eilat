@@ -42,7 +42,7 @@ from functools import partial
 
 # local
 from WebView import WebView
-from libeilat import set_shortcuts, fix_url, real_host
+from libeilat import set_shortcuts, fix_url, real_host, encode_css
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -60,8 +60,8 @@ class WebTab(QtGui.QWidget):
                 QWebSettings.PluginsEnabled, False)
         self.webkit.settings().setAttribute(
                 QWebSettings.JavascriptEnabled, False)
-        #self.webkit.settings().setAttribute(
-        #       QWebSettings.SpatialNavigationEnabled, True)
+        self.webkit.settings().setAttribute(
+               QWebSettings.SpatialNavigationEnabled, True)
         #self.webkit.settings().setAttribute(
         #       QWebSettings.DeveloperExtrasEnabled, True)
 
@@ -259,11 +259,14 @@ class WebTab(QtGui.QWidget):
         self.set_title("Loading...")
 
         host_id = real_host(qurl.host())
-        #css_path = "~/.css/" + host_id + ".css"
-        #css_file = expanduser(unicode(css_path))
         css_file = self.browser.css_path + host_id + ".css"
+        try:
+            css_fh = open(css_file, 'r')
+            css_encoded = encode_css(css_fh.read()).strip()
+        except IOError:
+            css_encoded = encode_css('')
         self.webkit.settings().setUserStyleSheetUrl(
-                QUrl.fromLocalFile(css_file))
+                QUrl(css_encoded))
 
         self.webkit.load(qurl)
         self.webkit.setFocus()

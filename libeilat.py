@@ -42,6 +42,8 @@ import PyQt4.QtGui as QtGui
 import socket
 import json
 
+from base64 import encodestring
+
 def fix_url(url):
     """ entra string, sale QUrl """
     if not url:
@@ -165,3 +167,11 @@ TLDS = ["ac", "academy", "ad", "ae", "aero", "af", "ag", "ai", "al", "am", "an",
 def real_host(url):
     """ Extracts the last not-tld term from the url """
     return [i for i in url.split('.') if i not in TLDS][-1]
+
+GLOBAL_CSS = """ *:focus { border: #00a 1px solid; } """
+
+def encode_css(style):
+    """ Takes a css as string, returns a proper base64 encoded "file" """
+    header = "data:text/css;charset=utf-8;base64,"
+    content = encodestring(GLOBAL_CSS + style)
+    return header + content
