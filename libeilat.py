@@ -168,7 +168,8 @@ def real_host(url):
     """ Extracts the last not-tld term from the url """
     return [i for i in url.split('.') if i not in TLDS][-1]
 
-GLOBAL_CSS = """ *:focus { border: #00a 1px solid; } """
+GLOBAL_CSS = """ *:focus { border: #00a 1px solid; }
+"""
 
 def encode_css(style):
     """ Takes a css as string, returns a proper base64 encoded "file" """

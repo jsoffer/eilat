@@ -34,6 +34,8 @@
 
 """
 
+from __future__ import unicode_literals, print_function
+
 import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl, Qt, QEvent
@@ -164,6 +166,7 @@ class WebTab(QtGui.QWidget):
             ("Ctrl+Up", self, partial(zoom, 1)),
             ("Ctrl+Down", self, partial(zoom, -1)),
             ("G", self.webkit, show_search),
+            ("I", self.webkit, lambda: print("open new tab")),
             ("Return", self.search_frame, self.do_search),
             ("Ctrl+J", self.search_frame, self.do_search),
             ("Escape", self.search_frame, hide_search),
@@ -204,7 +207,7 @@ class WebTab(QtGui.QWidget):
         if self.address_bar.hasFocus():
             self.webkit.setFocus()
         if not success:
-            print "loadFinished: failed"
+            print("loadFinished: failed")
 
     # connect (en constructor)
     def on_link_click(self, qurl):
