@@ -134,7 +134,6 @@ class WebTab(QtGui.QWidget):
 
         def hide_search():
             """ One-time callback for QShortcut """
-            #self.search_frame.search_line.setText("")
             self.search_frame.setVisible(False)
             self.webkit.findText("")
             self.webkit.setFocus()

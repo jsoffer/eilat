@@ -40,6 +40,8 @@ from PyQt4.QtWebKit import QWebView
 from PyQt4.QtCore import Qt, QEvent
 import PyQt4.QtGui as QtGui
 
+from functools import partial
+
 from libeilat import set_shortcuts
 
 class WebView(QWebView):
@@ -61,48 +63,21 @@ class WebView(QWebView):
         if netmanager is not None:
             self.page().setNetworkAccessManager(netmanager)
 
-        def handle_enter():
-            """ Generate a fake Enter in the webkit, to send a form """
+        def handle_key(key):
+            """ Generate a fake key click in the webkit """
             enter_event = QtGui.QKeyEvent(
-                    QEvent.KeyPress, Qt.Key_Enter, Qt.KeyboardModifiers())
-            QtGui.QApplication.sendEvent(self, enter_event)
-
-        def handle_left():
-            """ Generate a fake 'left arrow' in the webkit """
-            enter_event = QtGui.QKeyEvent(
-                    QEvent.KeyPress, Qt.Key_Left,
-                    Qt.KeyboardModifiers())
-            QtGui.QApplication.sendEvent(self, enter_event)
-
-        def handle_right():
-            """ Generate a fake 'left arrow' in the webkit """
-            enter_event = QtGui.QKeyEvent(
-                    QEvent.KeyPress, Qt.Key_Right,
-                    Qt.KeyboardModifiers())
-            QtGui.QApplication.sendEvent(self, enter_event)
-
-        def handle_up():
-            """ Generate a fake 'left arrow' in the webkit """
-            enter_event = QtGui.QKeyEvent(
-                    QEvent.KeyPress, Qt.Key_Up,
-                    Qt.KeyboardModifiers())
-            QtGui.QApplication.sendEvent(self, enter_event)
-
-        def handle_down():
-            """ Generate a fake 'left arrow' in the webkit """
-            enter_event = QtGui.QKeyEvent(
-                    QEvent.KeyPress, Qt.Key_Down,
+                    QEvent.KeyPress, key,
                     Qt.KeyboardModifiers())
             QtGui.QApplication.sendEvent(self, enter_event)
 
         set_shortcuts([
             ("Alt+Left", self, self.back),
             ("Alt+Right", self, self.forward),
-            ("Ctrl+J", self, handle_enter),
-            ("Shift+H", self, handle_left),
-            ("Shift+J", self, handle_down),
-            ("Shift+K", self, handle_up),
-            ("Shift+L", self, handle_right),
+            ("Ctrl+J", self, partial(handle_key, Qt.Key_Enter)),
+            ("Shift+H", self, partial(handle_key, Qt.Key_Left)),
+            ("Shift+J", self, partial(handle_key, Qt.Key_Down)),
+            ("Shift+K", self, partial(handle_key, Qt.Key_Up)),
+            ("Shift+L", self, partial(handle_key, Qt.Key_Right)),
             ("F5", self, self.reload),
             ("R", self, self.reload)
             ])
