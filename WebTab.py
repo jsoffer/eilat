@@ -172,11 +172,12 @@ class WebTab(QtGui.QWidget):
             navigated link
 
             """
-            open_action = self.webkit.page().OpenLinkInNewWindow
+            #open_action = self.webkit.page().OpenLinkInNewWindow
             #open_action = QWebPage.DownloadLinkToDisk
             #q_open_action = self.webkit.page().action(open_action)
-            self.webkit.pageAction(open_action).trigger()
-            print("Opening...")
+            #self.webkit.pageAction(open_action).trigger()
+            self.webkit.paste = True
+            print("Opening in new tab...")
 
         set_shortcuts([
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
@@ -245,6 +246,7 @@ class WebTab(QtGui.QWidget):
         """
         if self.webkit.paste:
             self.browser.add_tab(qurl)
+            self.webkit.paste = False
         else:
             self.navigate(qurl)
 
@@ -287,16 +289,6 @@ class WebTab(QtGui.QWidget):
                 url = unicode(self.address_bar.text())
             qurl = fix_url(url)
         self.set_title("Loading...")
-
-        #host_id = real_host(qurl.host())
-        #css_file = self.browser.css_path + host_id + ".css"
-        #try:
-        #    css_fh = open(css_file, 'r')
-        #    css_encoded = encode_css(css_fh.read()).strip()
-        #except IOError:
-        #    css_encoded = encode_css('')
-        #self.webkit.settings().setUserStyleSheetUrl(
-        #        QUrl(css_encoded))
 
         self.webkit.load(qurl)
         self.webkit.setFocus()
