@@ -67,10 +67,42 @@ class WebView(QWebView):
                     QEvent.KeyPress, Qt.Key_Enter, Qt.KeyboardModifiers())
             QtGui.QApplication.sendEvent(self, enter_event)
 
+        def handle_left():
+            """ Generate a fake 'left arrow' in the webkit """
+            enter_event = QtGui.QKeyEvent(
+                    QEvent.KeyPress, Qt.Key_Left,
+                    Qt.KeyboardModifiers())
+            QtGui.QApplication.sendEvent(self, enter_event)
+
+        def handle_right():
+            """ Generate a fake 'left arrow' in the webkit """
+            enter_event = QtGui.QKeyEvent(
+                    QEvent.KeyPress, Qt.Key_Right,
+                    Qt.KeyboardModifiers())
+            QtGui.QApplication.sendEvent(self, enter_event)
+
+        def handle_up():
+            """ Generate a fake 'left arrow' in the webkit """
+            enter_event = QtGui.QKeyEvent(
+                    QEvent.KeyPress, Qt.Key_Up,
+                    Qt.KeyboardModifiers())
+            QtGui.QApplication.sendEvent(self, enter_event)
+
+        def handle_down():
+            """ Generate a fake 'left arrow' in the webkit """
+            enter_event = QtGui.QKeyEvent(
+                    QEvent.KeyPress, Qt.Key_Down,
+                    Qt.KeyboardModifiers())
+            QtGui.QApplication.sendEvent(self, enter_event)
+
         set_shortcuts([
             ("Alt+Left", self, self.back),
             ("Alt+Right", self, self.forward),
             ("Ctrl+J", self, handle_enter),
+            ("Shift+H", self, handle_left),
+            ("Shift+J", self, handle_down),
+            ("Shift+K", self, handle_up),
+            ("Shift+L", self, handle_right),
             ("F5", self, self.reload),
             ("R", self, self.reload)
             ])
