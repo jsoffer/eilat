@@ -87,8 +87,24 @@ class WebTab(QtGui.QWidget):
         self.webkit.loadFinished.connect(self.load_finished)
         self.webkit.titleChanged.connect(self.set_title)
         self.webkit.loadProgress.connect(self.load_progress)
-        self.webkit.urlChanged.connect(
-                lambda url: self.address_bar.setText(url.toString()))
+
+        def url_changed(qurl):
+            """ One time callback for 'connect'
+            Sets the user style sheet, sets the address bar text
+
+            """
+            host_id = real_host(qurl.host())
+            css_file = self.browser.css_path + host_id + ".css"
+            try:
+                css_fh = open(css_file, 'r')
+                css_encoded = encode_css(css_fh.read()).strip()
+            except IOError:
+                css_encoded = encode_css('')
+            self.webkit.settings().setUserStyleSheetUrl(
+                    QUrl(css_encoded))
+            self.address_bar.setText(qurl.toString())
+
+        self.webkit.urlChanged.connect(url_changed)
         self.webkit.page().linkHovered.connect(self.on_link_hovered)
 
         self.search_frame.search_line.textChanged.connect(self.do_search)
@@ -151,6 +167,17 @@ class WebTab(QtGui.QWidget):
             QtGui.QApplication.sendEvent(
                     self.address_bar.completer().popup(), event)
 
+        def open_new_tab():
+            """ Tentative temporary for opening a keyboard
+            navigated link
+
+            """
+            open_action = self.webkit.page().OpenLinkInNewWindow
+            #open_action = QWebPage.DownloadLinkToDisk
+            #q_open_action = self.webkit.page().action(open_action)
+            self.webkit.pageAction(open_action).trigger()
+            print("Opening...")
+
         set_shortcuts([
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
             #("Ctrl+L", self.address_bar, self.webkit.setFocus),
@@ -166,7 +193,7 @@ class WebTab(QtGui.QWidget):
             ("Ctrl+Up", self, partial(zoom, 1)),
             ("Ctrl+Down", self, partial(zoom, -1)),
             ("G", self.webkit, show_search),
-            ("I", self.webkit, lambda: print("open new tab")),
+            ("I", self.webkit, open_new_tab),
             ("Return", self.search_frame, self.do_search),
             ("Ctrl+J", self.search_frame, self.do_search),
             ("Escape", self.search_frame, hide_search),
@@ -261,15 +288,15 @@ class WebTab(QtGui.QWidget):
             qurl = fix_url(url)
         self.set_title("Loading...")
 
-        host_id = real_host(qurl.host())
-        css_file = self.browser.css_path + host_id + ".css"
-        try:
-            css_fh = open(css_file, 'r')
-            css_encoded = encode_css(css_fh.read()).strip()
-        except IOError:
-            css_encoded = encode_css('')
-        self.webkit.settings().setUserStyleSheetUrl(
-                QUrl(css_encoded))
+        #host_id = real_host(qurl.host())
+        #css_file = self.browser.css_path + host_id + ".css"
+        #try:
+        #    css_fh = open(css_file, 'r')
+        #    css_encoded = encode_css(css_fh.read()).strip()
+        #except IOError:
+        #    css_encoded = encode_css('')
+        #self.webkit.settings().setUserStyleSheetUrl(
+        #        QUrl(css_encoded))
 
         self.webkit.load(qurl)
         self.webkit.setFocus()
