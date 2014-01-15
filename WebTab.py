@@ -172,16 +172,11 @@ class WebTab(QtGui.QWidget):
             navigated link
 
             """
-            #open_action = self.webkit.page().OpenLinkInNewWindow
-            #open_action = QWebPage.DownloadLinkToDisk
-            #q_open_action = self.webkit.page().action(open_action)
-            #self.webkit.pageAction(open_action).trigger()
             self.webkit.paste = True
             print("Opening in new tab...")
 
         set_shortcuts([
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
-            #("Ctrl+L", self.address_bar, self.webkit.setFocus),
             ("Ctrl+J", self.address_bar, self.navigate),
             ("Ctrl+I", self.address_bar, navigate_completion),
             ("Ctrl+O", self.address_bar, partial(navigate_completion, False)),
