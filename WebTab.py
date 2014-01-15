@@ -139,9 +139,9 @@ class WebTab(QtGui.QWidget):
             self.webkit.findText("")
             self.webkit.setFocus()
 
-        def scroll(delta):
+        def scroll(delta_x=0, delta_y=0):
             """ One-time callback for QShortcut """
-            self.webkit.page().mainFrame().scroll(0, delta)
+            self.webkit.page().mainFrame().scroll(delta_x, delta_y)
 
         def zoom(lvl):
             """ One-time callback for QShortcut """
@@ -189,8 +189,10 @@ class WebTab(QtGui.QWidget):
             ("Ctrl+M", self.address_bar, self.web_search),
             ("Ctrl+Space", self.webkit, toggle_status),
             ("Q", self.webkit, self.toggle_script),
-            ("J", self.webkit, partial(scroll, 40)),
-            ("K", self.webkit, partial(scroll, -40)),
+            ("J", self.webkit, partial(scroll, delta_y=40)),
+            ("K", self.webkit, partial(scroll, delta_y=-40)),
+            ("H", self.webkit, partial(scroll, delta_x=-40)),
+            ("L", self.webkit, partial(scroll, delta_x=40)),
             ("Ctrl+Up", self, partial(zoom, 1)),
             ("Ctrl+Down", self, partial(zoom, -1)),
             ("G", self.webkit, show_search),
