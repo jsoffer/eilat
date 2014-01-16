@@ -167,12 +167,11 @@ class WebTab(QtGui.QWidget):
                     self.address_bar.completer().popup(), event)
 
         def open_new_tab():
-            """ Tentative temporary for opening a keyboard
-            navigated link
+            """ Set the webkit for "the next url opened will be on a
+            new tab"
 
             """
             self.webkit.paste = True
-            print("Opening in new tab...")
 
         set_shortcuts([
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
