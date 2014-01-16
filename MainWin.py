@@ -91,7 +91,8 @@ class MainWin(QMainWindow):
 
             """
             if self.clipboard is not None:
-                url = unicode(self.clipboard.text(QClipboard.Selection)).strip()
+                url = unicode(self.clipboard.text(
+                    mode=QClipboard.Selection)).strip()
                 self.add_tab(url)
 
         def restore_last_closed():

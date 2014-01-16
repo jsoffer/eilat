@@ -36,6 +36,7 @@
 
 from __future__ import unicode_literals, print_function
 
+from PyQt4.Qt import QClipboard
 import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl, Qt, QEvent
@@ -66,6 +67,22 @@ class WebTab(QtGui.QWidget):
                QWebSettings.SpatialNavigationEnabled, True)
         #self.webkit.settings().setAttribute(
         #       QWebSettings.DeveloperExtrasEnabled, True)
+
+
+        def copy_to_clipboard(request):
+            """ Write the requested download to the PRIMARY clipboard,
+            so it can be easily pasted with middle click on the console
+
+            """
+            string_to_copy = request.url().toString()
+            print("CLIPBOARD: " + string_to_copy)
+            self.browser.clipboard.setText(
+                    string_to_copy, mode=QClipboard.Selection)
+
+        self.webkit.page().downloadRequested.connect(copy_to_clipboard)
+        self.webkit.page().unsupportedContent.connect(copy_to_clipboard)
+
+        self.webkit.page().setForwardUnsupportedContent(True)
 
         # address bar
         self.address_bar = AddressBar(model=browser.model, parent=self)

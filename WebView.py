@@ -52,13 +52,6 @@ class WebView(QWebView):
         super(WebView, self).__init__(parent)
         self.paste = False
 
-        self.page().downloadRequested.connect(
-                lambda k: print("D: " + k.url().toString()))
-        self.page().unsupportedContent.connect(
-                lambda k: print("U: " + k.url().toString()))
-
-        self.page().setForwardUnsupportedContent(True)
-
         # replace the Network Access Manager (log connections)
         if netmanager is not None:
             self.page().setNetworkAccessManager(netmanager)
