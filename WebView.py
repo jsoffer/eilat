@@ -70,6 +70,26 @@ class WebView(QWebView):
                     Qt.KeyboardModifiers())
             QtGui.QApplication.sendEvent(self, enter_event)
 
+        def handle_click():
+            """ Generate a fake mouse click in the webkit """
+            enter_event = QtGui.QMouseEvent(
+                    QEvent.MouseButtonPress,
+                    self.mapFromGlobal(QtGui.QCursor.pos()),
+                    Qt.LeftButton,
+                    Qt.MouseButtons(),
+                    Qt.KeyboardModifiers())
+
+            QtGui.QApplication.sendEvent(self, enter_event)
+
+            exit_event = QtGui.QMouseEvent(
+                    QEvent.MouseButtonRelease,
+                    self.mapFromGlobal(QtGui.QCursor.pos()),
+                    Qt.LeftButton,
+                    Qt.MouseButtons(),
+                    Qt.KeyboardModifiers())
+
+            QtGui.QApplication.sendEvent(self, exit_event)
+
         set_shortcuts([
             ("Alt+Left", self, self.back),
             ("Alt+Right", self, self.forward),
@@ -78,6 +98,7 @@ class WebView(QWebView):
             ("Shift+J", self, partial(handle_key, Qt.Key_Down)),
             ("Shift+K", self, partial(handle_key, Qt.Key_Up)),
             ("Shift+L", self, partial(handle_key, Qt.Key_Right)),
+            ("C", self, handle_click),
             ("F5", self, self.reload),
             ("R", self, self.reload)
             ])
