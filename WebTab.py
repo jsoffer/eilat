@@ -69,15 +69,21 @@ class WebTab(QtGui.QWidget):
         #       QWebSettings.DeveloperExtrasEnabled, True)
 
 
-        def copy_to_clipboard(request):
+        def copy_to_clipboard(request=None):
             """ Write the requested download to the PRIMARY clipboard,
             so it can be easily pasted with middle click on the console
 
+            If 'request' is not a request, but already an URL, pass it as is
+
             """
-            string_to_copy = request.url().toString()
+            if request is None:
+                string_to_copy = unicode(self.address_bar.text())
+            else:
+                string_to_copy = request.url().toString()
+
             print("CLIPBOARD: " + string_to_copy)
             self.browser.clipboard.setText(
-                    string_to_copy, mode=QClipboard.Selection)
+                    unicode(string_to_copy), mode=QClipboard.Selection)
 
         self.webkit.page().downloadRequested.connect(copy_to_clipboard)
         self.webkit.page().unsupportedContent.connect(copy_to_clipboard)
@@ -183,7 +189,7 @@ class WebTab(QtGui.QWidget):
             QtGui.QApplication.sendEvent(
                     self.address_bar.completer().popup(), event)
 
-        def open_new_tab():
+        def open_in_new_tab():
             """ Set the webkit for "the next url opened will be on a
             new tab"
 
@@ -196,7 +202,6 @@ class WebTab(QtGui.QWidget):
             ("Ctrl+I", self.address_bar, navigate_completion),
             ("Ctrl+O", self.address_bar, partial(navigate_completion, False)),
             ("Return", self.address_bar, self.navigate),
-            ("Ctrl+M", self.address_bar, self.web_search),
             ("Ctrl+Space", self.webkit, toggle_status),
             ("Q", self.webkit, self.toggle_script),
             ("J", self.webkit, partial(scroll, delta_y=40)),
@@ -205,8 +210,9 @@ class WebTab(QtGui.QWidget):
             ("L", self.webkit, partial(scroll, delta_x=40)),
             ("Ctrl+Up", self, partial(zoom, 1)),
             ("Ctrl+Down", self, partial(zoom, -1)),
+            ("Ctrl+E", self, copy_to_clipboard),
             ("G", self.webkit, show_search),
-            ("I", self.webkit, open_new_tab),
+            ("I", self.webkit, open_in_new_tab),
             ("Return", self.search_frame, self.do_search),
             ("Ctrl+J", self.search_frame, self.do_search),
             ("Escape", self.search_frame, hide_search),
@@ -304,12 +310,6 @@ class WebTab(QtGui.QWidget):
 
         self.webkit.load(qurl)
         self.webkit.setFocus()
-
-    def web_search(self):
-        """ Go directly to search; don't attempt to navigate first """
-        phrase = unicode(self.address_bar.currentText())
-        qurl = QUrl("http://localhost:8000/?q=%s" % (phrase.replace(" ", "+")))
-        self.webkit.load(qurl)
 
     # connect (en constructor)
     def set_title(self, title):
