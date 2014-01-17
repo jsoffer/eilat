@@ -126,7 +126,7 @@ def main():
     netmanager.setCookieJar(cookiejar)
 
     app.setApplicationName("Eilat")
-    app.setApplicationVersion("1.2.003")
+    app.setApplicationVersion("1.2.004")
     mainwin = MainWin(netmanager, clipboard)
 
     if sitio:
