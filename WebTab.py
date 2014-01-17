@@ -170,7 +170,7 @@ class WebTab(QtGui.QWidget):
             factor = self.webkit.zoomFactor() + (lvl * 0.25)
             self.webkit.setZoomFactor(factor)
 
-        def navigate_completion(down=True):
+        def navigate_completion(key=Qt.Key_Down):
             """ Sends an "arrow press" to the completion popup to navigate
             results.
 
@@ -179,12 +179,8 @@ class WebTab(QtGui.QWidget):
 
             """
 
-            if down:
-                event = QtGui.QKeyEvent(
-                        QEvent.KeyPress, Qt.Key_Down, Qt.KeyboardModifiers())
-            else:
-                event = QtGui.QKeyEvent(
-                        QEvent.KeyPress, Qt.Key_Up, Qt.KeyboardModifiers())
+            event = QtGui.QKeyEvent(
+                        QEvent.KeyPress, key, Qt.KeyboardModifiers())
 
             QtGui.QApplication.sendEvent(
                     self.address_bar.completer().popup(), event)
@@ -200,7 +196,8 @@ class WebTab(QtGui.QWidget):
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
             ("Ctrl+J", self.address_bar, self.navigate),
             ("Ctrl+I", self.address_bar, navigate_completion),
-            ("Ctrl+O", self.address_bar, partial(navigate_completion, False)),
+            ("Ctrl+O", self.address_bar, partial(
+                navigate_completion, Qt.Key_Up)),
             ("Return", self.address_bar, self.navigate),
             ("Ctrl+Space", self.webkit, toggle_status),
             ("Q", self.webkit, self.toggle_script),
