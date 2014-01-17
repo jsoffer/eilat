@@ -73,17 +73,17 @@ class WebTab(QtGui.QWidget):
             """ Write the requested download to the PRIMARY clipboard,
             so it can be easily pasted with middle click on the console
 
-            If 'request' is not a request, but already an URL, pass it as is
+            If there's no 'request', fetch the url from the address bar
 
             """
             if request is None:
-                string_to_copy = unicode(self.address_bar.text())
+                qstring_to_copy = self.address_bar.text()
             else:
-                string_to_copy = request.url().toString()
+                qstring_to_copy = request.url().toString()
 
-            print("CLIPBOARD: " + string_to_copy)
+            print("CLIPBOARD: " + qstring_to_copy)
             self.browser.clipboard.setText(
-                    unicode(string_to_copy), mode=QClipboard.Selection)
+                    unicode(qstring_to_copy), mode=QClipboard.Selection)
 
         self.webkit.page().downloadRequested.connect(copy_to_clipboard)
         self.webkit.page().unsupportedContent.connect(copy_to_clipboard)
