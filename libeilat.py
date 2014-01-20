@@ -34,7 +34,7 @@
 
 """
 
-from __future__ import unicode_literals
+from __future__ import print_function, unicode_literals
 
 from PyQt4.QtCore import QUrl, Qt
 import PyQt4.QtGui as QtGui
@@ -53,11 +53,14 @@ def fix_url(url):
     search = False
     if url[:4] in ['http', 'file']:
         return QUrl(url)
-    else:
+    elif '.' in url:
+        print("resolving" + url + "' ...")
         try: # ingenioso pero feo; con 'bind' local es barato
             socket.gethostbyname(url.split('/')[0])
         except (UnicodeEncodeError, socket.error):
             search = True
+    else:
+        search = True
     if search:
         #return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
         return QUrl(
