@@ -49,6 +49,7 @@ from CookieJar import CookieJar
 from DatabaseLog import DatabaseLog
 
 from sys import argv
+from os.path import expanduser
 
 def all_urls(tab_widget):
     """
@@ -104,6 +105,9 @@ def main():
     else:
         sitio = None
         print "EMPTY"
+
+    if cookie_file is not None:
+        cookie_file = expanduser("~/.cookies/") + cookie_file
 
     # Proxy
     if use_proxy:

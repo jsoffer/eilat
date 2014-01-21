@@ -54,7 +54,7 @@ def fix_url(url):
     if url[:4] in ['http', 'file']:
         return QUrl(url)
     elif '.' in url:
-        print("resolving" + url + "' ...")
+        print("resolving '" + url + "' ...")
         try: # ingenioso pero feo; con 'bind' local es barato
             socket.gethostbyname(url.split('/')[0])
         except (UnicodeEncodeError, socket.error):

@@ -41,11 +41,12 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel
 
 from functools import partial
-from os.path import expanduser
 
 # local
 from WebTab import WebTab
 from libeilat import set_shortcuts
+
+from os.path import expanduser
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
