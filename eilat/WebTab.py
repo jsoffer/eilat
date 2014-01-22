@@ -119,8 +119,8 @@ class WebTab(QtGui.QWidget):
             host_id = real_host(qurl.host())
             css_file = self.browser.css_path + host_id + ".css"
             try:
-                css_fh = open(css_file, 'r')
-                css_encoded = encode_css(css_fh.read()).strip()
+                with open(css_file, 'r') as css_fh:
+                    css_encoded = encode_css(css_fh.read()).strip()
             except IOError:
                 css_encoded = encode_css('')
             self.webkit.settings().setUserStyleSheetUrl(
