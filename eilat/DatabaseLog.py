@@ -39,7 +39,10 @@ from psycopg2 import connect as postgresql_connect
 class DatabaseLog(object):
     """ A database layer to be shared through all the application run """
     def __init__(self):
-        self.db_conn = postgresql_connect("dbname=pguser user=pguser")
+        self.db_conn = postgresql_connect(
+                database="pguser",
+                user="pguser",
+                password="pgpass")
         self.db_cursor = self.db_conn.cursor()
 
         q_prepare_sreq = (
