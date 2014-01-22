@@ -127,33 +127,29 @@ class InterceptNAM(QNetworkAccessManager):
                 is called.
 
                 """
-                try:
-                    encabezados = filtra(reply.rawHeaderPairs())
-                    (statuscode, _) = reply.attribute(
-                            QNetworkRequest.HttpStatusCodeAttribute).toInt()
+                encabezados = filtra(reply.rawHeaderPairs())
+                (statuscode, _) = reply.attribute(
+                        QNetworkRequest.HttpStatusCodeAttribute).toInt()
 
-                    if self.log:
-                        self.log.store_reply({
-                            "id": self.instance_id,
-                            "idx": idx,
-                            "scheme": unicode(reply.url().scheme()),
-                            "host": unicode(reply.url().host()),
-                            "path": unicode(reply.url().path()),
-                            "query": filtra(reply.url().encodedQueryItems()),
-                            "fragment": notnull(
-                                unicode(reply.url().fragment())),
-                            "status": statuscode,
-                            "headers": encabezados
-                            })
+                if self.log:
+                    self.log.store_reply({
+                        "id": self.instance_id,
+                        "idx": idx,
+                        "scheme": unicode(reply.url().scheme()),
+                        "host": unicode(reply.url().host()),
+                        "path": unicode(reply.url().path()),
+                        "query": filtra(reply.url().encodedQueryItems()),
+                        "fragment": notnull(
+                            unicode(reply.url().fragment())),
+                        "status": statuscode,
+                        "headers": encabezados
+                        })
 
-                    # ...until we're done with the request
-                    # (pyqt/sip related trouble)
-                    self.cheatgc.remove(reply)
-                    self.cheatgc.remove(idx)
-                    #print "[%s]" % (len(self.cheatgc))
-                except NameError as name_error:
-                    print(name_error)
-                    print("Except NameError!")
+                # ...until we're done with the request
+                # (pyqt/sip related trouble)
+                self.cheatgc.remove(reply)
+                self.cheatgc.remove(idx)
+                #print "[%s]" % (len(self.cheatgc))
 
             return ret
 
