@@ -39,6 +39,8 @@ davydm@gmail.com
 
 """
 
+from __future__ import unicode_literals, print_function
+
 import PyQt4.QtGui as QtGui
 from PyQt4.QtNetwork import QNetworkProxy
 
@@ -56,7 +58,57 @@ def all_urls(tab_widget):
     Prints all the urls held on a tab widget
     """
     for i in range(tab_widget.count()):
-        print tab_widget.widget(i).webkit.url().toString()
+        print(tab_widget.widget(i).webkit.url().toString())
+
+def extract_options(site):
+    """ Given a site, decide if cookies are allowed, if only some sites
+    will not be blocked, etc.
+
+    """
+
+    if site is not None:
+        host = site.split('.')[-2:][0]
+
+    if site is None or host not in ["facebook", "twitter", "google"]:
+        print("GENERAL")
+        return {
+                'use_proxy': True,
+                'host_whitelist': None,
+                'cookie_allow': ["github.com", "freerepublic.com"],
+                'cookie_file': None,
+                'prefix': ""}
+    elif host == "facebook":
+        print("FACEBOOK")
+        return {
+                'use_proxy': False,
+                'host_whitelist': [
+                    "facebook.com",
+                    "akamaihd.net",
+                    "fbcdn.net"],
+                'cookie_allow': ["facebook.com"],
+                'cookie_file': "fbcookies.cj",
+                'prefix': "FB"}
+    elif host == "twitter":
+        print("TWITTER")
+        return {
+                'use_proxy': False,
+                'host_whitelist': ["twitter.com", "twimg.com"],
+                'cookie_allow': ["twitter.com"],
+                'cookie_file': "twcookies.cj",
+                'prefix': "TW"}
+    elif host == "google":
+        print("GOOGLE")
+        return {
+                'use_proxy': False,
+                'host_whitelist': [
+                    "google.com",
+                    "google.com.mx",
+                    "googleusercontent.com",
+                    "gstatic.com",
+                    "googleapis.com"],
+                'cookie_allow': ["google.com"],
+                'cookie_file': "gcookies.cj",
+                'prefix': "G"}
 
 def main():
     """ Catch the url (if any); then choose adequate defaults and build
@@ -64,77 +116,46 @@ def main():
 
     """
 
-    # Considerations:
-    # Will use proxy? (if not google, fb, twitter... then yes)
-    use_proxy = True
-    # Which whitelist will use instead?
-    host_whitelist = None
-    # Will allow cookies? Which? Where are they saved?
-    cookie_allow = ["github.com", "freerepublic.com"]
-    cookie_file = None
-    prefix = ""
-
     if len(argv) == 2:
-        sitio = argv[1]
-        if (sitio.split('.')[-2:] == ["facebook", "com"]):
-            use_proxy = False
-            host_whitelist = ["facebook.com", "akamaihd.net", "fbcdn.net"]
-            cookie_allow = ["facebook.com"]
-            cookie_file = "fbcookies.cj"
-            prefix = "FB"
-        elif (sitio.split('.')[-2:] == ["twitter", "com"]):
-            use_proxy = False
-            host_whitelist = ["twitter.com", "twimg.com"]
-            cookie_allow = ["twitter.com"]
-            cookie_file = "twcookies.cj"
-            prefix = "TW"
-        elif (sitio.split('.')[-2:] == ["google", "com"]):
-            print "GOOGLE"
-            use_proxy = False
-            host_whitelist = [
-                    "google.com",
-                    "google.com.mx",
-                    "googleusercontent.com",
-                    "gstatic.com",
-                    "googleapis.com"]
-            cookie_allow = ["google.com"]
-            cookie_file = "gcookies.cj"
-            prefix = "G"
-        else:
-            print "GENERAL"
+        site = argv[1]
     else:
-        sitio = None
-        print "EMPTY"
+        site = None
 
-    if cookie_file is not None:
-        cookie_file = expanduser("~/.cookies/") + cookie_file
+    options = extract_options(site)
+
+    if options['cookie_file'] is not None:
+        options['cookie_file'] = (
+                expanduser("~/.cookies/") + options['cookie_file'])
 
     # Proxy
-    if use_proxy:
+    if options['use_proxy']:
         proxy = QNetworkProxy()
         proxy.setType(QNetworkProxy.HttpProxy)
         proxy.setHostName('localhost')
         proxy.setPort(3128)
         QNetworkProxy.setApplicationProxy(proxy)
 
-
     app = QtGui.QApplication([])
 
     clipboard = app.clipboard()
     db_log = DatabaseLog()
+
     netmanager = InterceptNAM(
-            parent=app, name=prefix,
-            log=db_log, whitelist=host_whitelist)
+            parent=app, name=options['prefix'],
+            log=db_log, whitelist=options['host_whitelist'])
+
     cookiejar = CookieJar(
-            parent=app, allowed=cookie_allow, storage=cookie_file)
+            parent=app,
+            allowed=options['cookie_allow'],
+            storage=options['cookie_file'])
     netmanager.setCookieJar(cookiejar)
 
     app.setApplicationName("Eilat")
-    app.setApplicationVersion("1.3.001")
+    app.setApplicationVersion("1.3.002")
     mainwin = MainWin(netmanager, clipboard)
 
-    if sitio:
-        mainwin.add_tab(sitio)
+    if site:
+        mainwin.add_tab(site)
     else:
         mainwin.add_tab()
 
@@ -144,11 +165,11 @@ def main():
         """ The browser is closing - save cookies, if required.
 
         """
-        print "END"
+        print("END")
         all_urls(mainwin.tab_widget)
-        if cookie_file:
-            print "SAVING COOKIES"
-            with open(cookie_file, "w") as savefile:
+        if options['cookie_file']:
+            print("SAVING COOKIES")
+            with open(options['cookie_file'], "w") as savefile:
                 for cookie in cookiejar.allCookies():
                     savefile.write(cookie.toRawForm()+"\n")
 
