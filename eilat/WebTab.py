@@ -68,6 +68,19 @@ class WebTab(QtGui.QWidget):
         #self.webkit.settings().setAttribute(
         #       QWebSettings.DeveloperExtrasEnabled, True)
 
+        main_frame = self.webkit.page().mainFrame()
+        ##### NUEVO
+        test_javascript = """ window.onload=function(){
+        var txt = document.createTextNode("new text");
+        document.getElementsByTagName('body')[0].appendChild(txt);
+        }
+        """
+
+        #main_frame.evaluateJavaScript(javascript)
+
+        main_frame.initialLayoutCompleted.connect(
+                partial(main_frame.evaluateJavaScript, test_javascript))
+
 
         def copy_to_clipboard(request=None):
             """ Write the requested download to the PRIMARY clipboard,

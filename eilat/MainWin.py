@@ -70,7 +70,7 @@ class MainWin(QMainWindow):
         self.tab_widget.setTabsClosable(True)
 
         database = QSqlDatabase("QPSQL")
-        database.open("pguser", "pguser")
+        database.open("pguser", "pgpass")
 
         query = QSqlQuery(
                 "select concat(host, path) h, count(*) c from reply " +
