@@ -373,7 +373,7 @@ class AddressBar(QtGui.QLineEdit):
         set_shortcuts([
             ("Ctrl+H", self, self.backspace),
             ("Ctrl+Y", self, self.crop_right),
-            ("Ctrl+U", self, partial(self.crop_right, True))
+            ("Ctrl+U", self, partial(self.crop_right, root=True))
             ])
 
         self.set_color()

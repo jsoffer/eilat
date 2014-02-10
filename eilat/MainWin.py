@@ -107,6 +107,7 @@ class MainWin(QMainWindow):
 
         set_shortcuts([
             ("Ctrl+T", self, self.add_tab),
+            ("Ctrl+Shift+T", self, partial(self.add_tab, scripting=True)),
             ("Y", self, new_tab_from_clipboard),
             ("U", self, restore_last_closed),
             ("Ctrl+W", self, self.del_tab),
@@ -162,7 +163,7 @@ class MainWin(QMainWindow):
 
     # action (en register_actions)
     # externo en eilat.py, crea la primera tab
-    def add_tab(self, url=None):
+    def add_tab(self, url=None, scripting=False):
         """ Creates a new tab, either empty or navegating to the url.
         Sets itself as the active tab.
 
@@ -174,6 +175,8 @@ class MainWin(QMainWindow):
 
         self.tab_widget.addTab(tab, "New tab")
         self.tab_widget.setCurrentWidget(tab)
+        if scripting:
+            tab.toggle_script()
         if url:
             tab.navigate(url)
         else:
