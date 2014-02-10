@@ -85,7 +85,7 @@ class InterceptNAM(QNetworkAccessManager):
 
         if (usando_whitelist(self.whitelist, request.url()) or
                 es_font(request.url())):
-            #print("FILTERING %s" % request.url().toString()[:255])
+            print("FILTERING %s" % request.url().toString()[:255])
             return QNetworkAccessManager.createRequest(
                 self,
                 operation,

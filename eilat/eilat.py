@@ -69,7 +69,8 @@ def extract_options(site):
     if site is not None:
         host = site.split('.')[-2:][0]
 
-    if site is None or host not in ["facebook", "twitter", "google"]:
+    if site is None or host not in [
+            "facebook", "twitter", "google", "linkedin", "okcupid"]:
         print("GENERAL")
         return {
                 'use_proxy': True,
@@ -77,6 +78,28 @@ def extract_options(site):
                 'cookie_allow': ["github.com", "freerepublic.com"],
                 'cookie_file': None,
                 'prefix': ""}
+    elif host == "linkedin":
+        print("LINKEDIN")
+        return {
+                'use_proxy': False,
+                'host_whitelist': [
+                    "linkedin.com",
+                    "licdn.com"
+                    ],
+                'cookie_allow': ["linkedin.com"],
+                'cookie_file': "licookies.cj",
+                'prefix': "LI"}
+    elif host == "okcupid":
+        print("OKCUPID")
+        return {
+                'use_proxy': True,
+                'host_whitelist': [
+                    "okcupid.com",
+                    "okccdn.com"
+                    ],
+                'cookie_allow': ["okcupid.com"],
+                'cookie_file': "okcookies.cj",
+                'prefix': "OK"}
     elif host == "facebook":
         print("FACEBOOK")
         return {
