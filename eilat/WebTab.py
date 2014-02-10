@@ -372,10 +372,32 @@ class AddressBar(QtGui.QLineEdit):
 
         set_shortcuts([
             ("Ctrl+H", self, self.backspace),
+            ("Ctrl+Y", self, self.crop_right),
+            ("Ctrl+U", self, partial(self.crop_right, True))
             ])
 
         self.set_color()
         self.setCompleter(QtGui.QCompleter(model, self))
+
+    def crop_right(self, root=False):
+        """
+        Removes the final '/something' on an url
+        If 'root' is requested, it removes everything right of the host
+
+        """
+        url = self.text().split('/')
+
+        if root:
+            if ':' in url[0]:
+                # [:3] accounts for 'http://' and then the host
+                new_url = url[:3].join('/')
+            else:
+                new_url = url[0]
+        else:
+            new_url = url[:-1].join('/')
+
+        self.setText(new_url)
+
 
     def set_color(self, rgb=(255, 255, 255)):
         """ Sets the background color of the address bar """
