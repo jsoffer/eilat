@@ -89,13 +89,12 @@ def notnull(data):
     else:
         return data
 
-def set_shortcuts(lista):
+def set_shortcuts(lista, context=Qt.WidgetWithChildrenShortcut):
     """ Creates QShortcuts from a list of (key, owner, callback) 3-tuples
 
     """
     for (shortcut, owner, callback) in lista:
-        QtGui.QShortcut(shortcut, owner, callback).setContext(
-                Qt.WidgetWithChildrenShortcut)
+        QtGui.QShortcut(shortcut, owner, callback).setContext(context)
 
 def es_url_local(url):
     """ Predicate for create_request
