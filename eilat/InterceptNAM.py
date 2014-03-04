@@ -36,7 +36,6 @@
 
 from __future__ import unicode_literals, print_function
 
-from time import time
 from urlparse import parse_qsl
 
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
@@ -65,7 +64,6 @@ class InterceptNAM(QNetworkAccessManager):
     def __init__(self, name, log=None, parent=None, whitelist=None):
         super(InterceptNAM, self).__init__(parent)
         print("INIT InterceptNAM")
-        self.instance_id = time()
         self.count = 0
         self.cheatgc = []
 
@@ -92,8 +90,8 @@ class InterceptNAM(QNetworkAccessManager):
                 QNetworkRequest(QUrl("about:blank")),
                 data)
 
-        request.setAttribute(
-                QNetworkRequest.HttpPipeliningAllowedAttribute, True)
+        #request.setAttribute(
+        #        QNetworkRequest.HttpPipeliningAllowedAttribute, True)
 
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
@@ -133,7 +131,7 @@ class InterceptNAM(QNetworkAccessManager):
 
                 if self.log:
                     self.log.store_reply({
-                        "id": self.instance_id,
+                        "id": self.log.instance_id,
                         "idx": idx,
                         "scheme": unicode(reply.url().scheme()),
                         "host": unicode(reply.url().host()),
@@ -161,7 +159,7 @@ class InterceptNAM(QNetworkAccessManager):
                 headers.append((header, request.rawHeader(header)))
 
             self.log.store_request({
-                "id": self.instance_id,
+                "id": self.log.instance_id,
                 "idx": self.count,
                 "op": OPERATIONS[operation],
                 "scheme": unicode(request.url().scheme()),

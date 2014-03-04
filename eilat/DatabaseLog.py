@@ -34,11 +34,13 @@
 
 """
 
+from time import time
 from psycopg2 import connect as postgresql_connect
 
 class DatabaseLog(object):
     """ A database layer to be shared through all the application run """
     def __init__(self):
+        self.instance_id = time()
         self.db_conn = postgresql_connect(
                 database="pguser",
                 user="pguser",
