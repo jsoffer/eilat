@@ -64,6 +64,14 @@ class DatabaseLog(object):
                 "values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9)")
         self.db_cursor.execute(q_prepare_srep)
 
+        q_prepare_snav = (
+                "PREPARE store_navigation AS " +
+                "INSERT INTO navigation " +
+                "(at_time, instance, " +
+                "scheme, host, path, query, fragment)" +
+                "values (now(), $1, $2, $3, $4, $5, $6)")
+        self.db_cursor.execute(q_prepare_snav)
+
     def run(self, query):
         """ Execute a query, store it. This is not the proper way.
         The 'commit' should happen only once after a page is complete.
@@ -91,5 +99,14 @@ class DatabaseLog(object):
                 "(%(id)s, %(idx)s, " +
                 "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s, " +
                 "%(status)s, %(headers)s)")
+        self.db_cursor.execute(query, dictionary)
+        self.db_conn.commit()
+
+    def store_navigation(self, dictionary):
+        """ Fill the table 'navigation' """
+        query = (
+                "EXECUTE store_navigation " +
+                "(%(id)s, " +
+                "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s)")
         self.db_cursor.execute(query, dictionary)
         self.db_conn.commit()

@@ -50,12 +50,14 @@ from os.path import expanduser
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
-    def __init__(self, netmanager, clipboard, parent=None):
+    def __init__(self, netmanager, clipboard, log=None, parent=None):
         super(MainWin, self).__init__(parent)
         if netmanager is not None:
             self.setWindowTitle("Eilat Browser " + netmanager.name)
         else:
             self.setWindowTitle("TESTING Eilat Browser")
+
+        self.log = log
 
         self.last_closed = None
         self.css_path = expanduser("~/.css/")
@@ -163,6 +165,7 @@ class MainWin(QMainWindow):
             self.tab_widget.currentWidget().webkit.setFocus()
 
     # action (en register_actions)
+    # only way to create a new tab on the browser
     # externo en eilat.py, crea la primera tab
     def add_tab(self, url=None, scripting=False):
         """ Creates a new tab, either empty or navegating to the url.
