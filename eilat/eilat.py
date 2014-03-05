@@ -75,7 +75,10 @@ def extract_options(site):
         return {
                 'use_proxy': True,
                 'host_whitelist': None,
-                'cookie_allow': ["github.com", "freerepublic.com"],
+                'cookie_allow': [
+                    "github.com",
+                    "freerepublic.com",
+                    "ycombinator.com"],
                 'cookie_file': None,
                 'prefix': ""}
     elif host == "linkedin":
@@ -175,7 +178,7 @@ def main():
 
     app.setApplicationName("Eilat")
     app.setApplicationVersion("1.3.002")
-    mainwin = MainWin(netmanager, clipboard)
+    mainwin = MainWin(netmanager, clipboard, log=db_log)
 
     if site:
         mainwin.add_tab(site)
@@ -195,6 +198,9 @@ def main():
             with open(options['cookie_file'], "w") as savefile:
                 for cookie in cookiejar.allCookies():
                     savefile.write(cookie.toRawForm()+"\n")
+        else:
+            for cookie in cookiejar.allCookies():
+                print(cookie.toRawForm()+"\n")
 
     app.lastWindowClosed.connect(end_call)
     app.exec_()

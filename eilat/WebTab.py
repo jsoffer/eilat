@@ -46,6 +46,7 @@ from functools import partial
 # local
 from WebView import WebView
 from libeilat import set_shortcuts, fix_url, real_host, encode_css
+from libeilat import filtra, notnull
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -317,6 +318,17 @@ class WebTab(QtGui.QWidget):
                 url = unicode(self.address_bar.text())
             qurl = fix_url(url)
         self.set_title("Loading...")
+
+        if self.browser.log:
+            self.browser.log.store_navigation({
+                "id": self.browser.log.instance_id,
+                "scheme": unicode(qurl.scheme()),
+                "host": unicode(qurl.host()),
+                "path": unicode(qurl.path()),
+                "query": filtra(qurl.encodedQueryItems()),
+                "fragment": notnull(
+                    unicode(qurl.fragment())),
+                })
 
         self.webkit.load(qurl)
         self.webkit.setFocus()
