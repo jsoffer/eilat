@@ -75,12 +75,8 @@ class MainWin(QMainWindow):
         database.open("pguser", "pgpass")
 
         query = QSqlQuery(
-                "select concat(host, path) h, count(*) c from reply " +
-                "where status between 200 and 399 " +
-                "and is_bookmarkable(path) " +
-                "and host not in (select host from filtro) " +
-                "group by h " +
-                "order by c desc", database)
+                "select concat(host, path) h, count(*) c from navigation " +
+                "group by h order by c desc", database)
 
         self.model = QSqlQueryModel()
         self.model.setQuery(query)
