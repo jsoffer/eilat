@@ -64,7 +64,7 @@ class InterceptNAM(QNetworkAccessManager):
     def __init__(self, name, log=None, parent=None, whitelist=None):
         super(InterceptNAM, self).__init__(parent)
         print("INIT InterceptNAM")
-        self.count = 0
+        self.count = -1
         self.cheatgc = []
 
         self.whitelist = whitelist
@@ -76,6 +76,7 @@ class InterceptNAM(QNetworkAccessManager):
         matches requests with replies. Stores on a PostgreSQL database.
 
         """
+        self.count += 1
 
         if es_url_local(request.url()) and not es_font(request.url()):
             return QNetworkAccessManager.createRequest(
@@ -174,7 +175,6 @@ class InterceptNAM(QNetworkAccessManager):
                 "headers": filtra(headers)
                 })
 
-        self.count += 1
         return response
 
     # Clean reimplement for Qt
