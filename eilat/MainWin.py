@@ -75,7 +75,8 @@ class MainWin(QMainWindow):
         database.open("pguser", "pgpass")
 
         query = QSqlQuery(
-                "select concat(host, path) h, count(*) c from navigation " +
+                "select concat(regexp_replace(host, '^www.', ''), path) h, " +
+                "count(*) c from navigation " +
                 "group by h order by c desc", database)
 
         self.model = QSqlQueryModel()
