@@ -179,3 +179,23 @@ def encode_css(style):
     header = "data:text/css;charset=utf-8;base64,"
     content = encodestring(GLOBAL_CSS + style)
     return header + content
+
+def user_agent_for_url(*args):
+    """ Returns a User Agent that will be seen by the website.
+    The loose array for arguments is because this function is used to
+    replace a class method. The only justification is that 'self' will not
+    be used. May not be a sane idea.
+
+    """
+
+    if real_host(args[1].host()) in ['whatsmyuseragent']:
+        user_agent = (
+               "Mozilla/5.0 (X11; FreeBSD amd64; rv:27.0) " +
+               "(Hello WIMUA) " +
+               "Gecko/20100101 Firefox/27.0")
+    else:
+        user_agent = (
+               "Mozilla/5.0 (X11; FreeBSD amd64; rv:27.0) " +
+               "Gecko/20100101 Firefox/27.0")
+
+    return user_agent

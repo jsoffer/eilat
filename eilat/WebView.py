@@ -42,6 +42,7 @@ import PyQt4.QtGui as QtGui
 
 from functools import partial
 
+#from WebPage import WebPage
 from libeilat import set_shortcuts
 
 class WebView(QWebView):
@@ -50,6 +51,7 @@ class WebView(QWebView):
     """
     def __init__(self, netmanager, parent=None):
         super(WebView, self).__init__(parent)
+        #self.setPage(WebPage())
         self.paste = False
 
         # replace the Network Access Manager (log connections)
