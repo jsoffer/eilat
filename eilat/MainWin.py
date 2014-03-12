@@ -76,7 +76,8 @@ class MainWin(QMainWindow):
 
         query = QSqlQuery(
                 "select concat(regexp_replace(host, '^www.', ''), path) h, " +
-                "count(*) c from navigation " +
+                "count(*) c from navigation where query is null "
+                "and not longpath(path) " +
                 "group by h order by c desc", database)
 
         self.model = QSqlQueryModel()
