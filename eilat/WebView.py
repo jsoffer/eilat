@@ -54,8 +54,8 @@ class WebView(QWebView):
         #self.setPage(WebPage())
         self.paste = False
 
-        self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
-        #self.setRenderHint(QtGui.QPainter.HighQualityAntialiasing, True)
+        #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
+        self.setRenderHint(QtGui.QPainter.HighQualityAntialiasing, True)
 
         # replace the Network Access Manager (log connections)
         if netmanager is not None:
