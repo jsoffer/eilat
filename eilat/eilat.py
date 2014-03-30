@@ -76,9 +76,7 @@ def extract_options(site):
                 'use_proxy': True,
                 'host_whitelist': None,
                 'cookie_allow': [
-                    "github.com",
-                    "freerepublic.com",
-                    "ycombinator.com"],
+                    "github.com"],
                 'cookie_file': None,
                 'prefix': ""}
     elif host == "linkedin":
