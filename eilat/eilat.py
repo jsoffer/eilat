@@ -67,7 +67,7 @@ def extract_options(site):
     """
 
     if site is not None:
-        host = site.split('.')[-2:][0]
+        host = site.split('.')[-2]
 
     if site is None or host not in [
             "facebook", "twitter", "google", "linkedin"]:
