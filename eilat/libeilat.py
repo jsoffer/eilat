@@ -104,6 +104,13 @@ def es_url_local(url):
     return ((url.scheme() in ['data', 'file']) or
             (url.host() == 'localhost'))
 
+def es_num_ip(url):
+    """ Predicate for create_request
+    Is the URL an already resolved numeric ip address?
+
+    """
+    return not ([k for k in url if k not in "0123456789."])
+
 def es_font(url):
     """ Predicate for create_request
     Is requesting for a web font?

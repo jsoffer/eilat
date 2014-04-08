@@ -43,7 +43,8 @@ from PyQt4.Qt import QUrl
 
 from PyQt4.QtCore import QString
 
-from libeilat import filtra, notnull, es_url_local, usando_whitelist, es_font
+from libeilat import (
+        filtra, notnull, es_url_local, usando_whitelist, es_font, es_num_ip)
 
 OPERATIONS = {
         1: "HEAD",
@@ -84,7 +85,7 @@ class InterceptNAM(QNetworkAccessManager):
                     self, operation, request, data)
 
         if (usando_whitelist(self.whitelist, qurl) or
-                es_font(qurl)):
+                es_font(qurl) or es_num_ip(request.url().host())):
             print("FILTERING %s" % qurl.toString()[:255])
             return QNetworkAccessManager.createRequest(
                 self,
