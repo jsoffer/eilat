@@ -70,7 +70,7 @@ def extract_options(site):
         host = site.split('.')[-2]
 
     if site is None or host not in [
-            "facebook", "twitter", "google", "linkedin"]:
+            "facebook", "twitter", "google", "linkedin", "youtube"]:
         print("GENERAL")
         return {
                 'use_proxy': True,
@@ -90,6 +90,17 @@ def extract_options(site):
                 'cookie_allow': ["linkedin.com"],
                 'cookie_file': "licookies.cj",
                 'prefix': "LI"}
+    elif host in ["youtube"]:
+        print("YOUTUBE")
+        return {
+                'use_proxy': False,
+                'host_whitelist': [
+                    "youtube.com",
+                    "ytimg.com"
+                    ],
+                'cookie_allow': None,
+                'cookie_file': None,
+                'prefix': "YT"}
     elif host == "facebook":
         print("FACEBOOK")
         return {
