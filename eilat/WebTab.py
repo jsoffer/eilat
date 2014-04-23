@@ -230,6 +230,8 @@ class WebTab(QtGui.QWidget):
             ("Escape", self.address_bar, self.webkit.setFocus)
             ])
 
+        #self.browser.tab_widget.tabBar().tabButton(0,1).hide()
+
     def toggle_script(self):
         """ Activa o desactiva javascript, y notifica cambiando el color
         del address bar
@@ -307,6 +309,11 @@ class WebTab(QtGui.QWidget):
         If 'url' is None, extract it directly from the address bar.
 
         """
+
+        #index_self = self.browser.tab_widget.indexOf(self)
+        #print("I", index_self)
+        #print("B", self.browser.tab_widget.tabBar().tabButton(index_self,1))
+        #self.browser.tab_widget.tabBar().tabButton(index_self,1).hide()
 
         self.search_frame.setVisible(False)
         self.address_bar.completer().popup().close()

@@ -177,7 +177,12 @@ class MainWin(QMainWindow):
         tab = WebTab(browser=self, parent=self.tab_widget)
 
         self.tab_widget.addTab(tab, "New tab")
+
+
         self.tab_widget.setCurrentWidget(tab)
+        tab_idx = self.tab_widget.indexOf(tab)
+        self.tab_widget.tabBar().tabButton(tab_idx, 1).hide() # 1: right align
+
         if scripting:
             tab.toggle_script()
         if url:
