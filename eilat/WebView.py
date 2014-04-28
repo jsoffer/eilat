@@ -53,6 +53,7 @@ class WebView(QWebView):
         super(WebView, self).__init__(parent)
         #self.setPage(WebPage())
         self.paste = False
+        self.save = False # here, just to get these two together
 
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
         self.setRenderHint(QtGui.QPainter.HighQualityAntialiasing, True)

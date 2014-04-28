@@ -37,6 +37,7 @@
 from __future__ import print_function, unicode_literals
 
 from PyQt4.QtCore import QUrl, Qt
+from PyQt4.Qt import QClipboard
 import PyQt4.QtGui as QtGui
 
 import socket
@@ -207,3 +208,24 @@ def user_agent_for_url(*args):
                "Gecko/20100101 Firefox/27.0")
 
     return user_agent
+
+def copy_to_clipboard(clipboard, request=None):
+    """ Write the requested download to the PRIMARY clipboard,
+    so it can be easily pasted with middle click on the console
+
+    If there's no 'request', fetch the url from the address bar
+
+    """
+
+    #if request is None:
+    #    qstring_to_copy = self.address_bar.text()
+    #else:
+
+    if isinstance(request, QUrl):
+        qstring_to_copy = request.toString()
+    else:
+        qstring_to_copy = request.url().toString()
+
+    print("CLIPBOARD: " + qstring_to_copy)
+    clipboard.setText(
+            unicode(qstring_to_copy), mode=QClipboard.Selection)

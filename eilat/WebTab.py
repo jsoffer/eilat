@@ -36,7 +36,6 @@
 
 from __future__ import unicode_literals, print_function
 
-from PyQt4.Qt import QClipboard
 import PyQt4.QtGui as QtGui
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl, Qt, QEvent
@@ -46,7 +45,7 @@ from functools import partial
 # local
 from WebView import WebView
 from libeilat import set_shortcuts, fix_url, real_host, encode_css
-from libeilat import filtra, notnull
+from libeilat import filtra, notnull, copy_to_clipboard
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -82,25 +81,10 @@ class WebTab(QtGui.QWidget):
         main_frame.initialLayoutCompleted.connect(
                 partial(main_frame.evaluateJavaScript, test_javascript))
 
-
-        def copy_to_clipboard(request=None):
-            """ Write the requested download to the PRIMARY clipboard,
-            so it can be easily pasted with middle click on the console
-
-            If there's no 'request', fetch the url from the address bar
-
-            """
-            if request is None:
-                qstring_to_copy = self.address_bar.text()
-            else:
-                qstring_to_copy = request.url().toString()
-
-            print("CLIPBOARD: " + qstring_to_copy)
-            self.browser.clipboard.setText(
-                    unicode(qstring_to_copy), mode=QClipboard.Selection)
-
-        self.webkit.page().downloadRequested.connect(copy_to_clipboard)
-        self.webkit.page().unsupportedContent.connect(copy_to_clipboard)
+        self.webkit.page().downloadRequested.connect(partial(
+            copy_to_clipboard, self.browser.clipboard))
+        self.webkit.page().unsupportedContent.connect(partial(
+            copy_to_clipboard, self.browser.clipboard))
 
         self.webkit.page().setForwardUnsupportedContent(True)
 
@@ -203,8 +187,18 @@ class WebTab(QtGui.QWidget):
             """ Set the webkit for "the next url opened will be on a
             new tab"
 
+            Deactivated on 'on_link_click'
+
             """
             self.webkit.paste = True
+
+        def save_link():
+            """ Set the next navigation to be a "save this" event
+
+            Deactivated on 'navigate'
+
+            """
+            self.webkit.save = True
 
         set_shortcuts([
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
@@ -221,9 +215,9 @@ class WebTab(QtGui.QWidget):
             ("L", self.webkit, partial(scroll, delta_x=40)),
             ("Ctrl+Up", self, partial(zoom, 1)),
             ("Ctrl+Down", self, partial(zoom, -1)),
-            ("Ctrl+E", self, copy_to_clipboard),
             ("G", self.webkit, show_search),
             ("I", self.webkit, open_in_new_tab),
+            ("S", self.webkit, save_link),
             ("Return", self.search_frame, self.do_search),
             ("Ctrl+J", self.search_frame, self.do_search),
             ("Escape", self.search_frame, hide_search),
@@ -317,6 +311,11 @@ class WebTab(QtGui.QWidget):
 
         self.search_frame.setVisible(False)
         self.address_bar.completer().popup().close()
+
+        if self.webkit.save:
+            copy_to_clipboard(self.browser.clipboard, url)
+            self.webkit.save = False
+            return
 
         if isinstance(url, QUrl):
             qurl = url
