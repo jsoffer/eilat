@@ -39,6 +39,7 @@ from __future__ import print_function, unicode_literals
 from PyQt4.QtCore import QUrl, Qt
 from PyQt4.Qt import QClipboard
 import PyQt4.QtGui as QtGui
+from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
 import socket
 import json
@@ -110,6 +111,8 @@ def es_num_ip(url):
     Is the URL an already resolved numeric ip address?
 
     """
+    if url in ["192.168.1.254"]:
+        return False
     return not ([k for k in url if k not in "0123456789."])
 
 def es_font(url):
@@ -209,22 +212,21 @@ def user_agent_for_url(*args):
 
     return user_agent
 
-def copy_to_clipboard(clipboard, request=None):
+def copy_to_clipboard(clipboard, request):
     """ Write the requested download to the PRIMARY clipboard,
-    so it can be easily pasted with middle click on the console
+    so it can be easily pasted with middle click (or shift+insert,
+    or xsel, or xclip, or 'Y' keybinding) anywhere it's needed
 
-    If there's no 'request', fetch the url from the address bar
 
     """
 
-    #if request is None:
-    #    qstring_to_copy = self.address_bar.text()
-    #else:
-
     if isinstance(request, QUrl):
         qstring_to_copy = request.toString()
-    else:
+    elif (isinstance(request, QNetworkRequest) or
+            isinstance(request, QNetworkReply)):
         qstring_to_copy = request.url().toString()
+    elif callable(request):
+        qstring_to_copy = request()
 
     print("CLIPBOARD: " + qstring_to_copy)
     clipboard.setText(
