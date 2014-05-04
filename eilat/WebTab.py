@@ -45,7 +45,7 @@ from functools import partial
 # local
 from WebView import WebView
 from libeilat import set_shortcuts, fix_url, real_host, encode_css
-from libeilat import filtra, notnull, copy_to_clipboard
+from libeilat import filtra, notnull, copy_to_clipboard, osd
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -263,6 +263,7 @@ class WebTab(QtGui.QWidget):
         if self.address_bar.hasFocus():
             self.webkit.setFocus()
         if not success:
+            osd("loadFinished: failed")
             print("loadFinished: failed")
 
     # connect (en constructor)

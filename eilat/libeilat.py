@@ -46,6 +46,9 @@ import json
 
 from base64 import encodestring
 from time import time
+from subprocess import Popen, PIPE
+
+from threading import Thread
 
 def fix_url(url):
     """ entra string, sale QUrl """
@@ -245,3 +248,14 @@ def copy_to_clipboard(clipboard, request):
     print("CLIPBOARD: " + qstring_to_copy)
     clipboard.setText(
             unicode(qstring_to_copy), mode=QClipboard.Selection)
+
+def osd(message):
+    """ Call the external program osd_cat from a non-blocking thread """
+
+    def call_osd():
+        """ As a lambda it would be too long """
+        Popen(['osd_cat', '-pmiddle', '-Acenter', '-cblack',
+            '-f-*-*-*-*-*-*-20-*-*-*-*-*-*-*', '-d8000',
+            '-O3', '-uwhite', '-l20'],
+            stdin=PIPE).communicate(input=message)
+    Thread(target=call_osd).start()
