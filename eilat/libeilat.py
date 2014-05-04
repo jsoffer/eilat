@@ -64,7 +64,7 @@ def fix_url(url):
     search = False
     if url[0] in ['\'', '"']:
         search = True
-    elif '.' in url:
+    elif ('.' in url) and (url.split('/')[0].split('.')[-1] in TLDS):
         host = url.split('/')[0]
         time_before = time()
         try: # ingenioso pero feo; con 'bind' local es barato
