@@ -45,25 +45,39 @@ import socket
 import json
 
 from base64 import encodestring
+from time import time
 
 def fix_url(url):
     """ entra string, sale QUrl """
+
     if not url:
         return QUrl()
+
+    url = url.strip()
+
     if url.split(':')[0] == "about":
         return QUrl(url)
-    search = False
+
     if url[:4] in ['http', 'file']:
         return QUrl(url)
+
+    search = False
+    if url[0] in ['\'', '"']:
+        search = True
     elif '.' in url:
         host = url.split('/')[0]
-        print("resolving '" + host + "' ...")
+        time_before = time()
         try: # ingenioso pero feo; con 'bind' local es barato
-            socket.gethostbyname(host)
+            ip_address = socket.gethostbyname(host)
+            timing = time() - time_before
+            print("resolving '%s'... %s [%s]" % (host, ip_address, timing))
         except (UnicodeEncodeError, socket.error):
+            timing = time() - time_before
+            print("nonresolved %s [%s]" % (host, timing))
             search = True
     else:
         search = True
+
     if search:
         #return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
         return QUrl(
