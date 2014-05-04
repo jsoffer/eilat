@@ -93,8 +93,8 @@ class InterceptNAM(QNetworkAccessManager):
                 QNetworkRequest(QUrl("about:blank")),
                 data)
 
-        #request.setAttribute(
-        #        QNetworkRequest.HttpPipeliningAllowedAttribute, True)
+        request.setAttribute(
+                QNetworkRequest.HttpPipeliningAllowedAttribute, True)
 
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
