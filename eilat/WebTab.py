@@ -84,18 +84,14 @@ class WebTab(QtGui.QWidget):
 
         def process_clipboard(notify, request):
             """ notify and save to clipboard """
-            #osd(request.url().toString())
             message = unicode(request.url().toString()) + "\n" + notify
-            print(message)
             osd(message)
             copy_to_clipboard(self.browser.clipboard, request)
 
         self.webkit.page().downloadRequested.connect(partial(
             process_clipboard, "Download Requested"))
-            #copy_to_clipboard, self.browser.clipboard))
         self.webkit.page().unsupportedContent.connect(partial(
             process_clipboard, "Unsupported Content"))
-            #copy_to_clipboard, self.browser.clipboard))
 
         self.webkit.page().setForwardUnsupportedContent(True)
 
@@ -331,7 +327,8 @@ class WebTab(QtGui.QWidget):
                 (host not in ["duckduckgo.com"]) and
                 (not qurl.encodedQuery()) and
                 len(path.split('/')) < 4):
-            self.browser.register_nav(host, path)
+            #self.browser.register_nav(host, path)
+            self.browser.log.store_navigation(host, path)
 
         self.webkit.load(qurl)
         self.webkit.setFocus()

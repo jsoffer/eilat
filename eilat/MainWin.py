@@ -38,7 +38,7 @@ from PyQt4.Qt import QClipboard
 from PyQt4.QtGui import QMainWindow, QTabWidget, QApplication, QTabBar
 from PyQt4.QtCore import Qt
 
-from PyQt4.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel
+from PyQt4.QtSql import QSqlQueryModel
 
 from functools import partial
 
@@ -50,7 +50,7 @@ from os.path import expanduser
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
-    def __init__(self, netmanager, clipboard, parent=None):
+    def __init__(self, netmanager, clipboard, log=None, parent=None):
         super(MainWin, self).__init__(parent)
         if netmanager is not None:
             self.setWindowTitle("Eilat Browser " + netmanager.name)
@@ -62,6 +62,7 @@ class MainWin(QMainWindow):
 
         self.netmanager = netmanager
         self.clipboard = clipboard
+        self.log = log
 
         self.tab_widget = QTabWidget(self)
         self.tab_widget.setTabBar(MidClickTabBar())
@@ -69,19 +70,8 @@ class MainWin(QMainWindow):
         self.setCentralWidget(self.tab_widget)
         self.tab_widget.setTabsClosable(True)
 
-        database = QSqlDatabase("QPSQL")
-        database.open("pguser", "pgpass")
-
-        self.litedb = QSqlDatabase("QSQLITE")
-        self.litedb.setDatabaseName("eilat.db")
-        self.litedb.open()
-
-        query_lite = QSqlQuery(
-                "select host || path from navigation " +
-                "order by count desc", self.litedb)
-
         self.model = QSqlQueryModel()
-        self.model.setQuery(query_lite)
+        self.model.setQuery(self.log.query_nav)
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
@@ -118,21 +108,6 @@ class MainWin(QMainWindow):
             ("Ctrl+PgDown", self, self.inc_tab),
             ("Ctrl+Q", self, QApplication.closeAllWindows)
             ])
-
-    def register_nav(self, host, path):
-        """ FIXME wrong place, testing """
-
-        insert_or_ignore = (
-                "insert or ignore into navigation (host, path) " +
-                "values (\"" + host + "\", \"" + path + "\")")
-
-        update = (
-                "update navigation set count = count + 1 where " +
-                "host = \"" + host + "\" and path = \"" + path + "\"")
-
-        self.litedb.exec_(insert_or_ignore)
-        self.litedb.exec_(update)
-
 
     # aux. action (en register_actions)
     def inc_tab(self, incby=1):

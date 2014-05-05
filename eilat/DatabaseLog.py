@@ -35,7 +35,37 @@
 """
 
 from time import time
+from PyQt4.QtSql import QSqlDatabase, QSqlQuery
 from psycopg2 import connect as postgresql_connect
+
+class DatabaseLogLite(object):
+    """ Low load only; using SQLite
+    To store bookmarks, configuration, etc.
+
+    """
+    def __init__(self):
+
+        self.litedb = QSqlDatabase("QSQLITE")
+        self.litedb.setDatabaseName("eilat.db")
+        self.litedb.open()
+
+        self.query_nav = QSqlQuery(
+                "select host || path from navigation " +
+                "order by count desc", self.litedb)
+
+    def store_navigation(self, host, path):
+        """ save host, path and increase its count """
+
+        insert_or_ignore = (
+                "insert or ignore into navigation (host, path) " +
+                "values (\"" + host + "\", \"" + path + "\")")
+
+        update = (
+                "update navigation set count = count + 1 where " +
+                "host = \"" + host + "\" and path = \"" + path + "\"")
+
+        self.litedb.exec_(insert_or_ignore)
+        self.litedb.exec_(update)
 
 class DatabaseLog(object):
     """ A database layer to be shared through all the application run """

@@ -48,7 +48,7 @@ from PyQt4.QtNetwork import QNetworkProxy
 from InterceptNAM import InterceptNAM
 from MainWin import MainWin
 from CookieJar import CookieJar
-from DatabaseLog import DatabaseLog
+from DatabaseLog import DatabaseLog, DatabaseLogLite
 
 from sys import argv
 from os.path import expanduser
@@ -176,7 +176,7 @@ def main():
 
     app.setApplicationName("Eilat")
     app.setApplicationVersion("1.3.002")
-    mainwin = MainWin(netmanager, clipboard)
+    mainwin = MainWin(netmanager, clipboard, DatabaseLogLite())
 
     if site:
         mainwin.add_tab(site)
