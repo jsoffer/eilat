@@ -333,7 +333,14 @@ class WebTab(QtGui.QWidget):
                     unicode(qurl.fragment())),
                 })
 
-        self.browser.register_nav(unicode(qurl.host()), unicode(qurl.path()))
+
+        host = unicode(qurl.host()).lstrip("www.")
+        path = unicode(qurl.path()).rstrip("/")
+
+        if(
+                (not qurl.encodedQuery()) and
+                len(path.split('/')) < 3):
+            self.browser.register_nav(host, path)
 
         self.webkit.load(qurl)
         self.webkit.setFocus()
