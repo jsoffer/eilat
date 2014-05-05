@@ -256,6 +256,6 @@ def osd(message):
         """ As a lambda it would be too long """
         Popen(['osd_cat', '-pmiddle', '-Acenter', '-cblack',
             '-f-*-*-*-*-*-*-20-*-*-*-*-*-*-*', '-d8000',
-            '-O3', '-uwhite', '-l20'],
+            '-O3', '-uwhite', '-l2'],
             stdin=PIPE).communicate(input=message)
     Thread(target=call_osd).start()
