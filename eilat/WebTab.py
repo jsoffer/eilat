@@ -41,6 +41,7 @@ from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl, Qt, QEvent
 
 from functools import partial
+from re import sub
 
 # local
 from WebView import WebView
@@ -334,10 +335,11 @@ class WebTab(QtGui.QWidget):
                 })
 
 
-        host = unicode(qurl.host()).lstrip("www.")
-        path = unicode(qurl.path()).rstrip("/")
+        host = sub("^www.", "", unicode(qurl.host()))
+        path = unicode(qurl.path()).rstrip("/ ")
 
         if(
+                (host not in ["duckduckgo.com"]) and
                 (not qurl.encodedQuery()) and
                 len(path.split('/')) < 3):
             self.browser.register_nav(host, path)
