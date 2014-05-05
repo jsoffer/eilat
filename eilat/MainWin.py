@@ -50,12 +50,14 @@ from os.path import expanduser
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
-    def __init__(self, netmanager, clipboard, parent=None):
+    def __init__(self, netmanager, clipboard, log=None, parent=None):
         super(MainWin, self).__init__(parent)
         if netmanager is not None:
             self.setWindowTitle("Eilat Browser " + netmanager.name)
         else:
             self.setWindowTitle("TESTING Eilat Browser")
+
+        self.log = log
 
         self.last_closed = None
         self.css_path = expanduser("~/.css/")
