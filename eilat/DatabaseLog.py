@@ -35,7 +35,7 @@
 """
 
 from time import time
-from PyQt4.QtSql import QSqlDatabase, QSqlQuery
+from PyQt4.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
 from psycopg2 import connect as postgresql_connect
 
 class DatabaseLogLite(object):
@@ -52,6 +52,9 @@ class DatabaseLogLite(object):
         self.query_nav = QSqlQuery(
                 "select host || path from navigation " +
                 "order by count desc", self.litedb)
+
+        self.model = QSqlQueryModel()
+        self.model.setQuery(self.query_nav)
 
     def store_navigation(self, host, path):
         """ save host, path and increase its count """

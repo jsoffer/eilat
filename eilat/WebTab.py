@@ -96,7 +96,7 @@ class WebTab(QtGui.QWidget):
         self.webkit.page().setForwardUnsupportedContent(True)
 
         # address bar
-        self.address_bar = AddressBar(model=browser.model, parent=self)
+        self.address_bar = AddressBar(model=browser.log.model, parent=self)
 
         # progress bar
         self.pbar = QtGui.QProgressBar(self)

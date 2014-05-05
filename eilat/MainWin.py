@@ -38,8 +38,6 @@ from PyQt4.Qt import QClipboard
 from PyQt4.QtGui import QMainWindow, QTabWidget, QApplication, QTabBar
 from PyQt4.QtCore import Qt
 
-from PyQt4.QtSql import QSqlQueryModel
-
 from functools import partial
 
 # local
@@ -69,9 +67,6 @@ class MainWin(QMainWindow):
         self.tab_widget.tabBar().setMovable(True)
         self.setCentralWidget(self.tab_widget)
         self.tab_widget.setTabsClosable(True)
-
-        self.model = QSqlQueryModel()
-        self.model.setQuery(self.log.query_nav)
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
