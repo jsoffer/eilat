@@ -176,7 +176,7 @@ def main():
 
     app.setApplicationName("Eilat")
     app.setApplicationVersion("1.3.002")
-    mainwin = MainWin(netmanager, clipboard, log=db_log)
+    mainwin = MainWin(netmanager, clipboard)
 
     if site:
         mainwin.add_tab(site)

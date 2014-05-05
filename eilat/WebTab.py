@@ -46,7 +46,7 @@ from re import sub
 # local
 from WebView import WebView
 from libeilat import set_shortcuts, fix_url, real_host, encode_css
-from libeilat import filtra, notnull, copy_to_clipboard, osd
+from libeilat import copy_to_clipboard, osd
 
 class WebTab(QtGui.QWidget):
     """ Cada tab contiene una página web """
@@ -323,25 +323,14 @@ class WebTab(QtGui.QWidget):
             qurl = fix_url(url)
         self.set_title("Loading...")
 
-        if self.browser.log:
-            self.browser.log.store_navigation({
-                "id": self.browser.log.instance_id,
-                "scheme": unicode(qurl.scheme()),
-                "host": unicode(qurl.host()),
-                "path": unicode(qurl.path()),
-                "query": filtra(qurl.encodedQueryItems()),
-                "fragment": notnull(
-                    unicode(qurl.fragment())),
-                })
-
-
+        ### LOG NAVIGATION
         host = sub("^www.", "", unicode(qurl.host()))
         path = unicode(qurl.path()).rstrip("/ ")
 
         if(
                 (host not in ["duckduckgo.com"]) and
                 (not qurl.encodedQuery()) and
-                len(path.split('/')) < 3):
+                len(path.split('/')) < 4):
             self.browser.register_nav(host, path)
 
         self.webkit.load(qurl)
