@@ -83,8 +83,13 @@ class MainWin(QMainWindow):
                 "and not longpath(regexp_replace(path, '/$', '')) " +
                 "group by h order by c desc", database)
 
+        query_lite = QSqlQuery(
+                "select host || path from navigation " +
+                "order by count desc", self.litedb)
+
         self.model = QSqlQueryModel()
         self.model.setQuery(query)
+        #self.model.setQuery(query_lite)
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
@@ -125,16 +130,16 @@ class MainWin(QMainWindow):
     def register_nav(self, host, path):
         """ FIXME wrong place, testing """
 
-        lite_q1 = (
+        insert_or_ignore = (
                 "insert or ignore into navigation (host, path) " +
                 "values (\"" + host + "\", \"" + path + "\")")
 
-        lite_q2 = (
+        update = (
                 "update navigation set count = count + 1 where " +
                 "host = \"" + host + "\" and path = \"" + path + "\"")
 
-        self.litedb.exec_(lite_q1)
-        self.litedb.exec_(lite_q2)
+        self.litedb.exec_(insert_or_ignore)
+        self.litedb.exec_(update)
 
 
     # aux. action (en register_actions)
