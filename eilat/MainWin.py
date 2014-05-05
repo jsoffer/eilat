@@ -76,20 +76,12 @@ class MainWin(QMainWindow):
         self.litedb.setDatabaseName("eilat.db")
         self.litedb.open()
 
-        query = QSqlQuery(
-                "select concat(regexp_replace(host,  '^www.', ''), " +
-                "regexp_replace(path, '/$', '')) h, " +
-                "count(*) c from navigation where query is null "
-                "and not longpath(regexp_replace(path, '/$', '')) " +
-                "group by h order by c desc", database)
-
         query_lite = QSqlQuery(
                 "select host || path from navigation " +
                 "order by count desc", self.litedb)
 
         self.model = QSqlQueryModel()
-        self.model.setQuery(query)
-        #self.model.setQuery(query_lite)
+        self.model.setQuery(query_lite)
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
