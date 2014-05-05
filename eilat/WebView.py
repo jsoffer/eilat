@@ -102,6 +102,14 @@ class WebView(QWebView):
             ("R", self, self.reload)
             ])
 
+    def set_paste(self):
+        """ To use as callback in WebTab; can be improved """
+        self.paste = True
+
+    def set_save(self):
+        """ To use as callback in WebTab; can be improved """
+        self.save = True
+
     def mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks
         and sets self.paste

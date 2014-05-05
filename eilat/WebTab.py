@@ -81,10 +81,20 @@ class WebTab(QtGui.QWidget):
         main_frame.initialLayoutCompleted.connect(
                 partial(main_frame.evaluateJavaScript, test_javascript))
 
+        def process_clipboard(notify, request):
+            """ notify and save to clipboard """
+            #osd(request.url().toString())
+            message = unicode(request.url().toString()) + "\n" + notify
+            print(message)
+            osd(message)
+            copy_to_clipboard(self.browser.clipboard, request)
+
         self.webkit.page().downloadRequested.connect(partial(
-            copy_to_clipboard, self.browser.clipboard))
+            process_clipboard, "Download Requested"))
+            #copy_to_clipboard, self.browser.clipboard))
         self.webkit.page().unsupportedContent.connect(partial(
-            copy_to_clipboard, self.browser.clipboard))
+            process_clipboard, "Unsupported Content"))
+            #copy_to_clipboard, self.browser.clipboard))
 
         self.webkit.page().setForwardUnsupportedContent(True)
 
@@ -183,23 +193,6 @@ class WebTab(QtGui.QWidget):
             QtGui.QApplication.sendEvent(
                     self.address_bar.completer().popup(), event)
 
-        def open_in_new_tab():
-            """ Set the webkit for "the next url opened will be on a
-            new tab"
-
-            Deactivated on 'on_link_click'
-
-            """
-            self.webkit.paste = True
-
-        def save_link():
-            """ Set the next navigation to be a "save this" event
-
-            Deactivated on 'navigate'
-
-            """
-            self.webkit.save = True
-
         set_shortcuts([
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
             ("Ctrl+J", self.address_bar, self.navigate),
@@ -219,8 +212,8 @@ class WebTab(QtGui.QWidget):
             ("Ctrl+Up", self, partial(zoom, 1)),
             ("Ctrl+Down", self, partial(zoom, -1)),
             ("G", self.webkit, show_search),
-            ("I", self.webkit, open_in_new_tab),
-            ("S", self.webkit, save_link),
+            ("I", self.webkit, self.webkit.set_paste),
+            ("S", self.webkit, self.webkit.set_save),
             ("Return", self.search_frame, self.do_search),
             ("Ctrl+J", self.search_frame, self.do_search),
             ("Escape", self.search_frame, hide_search),
@@ -263,7 +256,7 @@ class WebTab(QtGui.QWidget):
         if self.address_bar.hasFocus():
             self.webkit.setFocus()
         if not success:
-            osd("loadFinished: failed")
+            #osd("loadFinished: failed")
             print("loadFinished: failed")
 
     # connect (en constructor)
