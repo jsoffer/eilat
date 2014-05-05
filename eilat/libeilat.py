@@ -200,6 +200,7 @@ def real_host(url):
     return [i for i in url.split('.') if i not in TLDS][-1]
 
 GLOBAL_CSS = """ *:focus { border: #00a 1px solid ! important; }
+* { box-shadow: none ! important; }
 /* * { position: inherit ! important ; } */
 """
 
