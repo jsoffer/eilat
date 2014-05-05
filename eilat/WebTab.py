@@ -333,6 +333,8 @@ class WebTab(QtGui.QWidget):
                     unicode(qurl.fragment())),
                 })
 
+        self.browser.register_nav(unicode(qurl.host()), unicode(qurl.path()))
+
         self.webkit.load(qurl)
         self.webkit.setFocus()
 

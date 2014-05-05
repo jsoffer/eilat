@@ -74,6 +74,10 @@ class MainWin(QMainWindow):
         database = QSqlDatabase("QPSQL")
         database.open("pguser", "pgpass")
 
+        self.litedb = QSqlDatabase("QSQLITE")
+        self.litedb.setDatabaseName("eilat.db")
+        self.litedb.open()
+
         query = QSqlQuery(
                 "select concat(regexp_replace(host,  '^www.', ''), " +
                 "regexp_replace(path, '/$', '')) h, " +
@@ -119,6 +123,21 @@ class MainWin(QMainWindow):
             ("Ctrl+PgDown", self, self.inc_tab),
             ("Ctrl+Q", self, QApplication.closeAllWindows)
             ])
+
+    def register_nav(self, host, path):
+        """ FIXME wrong place, testing """
+
+        lite_q1 = (
+                "insert or ignore into navigation (host, path) " +
+                "values (\"" + host + "\", \"" + path + "\")")
+
+        lite_q2 = (
+                "update navigation set count = count + 1 where " +
+                "host = \"" + host + "\" and path = \"" + path + "\"")
+
+        self.litedb.exec_(lite_q1)
+        self.litedb.exec_(lite_q2)
+
 
     # aux. action (en register_actions)
     def inc_tab(self, incby=1):
