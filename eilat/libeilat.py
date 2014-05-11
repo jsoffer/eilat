@@ -41,11 +41,9 @@ from PyQt4.Qt import QClipboard
 import PyQt4.QtGui as QtGui
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
-import socket
 import json
 
 from base64 import encodestring
-from time import time
 from subprocess import Popen, PIPE
 
 from threading import Thread
@@ -53,36 +51,26 @@ from threading import Thread
 def fix_url(url):
     """ entra string, sale QUrl """
 
-    if not url:
+    # clean entry; standard case
+    if url.strip()[:4] in ['http', 'file']:
+        return QUrl(url.strip())
+
+    # empty case
+    if not url.strip():
         return QUrl()
 
-    url = url.strip()
+    # 'maybe url, maybe not' case
+    url = url.rstrip()
 
-    if url.split(':')[0] == "about":
-        return QUrl(url)
+    # search if a non-alphanum (including space, that will be stripped) leads;
+    # also search if the text has no url structure
+    search = (not url[0].isalnum() or
+            not ('.' in url) or
+            not url.split('/')[0].split('.')[-1] in TLDS)
 
-    if url[:4] in ['http', 'file']:
-        return QUrl(url)
-
-    search = False
-    if url[0] in ['\'', '"']:
-        search = True
-    elif ('.' in url) and (url.split('/')[0].split('.')[-1] in TLDS):
-        host = url.split('/')[0]
-        time_before = time()
-        try: # ingenioso pero feo; con 'bind' local es barato
-            ip_address = socket.gethostbyname(host)
-            timing = time() - time_before
-            print("resolving '%s'... %s [%s]" % (host, ip_address, timing))
-        except (UnicodeEncodeError, socket.error):
-            timing = time() - time_before
-            print("nonresolved %s [%s]" % (host, timing))
-            search = True
-    else:
-        search = True
+    url = url.lstrip()
 
     if search:
-        #return QUrl("http://localhost:8000/?q=%s" % (url.replace(" ", "+")))
         return QUrl(
                 "http://duckduckgo.com/html/?q=%s" % (url.replace(" ", "+")))
     else:
