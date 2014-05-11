@@ -43,15 +43,20 @@ class DatabaseLogLite(object):
     To store bookmarks, configuration, etc.
 
     """
-    def __init__(self):
+    def __init__(self, prefix):
 
         self.litedb = QSqlDatabase("QSQLITE")
         self.litedb.setDatabaseName("eilat.db")
         self.litedb.open()
 
+        if prefix:
+            self.table = 'navigation_' + prefix.lower()
+        else:
+            self.table = 'navigation'
+
         self.query_nav = QSqlQuery(
-                "select host || path from navigation " +
-                "order by count desc", self.litedb)
+                "select host || path from " + self.table +
+                " order by count desc", self.litedb)
 
         self.model = QSqlQueryModel()
         self.model.setQuery(self.query_nav)
@@ -60,11 +65,11 @@ class DatabaseLogLite(object):
         """ save host, path and increase its count """
 
         insert_or_ignore = (
-                "insert or ignore into navigation (host, path) " +
+                "insert or ignore into " + self.table + " (host, path) " +
                 "values (\"" + host + "\", \"" + path + "\")")
 
         update = (
-                "update navigation set count = count + 1 where " +
+                "update " + self.table + " set count = count + 1 where " +
                 "host = \"" + host + "\" and path = \"" + path + "\"")
 
         self.litedb.exec_(insert_or_ignore)

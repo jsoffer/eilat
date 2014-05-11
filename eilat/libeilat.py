@@ -258,4 +258,5 @@ def osd(message, corner=False):
                 params_font +
                 params_time,
                 stdin=PIPE).communicate(input=message)
+
     Thread(target=call_osd).start()
