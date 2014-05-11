@@ -51,7 +51,7 @@ class WebView(QWebView):
     """
     def __init__(self, netmanager, parent=None):
         super(WebView, self).__init__(parent)
-        #self.setPage(WebPage())
+        #self.setPage(WebPage()) # for custom user agents (disabled)
         self.paste = False
         self.save = False # here, just to get these two together
 

@@ -70,15 +70,14 @@ class WebTab(QtGui.QWidget):
         #       QWebSettings.DeveloperExtrasEnabled, True)
 
         main_frame = self.webkit.page().mainFrame()
-        ##### NUEVO
-        test_javascript = """ window.onload=function(){
-        var txt = document.createTextNode("new text");
-        document.getElementsByTagName('body')[0].appendChild(txt);
-        }
-        """
 
-        #main_frame.evaluateJavaScript(javascript)
+        # test_javascript = """ window.onload=function(){
+        # var txt = document.createTextNode("new text");
+        # document.getElementsByTagName('body')[0].appendChild(txt);
+        # }
+        # """
 
+        test_javascript = ''
         main_frame.initialLayoutCompleted.connect(
                 partial(main_frame.evaluateJavaScript, test_javascript))
 
@@ -298,11 +297,6 @@ class WebTab(QtGui.QWidget):
 
         """
 
-        #index_self = self.browser.tab_widget.indexOf(self)
-        #print("I", index_self)
-        #print("B", self.browser.tab_widget.tabBar().tabButton(index_self,1))
-        #self.browser.tab_widget.tabBar().tabButton(index_self,1).hide()
-
         self.search_frame.setVisible(False)
         self.address_bar.completer().popup().close()
 
@@ -327,7 +321,6 @@ class WebTab(QtGui.QWidget):
                 (host not in ["duckduckgo.com", "t.co"]) and
                 (not qurl.encodedQuery()) and
                 len(path.split('/')) < 4):
-            #self.browser.register_nav(host, path)
             self.browser.log.store_navigation(host, path)
 
         self.webkit.load(qurl)

@@ -150,7 +150,6 @@ class InterceptNAM(QNetworkAccessManager):
                 # (pyqt/sip related trouble)
                 self.cheatgc.remove(reply)
                 self.cheatgc.remove(idx)
-                #print "[%s]" % (len(self.cheatgc))
 
             return ret
 

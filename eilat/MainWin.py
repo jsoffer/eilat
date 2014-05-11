@@ -174,12 +174,6 @@ class MainWin(QMainWindow):
         else:
             tab.address_bar.setFocus()
 
-    # Implemented, it's recognized and runs at close
-    #def closeEvent(self, e):
-    #    print "MainWin.closeEvent"
-    #    e.accept()
-    #    self.close()
-
 class MidClickTabBar(QTabBar):
     """ Overloads middle click to close the clicked tab """
     def mouse_release_event(self, event):

@@ -86,8 +86,7 @@ class CookieJar(QNetworkCookieJar):
             ret = []
         else:
             ret = cookies
-        #if ret:
-            #print(format_cookie(url, ret))
+
         return QNetworkCookieJar.setCookiesFromUrl(self, ret, url)
 
     # Clean reimplement for Qt
