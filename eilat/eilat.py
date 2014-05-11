@@ -52,6 +52,7 @@ from DatabaseLog import DatabaseLog, DatabaseLogLite
 
 from sys import argv
 from os.path import expanduser
+from re import sub
 
 def all_urls(tab_widget):
     """
@@ -67,10 +68,12 @@ def extract_options(site):
     """
 
     if site is not None:
-        host = site.split('.')[-2]
+        host = sub("^https?://", "", site).split('/')[0].split('.')[-2]
 
-    if site is None or host not in [
-            "facebook", "twitter", "google", "linkedin", "youtube"]:
+    private_instances = [
+            "facebook", "twitter", "google", "linkedin", "youtube"]
+
+    if site is None or host not in private_instances:
         print("GENERAL")
         return {
                 'use_proxy': True,
