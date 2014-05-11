@@ -250,13 +250,24 @@ def copy_to_clipboard(clipboard, request):
     clipboard.setText(
             unicode(qstring_to_copy), mode=QClipboard.Selection)
 
-def osd(message):
+def osd(message, corner=False):
     """ Call the external program osd_cat from a non-blocking thread """
+
+    params_color = ['-cblack', '-uwhite', '-O3']
+    params_font = ['-f-*-*-*-*-*-*-20-*-*-*-*-*-*-*']
+    params_time = ['-d8000']
+
+    if corner:
+        params_position = ['-ptop', '-Aright']
+    else:
+        params_position = ['-pmiddle', '-Acenter']
 
     def call_osd():
         """ As a lambda it would be too long """
-        Popen(['osd_cat', '-pmiddle', '-Acenter', '-cblack',
-            '-f-*-*-*-*-*-*-20-*-*-*-*-*-*-*', '-d8000',
-            '-O3', '-uwhite', '-l2'],
-            stdin=PIPE).communicate(input=message)
+        Popen(['osd_cat', '-l2'] +
+                params_position +
+                params_color +
+                params_font +
+                params_time,
+                stdin=PIPE).communicate(input=message)
     Thread(target=call_osd).start()
