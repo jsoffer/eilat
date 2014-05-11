@@ -253,7 +253,7 @@ class WebTab(QtGui.QWidget):
         if self.address_bar.hasFocus():
             self.webkit.setFocus()
         if not success:
-            #osd("loadFinished: failed")
+            osd("loadFinished: failed", corner=True)
             print("loadFinished: failed")
 
     # connect (en constructor)
@@ -324,7 +324,7 @@ class WebTab(QtGui.QWidget):
         path = unicode(qurl.path()).rstrip("/ ")
 
         if(
-                (host not in ["duckduckgo.com"]) and
+                (host not in ["duckduckgo.com", "t.co"]) and
                 (not qurl.encodedQuery()) and
                 len(path.split('/')) < 4):
             #self.browser.register_nav(host, path)
