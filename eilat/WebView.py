@@ -89,10 +89,19 @@ class WebView(QWebView):
 
             QtGui.QApplication.sendEvent(self, exit_event)
 
+        def dump_dom():
+            """ saves the content of the current web page """
+            data = self.page().currentFrame().documentElement().toInnerXml()
+            print("SAVING...")
+            file_handle = open('test.html', 'w')
+            file_handle.write(data)
+            file_handle.close()
+
         set_shortcuts([
             ("Alt+Left", self, self.back),
             ("Alt+Right", self, self.forward),
             ("Ctrl+J", self, partial(handle_key, Qt.Key_Enter)),
+            ("Ctrl+M", self, dump_dom),
             ("Shift+H", self, partial(handle_key, Qt.Key_Left)),
             ("Shift+J", self, partial(handle_key, Qt.Key_Down)),
             ("Shift+K", self, partial(handle_key, Qt.Key_Up)),
