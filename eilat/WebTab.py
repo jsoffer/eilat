@@ -317,8 +317,14 @@ class WebTab(QtGui.QWidget):
         host = sub("^www.", "", unicode(qurl.host()))
         path = unicode(qurl.path()).rstrip("/ ")
 
+        do_not_store = [
+                "duckduckgo.com",
+                "t.co",
+                "i.imgur.com",
+                "imgur.com"]
+
         if(
-                (host not in ["duckduckgo.com", "t.co"]) and
+                (host not in do_not_store) and
                 (not qurl.encodedQuery()) and
                 len(path.split('/')) < 4):
             self.browser.log.store_navigation(host, path)
