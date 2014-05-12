@@ -55,8 +55,9 @@ class DatabaseLogLite(object):
             self.table = 'navigation'
 
         self.query_nav = QSqlQuery(
-                "select host || path from " + self.table +
-                " order by count desc", self.litedb)
+                "select host || path from %s " % (self.table) +
+                "order by count desc",
+                self.litedb)
 
         self.model = QSqlQueryModel()
         self.model.setQuery(self.query_nav)
@@ -64,13 +65,16 @@ class DatabaseLogLite(object):
     def store_navigation(self, host, path):
         """ save host, path and increase its count """
 
+        host = host.replace("'", "%27")
+        path = path.replace("'", "%27")
+
         insert_or_ignore = (
-                "insert or ignore into " + self.table + " (host, path) " +
-                "values (\"" + host + "\", \"" + path + "\")")
+                "insert or ignore into %s (host, path) " % (self.table) +
+                "values ('%s', '%s')" % (host, path))
 
         update = (
-                "update " + self.table + " set count = count + 1 where " +
-                "host = \"" + host + "\" and path = \"" + path + "\"")
+                "update %s set count = count + 1 where " % (self.table) +
+                "host = '%s' and path = '%s'" % (host, path))
 
         self.litedb.exec_(insert_or_ignore)
         self.litedb.exec_(update)
