@@ -77,7 +77,9 @@ class DatabaseLogLite(object):
 
 class DatabaseLog(object):
     """ A database layer to be shared through all the application run """
-    def __init__(self):
+    def __init__(self, prefix):
+
+        self.prefix = prefix
         self.instance_id = time()
         self.db_conn = postgresql_connect(
                 database="pguser",
@@ -89,8 +91,9 @@ class DatabaseLog(object):
                 "PREPARE store_request AS " +
                 "INSERT INTO request " +
                 "(at_time, instance, idx, op, headers, " +
-                "scheme, host, path, query, fragment, data, source)" +
-                "values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)")
+                "scheme, host, path, query, fragment, data, source, prefix)" +
+                "values (now(), $1, $2, $3, $4, $5, " +
+                "$6, $7, $8, $9, $10, $11, $12)")
         self.db_cursor.execute(q_prepare_sreq)
 
         q_prepare_srep = (
@@ -98,17 +101,9 @@ class DatabaseLog(object):
                 "INSERT INTO reply " +
                 "(at_time, instance, idx, " +
                 "scheme, host, path, query, fragment, " +
-                "status, headers)" +
-                "values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9)")
+                "status, headers, prefix)" +
+                "values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)")
         self.db_cursor.execute(q_prepare_srep)
-
-        q_prepare_snav = (
-                "PREPARE store_navigation AS " +
-                "INSERT INTO navigation " +
-                "(at_time, instance, " +
-                "scheme, host, path, query, fragment)" +
-                "values (now(), $1, $2, $3, $4, $5, $6)")
-        self.db_cursor.execute(q_prepare_snav)
 
     def run(self, query):
         """ Execute a query, store it. This is not the proper way.
@@ -122,29 +117,24 @@ class DatabaseLog(object):
 
     def store_request(self, dictionary):
         """ Fill the table 'request' """
+
+        dictionary.update({'prefix': self.prefix})
         query = (
                 "EXECUTE store_request " +
                 "(%(id)s, %(idx)s, %(op)s, %(headers)s, " +
                 "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s, " +
-                "%(data)s, %(source)s)")
+                "%(data)s, %(source)s, %(prefix)s)")
         self.db_cursor.execute(query, dictionary)
         self.db_conn.commit()
 
     def store_reply(self, dictionary):
         """ Fill the table 'reply' """
+
+        dictionary.update({'prefix': self.prefix})
         query = (
                 "EXECUTE store_reply " +
                 "(%(id)s, %(idx)s, " +
                 "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s, " +
-                "%(status)s, %(headers)s)")
-        self.db_cursor.execute(query, dictionary)
-        self.db_conn.commit()
-
-    def store_navigation(self, dictionary):
-        """ Fill the table 'navigation' """
-        query = (
-                "EXECUTE store_navigation " +
-                "(%(id)s, " +
-                "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s)")
+                "%(status)s, %(headers)s, %(prefix)s)")
         self.db_cursor.execute(query, dictionary)
         self.db_conn.commit()

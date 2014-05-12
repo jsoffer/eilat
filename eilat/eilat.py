@@ -165,7 +165,7 @@ def main():
     app = QtGui.QApplication([])
 
     clipboard = app.clipboard()
-    db_log = DatabaseLog()
+    db_log = DatabaseLog(options['prefix'])
 
     netmanager = InterceptNAM(
             parent=app, name=options['prefix'],
