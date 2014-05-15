@@ -35,6 +35,8 @@
 """
 
 from time import time
+from os.path import expanduser
+
 from PyQt4.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
 from psycopg2 import connect as postgresql_connect
 
@@ -46,7 +48,7 @@ class DatabaseLogLite(object):
     def __init__(self, prefix):
 
         self.litedb = QSqlDatabase("QSQLITE")
-        self.litedb.setDatabaseName("eilat.db")
+        self.litedb.setDatabaseName(expanduser("~/.eilat/eilat.db"))
         self.litedb.open()
 
         if prefix:

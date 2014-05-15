@@ -152,7 +152,7 @@ def main():
 
     if options['cookie_file'] is not None:
         options['cookie_file'] = (
-                expanduser("~/.cookies/") + options['cookie_file'])
+                expanduser("~/.eilat/cookies/") + options['cookie_file'])
 
     # Proxy
     if options['use_proxy']:

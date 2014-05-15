@@ -56,7 +56,7 @@ class MainWin(QMainWindow):
             self.setWindowTitle("TESTING Eilat Browser")
 
         self.last_closed = None
-        self.css_path = expanduser("~/.css/")
+        self.css_path = expanduser("~/.eilat/css/")
 
         self.netmanager = netmanager
         self.clipboard = clipboard
