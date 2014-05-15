@@ -89,9 +89,9 @@ class InterceptNAM(QNetworkAccessManager):
             print("FILTERING %s" % qurl.toString()[:255])
             return QNetworkAccessManager.createRequest(
                 self,
-                operation,
+                QNetworkAccessManager.GetOperation,
                 QNetworkRequest(QUrl("about:blank")),
-                data)
+                None)
 
         request.setAttribute(
                 QNetworkRequest.HttpPipeliningAllowedAttribute, True)
