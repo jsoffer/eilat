@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -38,6 +38,10 @@ davydm@gmail.com
    THE POSSIBILITY OF SUCH DAMAGE.
 
 """
+
+# to keep some support of python2
+import sip
+sip.setapi('QString', 2)
 
 import PyQt4.Qt as Qt
 from PyQt4.QtNetwork import QNetworkProxy

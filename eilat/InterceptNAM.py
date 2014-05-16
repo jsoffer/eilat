@@ -34,6 +34,7 @@
 
 """
 
+# to keep some support of python2
 try:
     from urllib.parse import parse_qsl
 except ImportError:
@@ -42,8 +43,7 @@ except ImportError:
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
 
-from libeilat import (
-        es_url_local, usando_whitelist, es_font, es_num_ip)
+from libeilat import es_url_local, usando_whitelist, es_font, es_num_ip
 
 from pprint import PrettyPrinter
 
@@ -62,7 +62,6 @@ class InterceptNAM(QNetworkAccessManager):
         self.prefix = prefix
         self.log = log
         self.cheatgc = []
-        self.pending = []
 
         self.printer = PrettyPrinter(indent=4).pprint
 

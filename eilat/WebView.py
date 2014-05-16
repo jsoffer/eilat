@@ -34,7 +34,7 @@
 
 """
 
-from PyQt4.QtGui import QKeyEvent, QMouseEvent, QCursor
+from PyQt4.QtGui import QKeyEvent, QMouseEvent, QCursor, QApplication
 from PyQt4.QtWebKit import QWebView
 from PyQt4.QtCore import Qt, QEvent
 import PyQt4.QtGui as QtWidgets
@@ -66,7 +66,7 @@ class WebView(QWebView):
             enter_event = QKeyEvent(
                     QEvent.KeyPress, key,
                     Qt.KeyboardModifiers())
-            QtWidgets.QApplication.sendEvent(self, enter_event)
+            QApplication.sendEvent(self, enter_event)
 
         def handle_click():
             """ Generate a fake mouse click in the webkit """
@@ -77,7 +77,7 @@ class WebView(QWebView):
                     Qt.MouseButtons(),
                     Qt.KeyboardModifiers())
 
-            QtWidgets.QApplication.sendEvent(self, enter_event)
+            QApplication.sendEvent(self, enter_event)
 
             exit_event = QMouseEvent(
                     QEvent.MouseButtonRelease,
@@ -86,7 +86,7 @@ class WebView(QWebView):
                     Qt.MouseButtons(),
                     Qt.KeyboardModifiers())
 
-            QtWidgets.QApplication.sendEvent(self, exit_event)
+            QApplication.sendEvent(self, exit_event)
 
         def dump_dom():
             """ saves the content of the current web page """
