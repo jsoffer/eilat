@@ -50,10 +50,7 @@ class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
     def __init__(self, netmanager, clipboard, log=None, parent=None):
         super(MainWin, self).__init__(parent)
-        if netmanager is not None:
-            self.setWindowTitle("Eilat Browser " + netmanager.name)
-        else:
-            self.setWindowTitle("TESTING Eilat Browser")
+        self.setWindowTitle("Eilat Browser")
 
         self.last_closed = None
         self.css_path = expanduser("~/.eilat/css/")
@@ -77,8 +74,7 @@ class MainWin(QMainWindow):
 
             """
             if self.clipboard is not None:
-                url = unicode(self.clipboard.text(
-                    mode=QClipboard.Selection)).strip()
+                url = self.clipboard.text(mode=QClipboard.Selection).strip()
                 self.add_tab(url, scripting)
 
         def restore_last_closed():
@@ -98,6 +94,7 @@ class MainWin(QMainWindow):
             ("U", self, restore_last_closed),
             ("Ctrl+W", self, self.del_tab),
             ("N", self, partial(self.inc_tab, -1)),
+            ("Ctrl+N", self, self.netmanager.show_pending),
             ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
             ("M", self, self.inc_tab),
             ("Ctrl+PgDown", self, self.inc_tab),

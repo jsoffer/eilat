@@ -34,26 +34,18 @@
 
 """
 
-from __future__ import unicode_literals, print_function
-
-from urlparse import parse_qsl
+try:
+    from urllib.parse import parse_qsl
+except ImportError:
+    from urlparse import parse_qsl
 
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
 
-from PyQt4.QtCore import QString
-
 from libeilat import (
-        filtra, notnull, es_url_local, usando_whitelist, es_font, es_num_ip)
+        es_url_local, usando_whitelist, es_font, es_num_ip)
 
-OPERATIONS = {
-        1: "HEAD",
-        2: "GET",
-        3: "PUT",
-        4: "POST",
-        5: "DELETE",
-        6: "CUSTOM"
-        }
+from pprint import PrettyPrinter
 
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
@@ -62,36 +54,53 @@ class InterceptNAM(QNetworkAccessManager):
 
     """
 
-    def __init__(self, name, log=None, parent=None, whitelist=None):
+    def __init__(self, prefix, log=None, parent=None, whitelist=None):
         super(InterceptNAM, self).__init__(parent)
         print("INIT InterceptNAM")
-        self.count = -1
-        self.cheatgc = []
 
         self.whitelist = whitelist
-        self.name = name
+        self.prefix = prefix
         self.log = log
+        self.cheatgc = []
+        self.pending = []
+
+        self.printer = PrettyPrinter(indent=4).pprint
+
+    def show_pending(self):
+        """ List of requests that haven't sent 'finished' signal """
+
+        print("PENDING")
+        self.printer([reply.url().toString() for reply in self.cheatgc])
 
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests,
         matches requests with replies. Stores on a PostgreSQL database.
 
         """
-        self.count += 1
+
         qurl = request.url()
 
         if es_url_local(qurl) and not es_font(qurl):
+            print("LOCAL")
             return QNetworkAccessManager.createRequest(
                     self, operation, request, data)
 
         if (usando_whitelist(self.whitelist, qurl) or
                 es_font(qurl) or es_num_ip(request.url().host())):
-            print("FILTERING %s" % qurl.toString()[:255])
+            # different 'flows' for shown, filtered
+            #print("FILTERING %s" % qurl.toString()[:255])
             return QNetworkAccessManager.createRequest(
                 self,
                 QNetworkAccessManager.GetOperation,
                 QNetworkRequest(QUrl("about:blank")),
                 None)
+
+        if operation == QNetworkAccessManager.PostOperation:
+            post_str = data.peek(4096).data().decode()
+            print("_-_-_-_")
+            print(qurl.toString())
+            self.printer(parse_qsl(post_str, keep_blank_values=True))
+            print("-_-_-_-")
 
         request.setAttribute(
                 QNetworkRequest.HttpPipeliningAllowedAttribute, True)
@@ -99,83 +108,28 @@ class InterceptNAM(QNetworkAccessManager):
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
-        if operation == QNetworkAccessManager.PostOperation:
-            post_str = unicode(QString.fromLocal8Bit(data.peek(4096)))
-            data_json = filtra(parse_qsl(post_str, keep_blank_values=True))
-        else:
-            data_json = None
+        self.cheatgc.append(response)
 
-        def indice(reply, idx):
-            """ This function returns a closure enclosing the current index
-            and its associated reply. This is required since there's no
-            knowing when (if at all) a request will be replied to; once it
-            happens, the index will surely have changed.
+        def tell_response():
+            """ Callback; closes around 'response' """
 
-            The 'cheatgc' list is required because of a bug where the reference
-            for the 'reply' and 'idx' objects is lost sometimes after 'ret'
-            completes, despite having created a closure referencing them. By
-            appending to the list, garbage collection is prevented.
+            status = response.attribute(
+                        QNetworkRequest.HttpStatusCodeAttribute)
+            if status is not None and status < 400:
+                print(str(status) + " " + response.url().toString())
 
-            """
+            if status is None:
+                print("<NO STATUS> " + response.url().toString())
 
-            # please don't do garbage collection...
-            self.cheatgc.append(reply)
-            self.cheatgc.append(idx)
+            # into the 'filtered' flow
+            #else:
+            #    print(str(status) + " " + response.url().toString())
+            self.cheatgc.remove(response)
+            #print(self.cheatgc)
 
-            def ret():
-                """ Closure; freezes 'reply' and 'idx' so they will be
-                accessible at the time the request finalizes and this closure
-                is called.
+        response.finished.connect(tell_response)
 
-                """
-                encabezados = filtra(reply.rawHeaderPairs())
-                (statuscode, _) = reply.attribute(
-                        QNetworkRequest.HttpStatusCodeAttribute).toInt()
-
-                if self.log:
-                    self.log.store_reply({
-                        "id": self.log.instance_id,
-                        "idx": idx,
-                        "scheme": unicode(reply.url().scheme()),
-                        "host": unicode(reply.url().host()),
-                        "path": unicode(reply.url().path()),
-                        "query": filtra(reply.url().encodedQueryItems()),
-                        "fragment": notnull(
-                            unicode(reply.url().fragment())),
-                        "status": statuscode,
-                        "headers": encabezados
-                        })
-
-                # ...until we're done with the request
-                # (pyqt/sip related trouble)
-                self.cheatgc.remove(reply)
-                self.cheatgc.remove(idx)
-
-            return ret
-
-        response.finished.connect(indice(response, self.count))
-
-        if self.log:
-            headers = []
-            for header in request.rawHeaderList():
-                headers.append((header, request.rawHeader(header)))
-
-            self.log.store_request({
-                "id": self.log.instance_id,
-                "idx": self.count,
-                "op": OPERATIONS[operation],
-                "scheme": unicode(request.url().scheme()),
-                "host": unicode(request.url().host()),
-                "path": unicode(request.url().path()),
-                "query": filtra(request.url().encodedQueryItems()),
-                "fragment": notnull(
-                    unicode(request.url().fragment())),
-                "data": data_json,
-                "source": unicode(
-                    request.originatingObject().requestedUrl().host()),
-                "headers": filtra(headers)
-                })
-
+        #self.printer([reply.url().toString() for reply in self.cheatgc])
         return response
 
     # Clean reimplement for Qt

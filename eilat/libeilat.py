@@ -34,11 +34,9 @@
 
 """
 
-from __future__ import print_function, unicode_literals
-
+from PyQt4.QtGui import QShortcut
 from PyQt4.QtCore import QUrl, Qt
 from PyQt4.Qt import QClipboard
-import PyQt4.QtGui as QtGui
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
 import json
@@ -86,7 +84,7 @@ def filtra(keyvalues):
         return None
     ret = {}
     for (key, value) in keyvalues:
-        ret[unicode(key)] = unicode(value)
+        ret[key] = value
     return json.dumps(ret)
 
 def notnull(data):
@@ -101,15 +99,16 @@ def set_shortcuts(lista, context=Qt.WidgetWithChildrenShortcut):
 
     """
     for (shortcut, owner, callback) in lista:
-        QtGui.QShortcut(shortcut, owner, callback).setContext(context)
+        QShortcut(shortcut, owner, callback).setContext(context)
 
 def es_url_local(url):
     """ Predicate for create_request
     Is the URL not making an external request?
 
     """
-    return ((url.scheme() in ['data', 'file']) or
-            (url.host() == 'localhost'))
+    return (url.isLocalFile() or
+            url.host() == 'localhost' or
+            url.scheme() == 'data')
 
 def es_num_ip(url):
     """ Predicate for create_request
@@ -122,13 +121,18 @@ def es_num_ip(url):
 
 def es_font(url):
     """ Predicate for create_request
-    Is requesting for a web font?
+    Is requesting for a web font? Include icons, too
 
     """
     return ((url.path()[-3:] == 'ttf') or
+            (url.path()[-3:] == 'ico') or
+            (url.path()[-4:] == 'woff') or
             (url.scheme() == 'data' and url.path()[:4] == 'font') or
-            (url.path()[-3:] == 'svg' and
-                "font" in url.path()))
+            (url.scheme() == 'data' and url.path()[:22] ==
+                'application/x-font-ttf') or
+            (url.scheme() == 'data' and url.path()[:21] ==
+                'application/font-woff') or
+            (url.path()[-3:] == 'svg' and "font" in url.path()))
 
 def usando_whitelist(whitelist, url):
     """ Predicate for create_request
@@ -187,16 +191,16 @@ def real_host(url):
     """ Extracts the last not-tld term from the url """
     return [i for i in url.split('.') if i not in TLDS][-1]
 
-GLOBAL_CSS = """ *:focus { border: #00a 1px solid ! important; }
+GLOBAL_CSS = b""" *:focus { border: #00a 1px solid ! important; }
 * { box-shadow: none ! important; }
 /* * { position: inherit ! important ; } */
 """
 
 def encode_css(style):
     """ Takes a css as string, returns a proper base64 encoded "file" """
-    header = "data:text/css;charset=utf-8;base64,"
-    content = encodestring(GLOBAL_CSS + style)
-    return header + content
+    header = b"data:text/css;charset=utf-8;base64,"
+    content = encodestring(GLOBAL_CSS + style.encode())
+    return (header + content).decode()
 
 def user_agent_for_url(*args):
     """ Returns a User Agent that will be seen by the website.
@@ -235,8 +239,7 @@ def copy_to_clipboard(clipboard, request):
         qstring_to_copy = request()
 
     print("CLIPBOARD: " + qstring_to_copy)
-    clipboard.setText(
-            unicode(qstring_to_copy), mode=QClipboard.Selection)
+    clipboard.setText(qstring_to_copy, mode=QClipboard.Selection)
 
 def osd(message, corner=False):
     """ Call the external program osd_cat from a non-blocking thread """
@@ -257,6 +260,6 @@ def osd(message, corner=False):
                 params_color +
                 params_font +
                 params_time,
-                stdin=PIPE).communicate(input=message)
+                stdin=PIPE).communicate(input=message.encode())
 
     Thread(target=call_osd).start()

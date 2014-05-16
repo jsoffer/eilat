@@ -39,16 +39,14 @@ davydm@gmail.com
 
 """
 
-from __future__ import unicode_literals, print_function
-
-import PyQt4.QtGui as QtGui
+import PyQt4.Qt as Qt
 from PyQt4.QtNetwork import QNetworkProxy
 
 # local
 from InterceptNAM import InterceptNAM
 from MainWin import MainWin
 from CookieJar import CookieJar
-from DatabaseLog import DatabaseLog, DatabaseLogLite
+from DatabaseLog import DatabaseLogLite
 
 from sys import argv
 from os.path import expanduser
@@ -162,14 +160,14 @@ def main():
         proxy.setPort(3128)
         QNetworkProxy.setApplicationProxy(proxy)
 
-    app = QtGui.QApplication([])
+    app = Qt.QApplication([])
 
     clipboard = app.clipboard()
-    db_log = DatabaseLog(options['prefix'])
+    #db_log = DatabaseLog(options['prefix'])
 
     netmanager = InterceptNAM(
-            parent=app, name=options['prefix'],
-            log=db_log, whitelist=options['host_whitelist'])
+            parent=app, prefix=options['prefix'],
+            log=None, whitelist=options['host_whitelist'])
 
     cookiejar = CookieJar(
             parent=app,
@@ -199,7 +197,7 @@ def main():
             print("SAVING COOKIES")
             with open(options['cookie_file'], "w") as savefile:
                 for cookie in cookiejar.allCookies():
-                    savefile.write(cookie.toRawForm()+"\n")
+                    savefile.write(cookie.toRawForm().data().decode()+"\n")
         else:
             for cookie in cookiejar.allCookies():
                 print(cookie.toRawForm()+"\n")

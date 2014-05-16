@@ -34,11 +34,10 @@
 
 """
 
-from __future__ import print_function
-
+from PyQt4.QtGui import QKeyEvent, QMouseEvent, QCursor
 from PyQt4.QtWebKit import QWebView
 from PyQt4.QtCore import Qt, QEvent
-import PyQt4.QtGui as QtGui
+import PyQt4.QtGui as QtWidgets
 
 from functools import partial
 
@@ -56,7 +55,7 @@ class WebView(QWebView):
         self.save = False # here, just to get these two together
 
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
-        self.setRenderHint(QtGui.QPainter.HighQualityAntialiasing, True)
+        #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
 
         # replace the Network Access Manager (log connections)
         if netmanager is not None:
@@ -64,30 +63,30 @@ class WebView(QWebView):
 
         def handle_key(key):
             """ Generate a fake key click in the webkit """
-            enter_event = QtGui.QKeyEvent(
+            enter_event = QKeyEvent(
                     QEvent.KeyPress, key,
                     Qt.KeyboardModifiers())
-            QtGui.QApplication.sendEvent(self, enter_event)
+            QtWidgets.QApplication.sendEvent(self, enter_event)
 
         def handle_click():
             """ Generate a fake mouse click in the webkit """
-            enter_event = QtGui.QMouseEvent(
+            enter_event = QMouseEvent(
                     QEvent.MouseButtonPress,
-                    self.mapFromGlobal(QtGui.QCursor.pos()),
+                    self.mapFromGlobal(QCursor.pos()),
                     Qt.LeftButton,
                     Qt.MouseButtons(),
                     Qt.KeyboardModifiers())
 
-            QtGui.QApplication.sendEvent(self, enter_event)
+            QtWidgets.QApplication.sendEvent(self, enter_event)
 
-            exit_event = QtGui.QMouseEvent(
+            exit_event = QMouseEvent(
                     QEvent.MouseButtonRelease,
-                    self.mapFromGlobal(QtGui.QCursor.pos()),
+                    self.mapFromGlobal(QCursor.pos()),
                     Qt.LeftButton,
                     Qt.MouseButtons(),
                     Qt.KeyboardModifiers())
 
-            QtGui.QApplication.sendEvent(self, exit_event)
+            QtWidgets.QApplication.sendEvent(self, exit_event)
 
         def dump_dom():
             """ saves the content of the current web page """

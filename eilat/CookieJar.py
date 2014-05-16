@@ -34,8 +34,6 @@
 
 """
 
-from __future__ import print_function
-
 from PyQt4.QtNetwork import QNetworkCookieJar, QNetworkCookie
 
 def format_cookie(url, cookies):
@@ -82,7 +80,7 @@ class CookieJar(QNetworkCookieJar):
         if not from whitelisted domains.
 
         """
-        if ".".join(unicode(url.host()).split('.')[-2:]) not in self.allowed:
+        if ".".join(url.host().split('.')[-2:]) not in self.allowed:
             ret = []
         else:
             ret = cookies

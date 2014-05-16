@@ -34,21 +34,22 @@
 
 """
 
-from __future__ import unicode_literals, print_function
-
-import PyQt4.QtGui as QtGui
+from PyQt4.QtGui import (QWidget, QProgressBar, QStatusBar, QGridLayout,
+        QApplication, QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent)
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl, Qt, QEvent
 
 from functools import partial
 from re import sub
 
+import datetime
+
 # local
 from WebView import WebView
-from libeilat import set_shortcuts, fix_url, real_host, encode_css
-from libeilat import copy_to_clipboard, osd
+from libeilat import (set_shortcuts, fix_url, real_host, encode_css,
+        copy_to_clipboard, osd)
 
-class WebTab(QtGui.QWidget):
+class WebTab(QWidget):
     """ Cada tab contiene una página web """
     def __init__(self, browser, parent=None):
         super(WebTab, self).__init__(parent)
@@ -66,6 +67,8 @@ class WebTab(QtGui.QWidget):
                 QWebSettings.JavascriptEnabled, False)
         self.webkit.settings().setAttribute(
                QWebSettings.SpatialNavigationEnabled, True)
+        self.webkit.settings().setAttribute(
+               QWebSettings.SiteSpecificQuirksEnabled, False)
         #self.webkit.settings().setAttribute(
         #       QWebSettings.DeveloperExtrasEnabled, True)
 
@@ -83,7 +86,7 @@ class WebTab(QtGui.QWidget):
 
         def process_clipboard(notify, request):
             """ notify and save to clipboard """
-            message = unicode(request.url().toString()) + "\n" + notify
+            message = request.url().toString() + "\n" + notify
             osd(message)
             copy_to_clipboard(self.browser.clipboard, request)
 
@@ -98,7 +101,7 @@ class WebTab(QtGui.QWidget):
         self.address_bar = AddressBar(model=browser.log.model, parent=self)
 
         # progress bar
-        self.pbar = QtGui.QProgressBar(self)
+        self.pbar = QProgressBar(self)
         self.pbar.setRange(0, 100)
         self.pbar.setTextVisible(False)
         self.pbar.setVisible(False)
@@ -106,7 +109,7 @@ class WebTab(QtGui.QWidget):
 
         self.search_frame = SearchFrame(parent=self)
 
-        self.statusbar = QtGui.QStatusBar(self)
+        self.statusbar = QStatusBar(self)
         self.statusbar.setVisible(False)
         self.statusbar.setMaximumHeight(25)
 
@@ -137,7 +140,7 @@ class WebTab(QtGui.QWidget):
         self.search_frame.search_line.textChanged.connect(self.do_search)
 
         # layout
-        grid = QtGui.QGridLayout(self)
+        grid = QGridLayout(self)
         grid.setSpacing(0)
         grid.setVerticalSpacing(0)
         grid.setContentsMargins(0, 0, 0, 0)
@@ -183,10 +186,9 @@ class WebTab(QtGui.QWidget):
 
             """
 
-            event = QtGui.QKeyEvent(
-                        QEvent.KeyPress, key, Qt.KeyboardModifiers())
+            event = QKeyEvent(QEvent.KeyPress, key, Qt.KeyboardModifiers())
 
-            QtGui.QApplication.sendEvent(
+            QApplication.sendEvent(
                     self.address_bar.completer().popup(), event)
 
         set_shortcuts([
@@ -309,13 +311,13 @@ class WebTab(QtGui.QWidget):
             qurl = url
         else:
             if not url:
-                url = unicode(self.address_bar.text())
+                url = self.address_bar.text()
             qurl = fix_url(url)
         self.set_title("Loading...")
 
         ### LOG NAVIGATION
-        host = sub("^www.", "", unicode(qurl.host()))
-        path = unicode(qurl.path()).rstrip("/ ")
+        host = sub("^www.", "", qurl.host())
+        path = qurl.path().rstrip("/ ")
 
         do_not_store = [
                 "duckduckgo.com",
@@ -325,9 +327,12 @@ class WebTab(QtGui.QWidget):
 
         if(
                 (host not in do_not_store) and
-                (not qurl.encodedQuery()) and
+                (not qurl.hasQuery()) and
                 len(path.split('/')) < 4):
             self.browser.log.store_navigation(host, path)
+
+        print(">>>\t\t" + datetime.datetime.now().isoformat())
+        print(">>> NAVIGATE " + qurl.toString())
 
         self.webkit.load(qurl)
         self.webkit.setFocus()
@@ -350,7 +355,7 @@ class WebTab(QtGui.QWidget):
             search = self.search_frame.search_line.text()
         self.webkit.findText(search, QWebPage.FindWrapsAroundDocument)
 
-class SearchFrame(QtGui.QFrame):
+class SearchFrame(QFrame):
     """ A frame with a label and a text entry. The text is provided to
     the application upwards to perform in-page search.
 
@@ -359,11 +364,11 @@ class SearchFrame(QtGui.QFrame):
     def __init__(self, parent=None):
         super(SearchFrame, self).__init__(parent)
 
-        self.search_grid = QtGui.QGridLayout(self)
+        self.search_grid = QGridLayout(self)
         self.search_grid.setSpacing(0)
         self.search_grid.setContentsMargins(0, 0, 0, 0)
-        self.label = QtGui.QLabel("Find in page:")
-        self.search_line = QtGui.QLineEdit()
+        self.label = QLabel("Find in page:")
+        self.search_line = QLineEdit()
         self.search_grid.addWidget(self.label, 0, 0)
         self.search_grid.addWidget(self.search_line, 0, 1)
         self.setVisible(False)
@@ -372,13 +377,13 @@ class SearchFrame(QtGui.QFrame):
             ("Ctrl+H", self, self.search_line.backspace),
             ])
 
-class AddressBar(QtGui.QLineEdit):
+class AddressBar(QLineEdit):
     """ A command line of sorts; receives addresses, search terms or
     app-defined commands
 
     """
 
-    def __init__(self, model, parent=None):
+    def __init__(self, model=None, parent=None):
         super(AddressBar, self).__init__(parent)
 
         set_shortcuts([
@@ -388,7 +393,9 @@ class AddressBar(QtGui.QLineEdit):
             ])
 
         self.set_color()
-        self.setCompleter(QtGui.QCompleter(model, self))
+
+        if model:
+            self.setCompleter(QCompleter(model, self))
 
     def crop_right(self, root=False):
         """

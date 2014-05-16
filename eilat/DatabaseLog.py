@@ -34,11 +34,9 @@
 
 """
 
-from time import time
 from os.path import expanduser
 
 from PyQt4.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
-from psycopg2 import connect as postgresql_connect
 
 class DatabaseLogLite(object):
     """ Low load only; using SQLite
@@ -80,67 +78,3 @@ class DatabaseLogLite(object):
 
         self.litedb.exec_(insert_or_ignore)
         self.litedb.exec_(update)
-
-class DatabaseLog(object):
-    """ A database layer to be shared through all the application run """
-    def __init__(self, prefix):
-
-        self.prefix = prefix
-        self.instance_id = time()
-        self.db_conn = postgresql_connect(
-                database="pguser",
-                user="pguser",
-                password="pgpass")
-        self.db_cursor = self.db_conn.cursor()
-
-        q_prepare_sreq = (
-                "PREPARE store_request AS " +
-                "INSERT INTO request " +
-                "(at_time, instance, idx, op, headers, " +
-                "scheme, host, path, query, fragment, data, source, prefix)" +
-                "values (now(), $1, $2, $3, $4, $5, " +
-                "$6, $7, $8, $9, $10, $11, $12)")
-        self.db_cursor.execute(q_prepare_sreq)
-
-        q_prepare_srep = (
-                "PREPARE store_reply AS " +
-                "INSERT INTO reply " +
-                "(at_time, instance, idx, " +
-                "scheme, host, path, query, fragment, " +
-                "status, headers, prefix)" +
-                "values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)")
-        self.db_cursor.execute(q_prepare_srep)
-
-    def run(self, query):
-        """ Execute a query, store it. This is not the proper way.
-        The 'commit' should happen only once after a page is complete.
-        This can be conflictive on pages like gmail where the 'finished'
-        signal appears to never happen.
-
-        """
-        self.db_cursor.execute(query)
-        self.db_conn.commit()
-
-    def store_request(self, dictionary):
-        """ Fill the table 'request' """
-
-        dictionary.update({'prefix': self.prefix})
-        query = (
-                "EXECUTE store_request " +
-                "(%(id)s, %(idx)s, %(op)s, %(headers)s, " +
-                "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s, " +
-                "%(data)s, %(source)s, %(prefix)s)")
-        self.db_cursor.execute(query, dictionary)
-        self.db_conn.commit()
-
-    def store_reply(self, dictionary):
-        """ Fill the table 'reply' """
-
-        dictionary.update({'prefix': self.prefix})
-        query = (
-                "EXECUTE store_reply " +
-                "(%(id)s, %(idx)s, " +
-                "%(scheme)s, %(host)s, %(path)s, %(query)s, %(fragment)s, " +
-                "%(status)s, %(headers)s, %(prefix)s)")
-        self.db_cursor.execute(query, dictionary)
-        self.db_conn.commit()
