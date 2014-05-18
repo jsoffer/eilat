@@ -131,7 +131,7 @@ class InterceptNAM(QNetworkAccessManager):
                     (status is None or status >= 400))):
                 print(str(status) + " " + response.url().toString())
 
-            self.cheatgc.remove((response.url().toString(),response))
+            self.cheatgc = [(j,k) for (j,k) in self.cheatgc if k != response]
 
         response.finished.connect(tell_response)
 
