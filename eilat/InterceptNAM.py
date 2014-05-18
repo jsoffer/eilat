@@ -68,6 +68,20 @@ class InterceptNAM(QNetworkAccessManager):
 
         self.printer = PrettyPrinter(indent=4).pprint
 
+        def reply_complete(reply):
+            """ Callback; closes around 'response' """
+
+            status = reply.attribute(
+                        QNetworkRequest.HttpStatusCodeAttribute)
+
+            if ((self.showing_accepted and
+                status is not None and status < 400) or
+                (not self.showing_accepted and
+                    (status is None or status >= 400))):
+                print(str(status) + " " + reply.url().toString())
+
+        self.finished.connect(reply_complete)
+
     def show_pending(self, detailed=False):
         """ List of requests that haven't sent 'finished' signal """
 
@@ -114,24 +128,6 @@ class InterceptNAM(QNetworkAccessManager):
 
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
-
-        self.cheatgc.append((response.url().toString(), response))
-
-        def tell_response():
-            """ Callback; closes around 'response' """
-
-            status = response.attribute(
-                        QNetworkRequest.HttpStatusCodeAttribute)
-
-            if ((self.showing_accepted and
-                status is not None and status < 400) or
-                (not self.showing_accepted and
-                    (status is None or status >= 400))):
-                print(str(status) + " " + response.url().toString())
-
-            self.cheatgc = [(j, k) for (j, k) in self.cheatgc if k != response]
-
-        response.finished.connect(tell_response)
 
         #self.printer([reply.url().toString() for reply in self.cheatgc])
         return response
