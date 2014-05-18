@@ -61,7 +61,6 @@ class InterceptNAM(QNetworkAccessManager):
         self.whitelist = whitelist
         self.prefix = prefix
         self.log = log
-        self.cheatgc = []
 
         self.showing_accepted = True
         self.show_local = False
@@ -69,7 +68,10 @@ class InterceptNAM(QNetworkAccessManager):
         self.printer = PrettyPrinter(indent=4).pprint
 
         def reply_complete(reply):
-            """ Callback; closes around 'response' """
+            """ Prints when a request completes, handles the filter that
+            chooses between successful and filtered requests
+
+            """
 
             status = reply.attribute(
                         QNetworkRequest.HttpStatusCodeAttribute)
@@ -81,15 +83,6 @@ class InterceptNAM(QNetworkAccessManager):
                 print(str(status) + " " + reply.url().toString())
 
         self.finished.connect(reply_complete)
-
-    def show_pending(self, detailed=False):
-        """ List of requests that haven't sent 'finished' signal """
-
-        print("PENDING")
-        #self.printer([reply.url().toString() for reply in self.cheatgc])
-        print(self.cheatgc)
-        if detailed:
-            self.printer([reply.url for (name, reply) in self.cheatgc])
 
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests,
@@ -129,7 +122,6 @@ class InterceptNAM(QNetworkAccessManager):
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
-        #self.printer([reply.url().toString() for reply in self.cheatgc])
         return response
 
     # Clean reimplement for Qt
