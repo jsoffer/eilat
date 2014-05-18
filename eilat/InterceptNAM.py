@@ -47,8 +47,6 @@ from libeilat import es_url_local, usando_whitelist, es_font, es_num_ip
 
 from pprint import PrettyPrinter
 
-from sys import getrefcount
-
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
     by web pages, besides of the page itself. Has primitive support to allow
@@ -117,7 +115,7 @@ class InterceptNAM(QNetworkAccessManager):
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
-        self.cheatgc.append((response.url().toString(),response))
+        self.cheatgc.append((response.url().toString(), response))
 
         def tell_response():
             """ Callback; closes around 'response' """
@@ -131,7 +129,7 @@ class InterceptNAM(QNetworkAccessManager):
                     (status is None or status >= 400))):
                 print(str(status) + " " + response.url().toString())
 
-            self.cheatgc = [(j,k) for (j,k) in self.cheatgc if k != response]
+            self.cheatgc = [(j, k) for (j, k) in self.cheatgc if k != response]
 
         response.finished.connect(tell_response)
 
