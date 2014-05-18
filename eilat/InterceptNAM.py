@@ -47,6 +47,8 @@ from libeilat import es_url_local, usando_whitelist, es_font, es_num_ip
 
 from pprint import PrettyPrinter
 
+from sys import getrefcount
+
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
     by web pages, besides of the page itself. Has primitive support to allow
@@ -68,11 +70,14 @@ class InterceptNAM(QNetworkAccessManager):
 
         self.printer = PrettyPrinter(indent=4).pprint
 
-    def show_pending(self):
+    def show_pending(self, detailed=False):
         """ List of requests that haven't sent 'finished' signal """
 
         print("PENDING")
-        self.printer([reply.url().toString() for reply in self.cheatgc])
+        #self.printer([reply.url().toString() for reply in self.cheatgc])
+        print(self.cheatgc)
+        if detailed:
+            self.printer([reply.url for (name, reply) in self.cheatgc])
 
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests,
@@ -112,7 +117,7 @@ class InterceptNAM(QNetworkAccessManager):
         response = QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
-        self.cheatgc.append(response)
+        self.cheatgc.append((response.url().toString(),response))
 
         def tell_response():
             """ Callback; closes around 'response' """
@@ -126,8 +131,7 @@ class InterceptNAM(QNetworkAccessManager):
                     (status is None or status >= 400))):
                 print(str(status) + " " + response.url().toString())
 
-            self.cheatgc.remove(response)
-            #print(self.cheatgc)
+            self.cheatgc.remove((response.url().toString(),response))
 
         response.finished.connect(tell_response)
 
