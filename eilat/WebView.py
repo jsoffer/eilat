@@ -37,7 +37,6 @@
 from PyQt4.QtGui import QKeyEvent, QMouseEvent, QCursor, QApplication
 from PyQt4.QtWebKit import QWebView
 from PyQt4.QtCore import Qt, QEvent
-import PyQt4.QtGui as QtWidgets
 
 from functools import partial
 
