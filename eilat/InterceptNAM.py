@@ -63,6 +63,8 @@ class InterceptNAM(QNetworkAccessManager):
         self.log = log
         self.cheatgc = []
 
+        self.showing_accepted = True
+
         self.printer = PrettyPrinter(indent=4).pprint
 
     def show_pending(self):
@@ -114,15 +116,13 @@ class InterceptNAM(QNetworkAccessManager):
 
             status = response.attribute(
                         QNetworkRequest.HttpStatusCodeAttribute)
-            if status is not None and status < 400:
+
+            if ((self.showing_accepted and
+                status is not None and status < 400) or
+                (not self.showing_accepted and
+                    (status is None or status >= 400))):
                 print(str(status) + " " + response.url().toString())
 
-            if status is None:
-                print("<NO STATUS> " + response.url().toString())
-
-            # into the 'filtered' flow
-            #else:
-            #    print(str(status) + " " + response.url().toString())
             self.cheatgc.remove(response)
             #print(self.cheatgc)
 
