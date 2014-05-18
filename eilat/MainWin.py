@@ -86,18 +86,24 @@ class MainWin(QMainWindow):
                 self.add_tab(url)
                 self.last_closed = None
 
-        def toggle_log():
+        def toggle_log(local=False):
             """ Inverts the value of showing_accepted, toggling between
             printing responses that were accepted by the webkit or (some of)
             those that were filtered at some point.
 
             """
-
-            self.netmanager.showing_accepted ^= True
-            if self.netmanager.showing_accepted:
-                print("---- SHOWING DISPLAYED ----")
+            if local:
+                self.netmanager.show_local ^= True
+                if self.netmanager.show_local:
+                    print("---- SHOWING LOCAL ----")
+                else:
+                    print("---- HIDING LOCAL ----")
             else:
-                print("---- SHOWING FILTERED ----")
+                self.netmanager.showing_accepted ^= True
+                if self.netmanager.showing_accepted:
+                    print("---- SHOWING DISPLAYED ----")
+                else:
+                    print("---- SHOWING FILTERED ----")
 
         set_shortcuts([
             ("Ctrl+T", self, self.add_tab),
@@ -111,6 +117,7 @@ class MainWin(QMainWindow):
             ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
             ("M", self, self.inc_tab),
             ("Z", self, toggle_log),
+            ("Shift+Z", self, partial(toggle_log, local=True)),
             ("Ctrl+PgDown", self, self.inc_tab),
             ("Ctrl+Q", self, QApplication.closeAllWindows)
             ])
