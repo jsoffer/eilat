@@ -76,10 +76,15 @@ class InterceptNAM(QNetworkAccessManager):
             status = reply.attribute(
                         QNetworkRequest.HttpStatusCodeAttribute)
 
-            if ((self.showing_accepted and
-                status is not None and status < 400) or
-                (not self.showing_accepted and
-                    (status is None or status >= 400))):
+            acc = self.showing_accepted
+            fil = status is None or status >= 400
+            loc = self.show_local
+            es_local = es_url_local(reply.url())
+
+            if (
+                    (acc and not fil and not es_local) or
+                    (not acc and fil and not es_local) or
+                    (loc and es_local)):
                 print(str(status) + " " + reply.url().toString())
 
         self.finished.connect(reply_complete)
