@@ -100,6 +100,7 @@ class WebView(QWebView):
             ("Alt+Right", self, self.forward),
             ("Ctrl+J", self, partial(handle_key, Qt.Key_Enter)),
             ("Ctrl+M", self, dump_dom),
+            ("Ctrl+H", self, partial(handle_key, Qt.Key_Backspace)),
             ("Shift+H", self, partial(handle_key, Qt.Key_Left)),
             ("Shift+J", self, partial(handle_key, Qt.Key_Down)),
             ("Shift+K", self, partial(handle_key, Qt.Key_Up)),
