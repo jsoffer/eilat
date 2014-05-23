@@ -44,18 +44,14 @@ import sip
 sip.setapi('QString', 2)
 
 import unittest
-
 from PyQt4.QtTest import QTest
 
 from PyQt4.QtCore import Qt
-from PyQt4.Qt import QApplication
 from PyQt4.QtNetwork import QNetworkProxy
+from PyQt4.Qt import QApplication
 
 # local
-from InterceptNAM import InterceptNAM
 from MainWin import MainWin
-from CookieJar import CookieJar
-from DatabaseLog import DatabaseLogLite
 
 from sys import argv
 from os.path import expanduser
@@ -145,16 +141,14 @@ def extract_options(site):
                 'prefix': "G"}
 
 APP = QApplication([])
-CLIPBOARD = APP.clipboard()
 APP.setApplicationName("Eilat")
 APP.setApplicationVersion("1.3.002")
+
+CLIPBOARD = APP.clipboard()
 
 class TestEilat(unittest.TestCase):
 
     def setUp(self):
-
-        #super(TestEilat, self).__init__(methodName)
-
         if len(argv) == 2:
             site = argv[1]
         else:
@@ -174,21 +168,7 @@ class TestEilat(unittest.TestCase):
             proxy.setPort(3128)
             QNetworkProxy.setApplicationProxy(proxy)
 
-
-        #db_log = DatabaseLog(options['prefix'])
-
-        netmanager = InterceptNAM(
-                parent=APP, prefix=options['prefix'],
-                log=None, whitelist=options['host_whitelist'])
-
-        cookiejar = CookieJar(
-                parent=APP,
-                allowed=options['cookie_allow'],
-                storage=options['cookie_file'])
-        netmanager.setCookieJar(cookiejar)
-
-        self.mainwin = MainWin(
-                netmanager, CLIPBOARD, DatabaseLogLite(options['prefix']))
+        self.mainwin = MainWin(clipboard=CLIPBOARD, options=options, parent=None)
 
         if site:
             self.mainwin.add_tab(site)
