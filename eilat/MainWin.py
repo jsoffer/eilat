@@ -126,11 +126,11 @@ class MainWin(QMainWindow):
             ("Ctrl+Q", self, QApplication.closeAllWindows)
             ])
 
-    def close_event(self, ev):
+    def close_event(self, event):
         """ Intercept the imminent end of the run; save cookies """
 
         self.netmanager.cookie_jar.store_cookies()
-        ev.accept()
+        event.accept()
 
     # aux. action (en register_actions)
     def inc_tab(self, incby=1):

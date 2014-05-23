@@ -43,7 +43,7 @@ davydm@gmail.com
 import sip
 sip.setapi('QString', 2)
 
-import PyQt4.Qt as Qt
+from PyQt4.Qt import QApplication
 from PyQt4.QtNetwork import QNetworkProxy
 
 # local
@@ -136,7 +136,7 @@ def extract_options(site):
                 'cookie_file': "gcookies.cj",
                 'prefix': "G"}
 
-APP = Qt.QApplication([])
+APP = QApplication([])
 APP.setApplicationName("Eilat")
 APP.setApplicationVersion("1.3.002")
 
