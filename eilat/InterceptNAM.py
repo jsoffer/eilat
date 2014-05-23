@@ -54,18 +54,20 @@ class InterceptNAM(QNetworkAccessManager):
 
     """
 
-    def __init__(self, prefix, log=None, parent=None, whitelist=None):
+    def __init__(self, prefix, parent=None, whitelist=None, cookies=None):
         super(InterceptNAM, self).__init__(parent)
         print("INIT InterceptNAM")
 
         self.whitelist = whitelist
         self.prefix = prefix
-        self.log = log
 
         self.showing_accepted = True
         self.show_local = False
 
         self.printer = PrettyPrinter(indent=4).pprint
+
+        self.cookie_jar = cookies
+        self.setCookieJar(self.cookie_jar)
 
         def reply_complete(reply):
             """ Prints when a request completes, handles the filter that
@@ -88,6 +90,7 @@ class InterceptNAM(QNetworkAccessManager):
                 print(str(status) + " " + reply.url().toString())
 
         self.finished.connect(reply_complete)
+        self.destroyed.connect(self.cookie_jar.store_cookies)
 
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests,

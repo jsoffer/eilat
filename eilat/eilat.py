@@ -167,17 +167,15 @@ def main():
     app = Qt.QApplication([])
 
     clipboard = app.clipboard()
-    #db_log = DatabaseLog(options['prefix'])
 
-    netmanager = InterceptNAM(
-            parent=app, prefix=options['prefix'],
-            log=None, whitelist=options['host_whitelist'])
-
-    cookiejar = CookieJar(
+    cookie_jar = CookieJar(
             parent=app,
             allowed=options['cookie_allow'],
             storage=options['cookie_file'])
-    netmanager.setCookieJar(cookiejar)
+
+    netmanager = InterceptNAM(
+            parent=app, prefix=options['prefix'],
+            whitelist=options['host_whitelist'], cookies=cookie_jar)
 
     app.setApplicationName("Eilat")
     app.setApplicationVersion("1.3.002")
@@ -191,22 +189,6 @@ def main():
 
     mainwin.show()
 
-    def end_call():
-        """ The browser is closing - save cookies, if required.
-
-        """
-        print("END")
-        all_urls(mainwin.tab_widget)
-        if options['cookie_file']:
-            print("SAVING COOKIES")
-            with open(options['cookie_file'], "w") as savefile:
-                for cookie in cookiejar.allCookies():
-                    savefile.write(cookie.toRawForm().data().decode()+"\n")
-        else:
-            for cookie in cookiejar.allCookies():
-                print(cookie.toRawForm()+"\n")
-
-    app.lastWindowClosed.connect(end_call)
     app.exec_()
 
 if __name__ == "__main__":

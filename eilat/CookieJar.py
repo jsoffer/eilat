@@ -64,7 +64,9 @@ class CookieJar(QNetworkCookieJar):
             self.allowed = []
         else:
             self.allowed = allowed
-        if storage:
+
+        self.storage = storage
+        if self.storage:
             try:
                 with open(storage, "r") as readfile:
                     cookies = [QNetworkCookie.parseCookies(k)
@@ -74,6 +76,19 @@ class CookieJar(QNetworkCookieJar):
             except IOError:
                 print("LOAD COOKIES: empty?")
 
+    def store_cookies(self):
+        """ Saves all cookies to 'storage'; called from the NAM when it
+        sends a 'deleted' signal
+
+        """
+
+        print("About to store cookies...")
+        if self.storage:
+            print("Storing cookies to file")
+            with open(self.storage, "w") as savefile:
+                for cookie in self.allCookies():
+                    savefile.write(
+                            cookie.toRawForm().data().decode()+"\n")
 
     def set_cookies_from_url(self, cookies, url):
         """ Reimplementation from base class. Prevents cookies from being set
