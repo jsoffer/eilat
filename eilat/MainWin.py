@@ -58,7 +58,7 @@ class MainWin(QMainWindow):
         self.last_closed = None
         self.css_path = expanduser("~/.eilat/css/")
 
-        self.netmanager = InterceptNAM(self, options)
+        self.netmanager = InterceptNAM(options, self)
 
         self.clipboard = clipboard
 

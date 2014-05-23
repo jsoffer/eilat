@@ -55,7 +55,7 @@ class InterceptNAM(QNetworkAccessManager):
 
     """
 
-    def __init__(self, options=None, parent=None):
+    def __init__(self, options, parent=None):
         super(InterceptNAM, self).__init__(parent)
         print("INIT InterceptNAM")
 
