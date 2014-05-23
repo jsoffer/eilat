@@ -92,8 +92,6 @@ class InterceptNAM(QNetworkAccessManager):
 
         self.finished.connect(reply_complete)
 
-        #self.destroyed.connect(self.cookie_jar.store_cookies)
-
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests,
         matches requests with replies. Stores on a PostgreSQL database.

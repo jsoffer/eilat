@@ -126,6 +126,12 @@ class MainWin(QMainWindow):
             ("Ctrl+Q", self, QApplication.closeAllWindows)
             ])
 
+    def close_event(self, ev):
+        """ Intercept the imminent end of the run; save cookies """
+
+        self.netmanager.cookie_jar.store_cookies()
+        ev.accept()
+
     # aux. action (en register_actions)
     def inc_tab(self, incby=1):
         """ Takes the current tab index, modifies wrapping around,
@@ -195,6 +201,11 @@ class MainWin(QMainWindow):
             tab.navigate(url)
         else:
             tab.address_bar.setFocus()
+
+    # Clean reimplement for Qt
+    # pylint: disable=C0103
+    closeEvent = close_event
+    # pylint: enable=C0103
 
 class MidClickTabBar(QTabBar):
     """ Overloads middle click to close the clicked tab """

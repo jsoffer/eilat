@@ -167,16 +167,7 @@ def main():
         proxy.setPort(3128)
         QNetworkProxy.setApplicationProxy(proxy)
 
-    #cookie_jar = CookieJar(
-    #        parent=APP,
-    #        allowed=options['cookie_allow'],
-    #        storage=options['cookie_file'])
-
     mainwin = MainWin(clipboard=CLIPBOARD, options=options, parent=None)
-
-            #prefix=options['prefix'],
-            #whitelist=options['host_whitelist'],
-            #cookies=options['cookie_file'])
 
     if site:
         mainwin.add_tab(site)
