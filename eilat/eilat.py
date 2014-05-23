@@ -139,6 +139,12 @@ def extract_options(site):
                 'cookie_file': "gcookies.cj",
                 'prefix': "G"}
 
+APP = Qt.QApplication([])
+APP.setApplicationName("Eilat")
+APP.setApplicationVersion("1.3.002")
+
+CLIPBOARD = APP.clipboard()
+
 def main():
     """ Catch the url (if any); then choose adequate defaults and build
     a browser window. Save cookies, if appropiate, at close.
@@ -164,23 +170,17 @@ def main():
         proxy.setPort(3128)
         QNetworkProxy.setApplicationProxy(proxy)
 
-    app = Qt.QApplication([])
-
-    clipboard = app.clipboard()
-
     cookie_jar = CookieJar(
-            parent=app,
+            parent=APP,
             allowed=options['cookie_allow'],
             storage=options['cookie_file'])
 
     netmanager = InterceptNAM(
-            parent=app, prefix=options['prefix'],
+            parent=APP, prefix=options['prefix'],
             whitelist=options['host_whitelist'], cookies=cookie_jar)
 
-    app.setApplicationName("Eilat")
-    app.setApplicationVersion("1.3.002")
     mainwin = MainWin(
-            netmanager, clipboard, DatabaseLogLite(options['prefix']))
+            netmanager, CLIPBOARD, DatabaseLogLite(options['prefix']))
 
     if site:
         mainwin.add_tab(site)
@@ -189,7 +189,6 @@ def main():
 
     mainwin.show()
 
-    app.exec_()
-
 if __name__ == "__main__":
     main()
+    APP.exec_()
