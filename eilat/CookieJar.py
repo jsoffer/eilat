@@ -36,6 +36,8 @@
 
 from PyQt4.QtNetwork import QNetworkCookieJar, QNetworkCookie
 
+from os.path import expanduser
+
 def format_cookie(url, cookies):
     """ Constructs a log message from a list of cookies and the host
     where they're set
@@ -54,21 +56,23 @@ class CookieJar(QNetworkCookieJar):
     """ Logs and intercepts cookies; part of the Network Access Manager
 
     """
-    def __init__(self, parent=None, allowed=None, storage=None):
+    def __init__(self, parent=None, options=None):
         """ Load cookies from a file
 
         """
         super(CookieJar, self).__init__(parent)
         print("INIT CookieJar")
-        if allowed is None:
+
+        if options['cookie_allow'] is None:
             self.allowed = []
         else:
-            self.allowed = allowed
+            self.allowed = options['cookie_allow']
 
-        self.storage = storage
+        self.storage = options['cookie_file']
         if self.storage:
+            print(self.storage)
             try:
-                with open(storage, "r") as readfile:
+                with open(self.storage, "r") as readfile:
                     cookies = [QNetworkCookie.parseCookies(k)
                             for k in readfile.readlines()]
                     cookies = [x for y in cookies for x in y] # flatten
@@ -84,11 +88,10 @@ class CookieJar(QNetworkCookieJar):
 
         print("About to store cookies...")
         if self.storage:
-            print("Storing cookies to file")
             with open(self.storage, "w") as savefile:
                 for cookie in self.allCookies():
-                    savefile.write(
-                            cookie.toRawForm().data().decode()+"\n")
+                    savefile.write(cookie.toRawForm().data().decode()+"\n")
+            print("Stored cookies to file")
 
     def set_cookies_from_url(self, cookies, url):
         """ Reimplementation from base class. Prevents cookies from being set

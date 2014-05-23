@@ -42,22 +42,27 @@ from functools import partial
 
 # local
 from WebTab import WebTab
+from InterceptNAM import InterceptNAM
+from DatabaseLog import DatabaseLogLite
+
 from libeilat import set_shortcuts
 
 from os.path import expanduser
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
-    def __init__(self, netmanager, clipboard, log=None, parent=None):
+    def __init__(self, clipboard, options, parent=None):
         super(MainWin, self).__init__(parent)
         self.setWindowTitle("Eilat Browser")
 
         self.last_closed = None
         self.css_path = expanduser("~/.eilat/css/")
 
-        self.netmanager = netmanager
+        self.netmanager = InterceptNAM(self, options)
+
         self.clipboard = clipboard
-        self.log = log
+
+        self.log = DatabaseLogLite(options['prefix'])
 
         self.tab_widget = QTabWidget(self)
         self.tab_widget.setTabBar(MidClickTabBar())

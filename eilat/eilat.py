@@ -47,10 +47,7 @@ import PyQt4.Qt as Qt
 from PyQt4.QtNetwork import QNetworkProxy
 
 # local
-from InterceptNAM import InterceptNAM
 from MainWin import MainWin
-from CookieJar import CookieJar
-from DatabaseLog import DatabaseLogLite
 
 from sys import argv
 from os.path import expanduser
@@ -170,17 +167,16 @@ def main():
         proxy.setPort(3128)
         QNetworkProxy.setApplicationProxy(proxy)
 
-    cookie_jar = CookieJar(
-            parent=APP,
-            allowed=options['cookie_allow'],
-            storage=options['cookie_file'])
+    #cookie_jar = CookieJar(
+    #        parent=APP,
+    #        allowed=options['cookie_allow'],
+    #        storage=options['cookie_file'])
 
-    netmanager = InterceptNAM(
-            parent=APP, prefix=options['prefix'],
-            whitelist=options['host_whitelist'], cookies=cookie_jar)
+    mainwin = MainWin(clipboard=CLIPBOARD, options=options, parent=None)
 
-    mainwin = MainWin(
-            netmanager, CLIPBOARD, DatabaseLogLite(options['prefix']))
+            #prefix=options['prefix'],
+            #whitelist=options['host_whitelist'],
+            #cookies=options['cookie_file'])
 
     if site:
         mainwin.add_tab(site)

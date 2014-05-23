@@ -43,6 +43,7 @@ except ImportError:
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
 
+from CookieJar import CookieJar
 from libeilat import es_url_local, usando_whitelist, es_font, es_num_ip
 
 from pprint import PrettyPrinter
@@ -54,19 +55,19 @@ class InterceptNAM(QNetworkAccessManager):
 
     """
 
-    def __init__(self, prefix, parent=None, whitelist=None, cookies=None):
+    def __init__(self, options=None, parent=None):
         super(InterceptNAM, self).__init__(parent)
         print("INIT InterceptNAM")
 
-        self.whitelist = whitelist
-        self.prefix = prefix
+        self.whitelist = options['host_whitelist']
+        self.prefix = options['prefix']
 
         self.showing_accepted = True
         self.show_local = False
 
         self.printer = PrettyPrinter(indent=4).pprint
 
-        self.cookie_jar = cookies
+        self.cookie_jar = CookieJar(self, options)
         self.setCookieJar(self.cookie_jar)
 
         def reply_complete(reply):
@@ -90,7 +91,8 @@ class InterceptNAM(QNetworkAccessManager):
                 print(str(status) + " " + reply.url().toString())
 
         self.finished.connect(reply_complete)
-        self.destroyed.connect(self.cookie_jar.store_cookies)
+
+        #self.destroyed.connect(self.cookie_jar.store_cookies)
 
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests,
