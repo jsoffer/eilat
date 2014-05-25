@@ -88,7 +88,15 @@ class InterceptNAM(QNetworkAccessManager):
                     (acc and not fil and not es_local) or
                     (not acc and fil and not es_local) or
                     (loc and es_local)):
-                print(str(status) + " " + reply.url().toString())
+                if reply.hasRawHeader('X-Cache'):
+                    cache_header = (
+                            reply.rawHeader('X-Cache').data().decode() +
+                            '\t')
+                else:
+                    cache_header = ''
+                print(
+                        "%s%s %s" % (
+                            cache_header, str(status), reply.url().toString()))
 
         self.finished.connect(reply_complete)
 
