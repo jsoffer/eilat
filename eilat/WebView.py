@@ -35,7 +35,7 @@
 """
 
 from PyQt4.QtGui import QKeyEvent, QMouseEvent, QCursor, QApplication
-from PyQt4.QtWebKit import QWebView
+from PyQt4.QtWebKit import QWebView, QWebElement
 from PyQt4.QtCore import Qt, QEvent
 
 from functools import partial
@@ -107,8 +107,19 @@ class WebView(QWebView):
             ("Shift+L", self, partial(handle_key, Qt.Key_Right)),
             ("C", self, handle_click),
             ("F5", self, self.reload),
+            ("F2", self, self.del_fixed),
             ("R", self, self.reload)
             ])
+
+    def del_fixed(self):
+        """ Removes all 'div, header {position: fixed}' nodes """
+
+        document = self.page().mainFrame().documentElement()
+        nodes = document.findAll("div, header")
+        nodes = [node.removeFromDocument() for node in nodes if
+                node.styleProperty(
+                    "position",
+                    QWebElement.ComputedStyle) == 'fixed']
 
     def set_paste(self):
         """ To use as callback in WebTab; can be improved """
