@@ -116,7 +116,8 @@ class WebView(QWebView):
 
         document = self.page().mainFrame().documentElement()
         nodes = document.findAll("div, header")
-        nodes = [node.removeFromDocument() for node in nodes if
+        #nodes = [node.removeFromDocument() for node in nodes if
+        [node.setStyleProperty('position', 'absolute') for node in nodes if
                 node.styleProperty(
                     "position",
                     QWebElement.ComputedStyle) == 'fixed']
