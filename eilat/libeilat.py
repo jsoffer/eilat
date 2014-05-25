@@ -132,7 +132,7 @@ def es_font(url):
                 'application/x-font-ttf') or
             (url.scheme() == 'data' and url.path()[:21] ==
                 'application/font-woff') or
-            (url.path()[-3:] == 'svg' and "font" in url.path()))
+            (url.path()[-4:] == '.svg' and "font" in url.path()))
 
 def usando_whitelist(whitelist, url):
     """ Predicate for create_request
