@@ -124,9 +124,9 @@ def es_font(url):
     Is requesting for a web font? Include icons, too
 
     """
-    return ((url.path()[-3:] == 'ttf') or
-            (url.path()[-3:] == 'ico') or
-            (url.path()[-4:] == 'woff') or
+    return ((url.path()[-4:] == '.ttf') or
+            (url.path()[-4:] == '.ico') or
+            (url.path()[-5:] == '.woff') or
             (url.scheme() == 'data' and url.path()[:4] == 'font') or
             (url.scheme() == 'data' and url.path()[:22] ==
                 'application/x-font-ttf') or
