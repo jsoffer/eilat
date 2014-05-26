@@ -72,18 +72,6 @@ class MainWin(QMainWindow):
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
-        def new_tab_from_clipboard(scripting=False, extract=False):
-            """ One-use callback for QShortcut.
-            Reads the content of the PRIMARY clipboard and navigates to it
-            on a new tab.
-
-            """
-            if self.clipboard is not None:
-                url = self.clipboard.text(mode=QClipboard.Selection).strip()
-                if extract:
-                    url = extract_url(url)
-                self.add_tab(url, scripting)
-
         def restore_last_closed():
             """ One-use callback for QShortcut.
             Opens a fresh new tab with the url address of the last tab closed
@@ -115,9 +103,11 @@ class MainWin(QMainWindow):
         set_shortcuts([
             ("Ctrl+T", self, self.add_tab),
             ("Ctrl+Shift+T", self, partial(self.add_tab, scripting=True)),
-            ("Y", self, new_tab_from_clipboard),
-            ("Ctrl+Y", self, partial(new_tab_from_clipboard, extract=True)),
-            ("Shift+Y", self, partial(new_tab_from_clipboard, scripting=True)),
+            ("Y", self, self.new_tab_from_clipboard),
+            ("Ctrl+Y", self, partial(
+                self.new_tab_from_clipboard, extract=True)),
+            ("Shift+Y", self, partial(
+                self.new_tab_from_clipboard, scripting=True)),
             ("U", self, restore_last_closed),
             ("Ctrl+W", self, self.del_tab),
             ("N", self, partial(self.inc_tab, -1)),
@@ -128,6 +118,23 @@ class MainWin(QMainWindow):
             ("Ctrl+PgDown", self, self.inc_tab),
             ("Ctrl+Q", self, QApplication.closeAllWindows)
             ])
+
+    def new_tab_from_clipboard(self, scripting=False, extract=False):
+        """ One-use callback for QShortcut.
+        Reads the content of the PRIMARY clipboard and navigates to it
+        on a new tab.
+
+        """
+        if self.clipboard is None:
+            return
+
+        url = self.clipboard.text(mode=QClipboard.Selection).strip()
+
+        if extract:
+            url = extract_url(url)
+
+        if url is not None:
+            self.add_tab(url, scripting)
 
     def close_event(self, event):
         """ Intercept the imminent end of the run; save cookies """
