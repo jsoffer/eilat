@@ -262,7 +262,7 @@ def osd(message, corner=False):
     def call_osd():
         """ As a lambda it would be too long """
         try:
-            Popen(['osd_cat_', '-l2'] +
+            Popen(['osd_cat', '-l2'] +
                   params_position +
                   params_color +
                   params_font +
