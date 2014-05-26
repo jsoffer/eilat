@@ -350,14 +350,14 @@ class AddressBar(QLineEdit):
     def __init__(self, model=None, parent=None):
         super(AddressBar, self).__init__(parent)
 
-        set_shortcuts([
-            ("Ctrl+H", self, self.backspace),
-            ])
-
         self.set_color()
 
         if model is not None:
             self.setCompleter(QCompleter(model, self))
+
+        set_shortcuts([
+            ("Ctrl+H", self, self.backspace),
+            ])
 
     def set_color(self, rgb=(255, 255, 255)):
         """ Sets the background color of the address bar """
