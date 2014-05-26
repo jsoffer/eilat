@@ -92,9 +92,9 @@ class MainWin(QMainWindow):
                 self.last_closed = None
 
         def toggle_log(local=False):
-            """ Inverts the value of showing_accepted, toggling between
-            printing responses that were accepted by the webkit or (some of)
-            those that were filtered at some point.
+            """ Inverts a value, toggling between printing responses
+            that were accepted by the webkit or (some of) those that
+            were filtered at some point.
 
             """
             if local:
@@ -197,7 +197,8 @@ class MainWin(QMainWindow):
 
         if scripting:
             tab.toggle_script()
-        if url:
+
+        if url is not None:
             tab.navigate(url)
         else:
             tab.address_bar.setFocus()

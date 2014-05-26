@@ -139,7 +139,7 @@ CLIPBOARD = APP.clipboard()
 
 def main():
     """ Catch the url (if any); then choose adequate defaults and build
-    a browser window. Save cookies, if appropiate, at close.
+    a browser window.
 
     """
 
@@ -164,7 +164,7 @@ def main():
 
     mainwin = MainWin(clipboard=CLIPBOARD, options=options, parent=None)
 
-    if site:
+    if site is not None:
         mainwin.add_tab(site)
     else:
         mainwin.add_tab()

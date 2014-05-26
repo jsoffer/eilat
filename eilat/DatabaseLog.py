@@ -49,7 +49,7 @@ class DatabaseLogLite(object):
         self.litedb.setDatabaseName(expanduser("~/.eilat/eilat.db"))
         self.litedb.open()
 
-        if prefix:
+        if prefix != '':
             self.table = 'navigation_' + prefix.lower()
         else:
             self.table = 'navigation'

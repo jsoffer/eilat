@@ -139,7 +139,6 @@ class WebTab(QWidget):
         grid.addWidget(self.pbar, 3, 0)
         grid.addWidget(self.statusbar, 4, 0)
 
-
         def toggle_status():
             """ One-time callback for QShortcut """
             self.statusbar.setVisible(not self.statusbar.isVisible())
@@ -261,20 +260,12 @@ class WebTab(QWidget):
             self.navigate(qurl)
 
     # connect (en constructor)
-    def on_link_hovered(self, link, title, _):
-        """ The mouse is over an image or link. Does it have href?
-        Does it have a title? Display on status bar.
+    def on_link_hovered(self, link, _, dummy):
+        """ The mouse is over an image or link.
+        Display the href (if there's no href, it's '') on the status bar.
 
         """
-        if link or title:
-            if title and not link:
-                self.statusbar.showMessage(title)
-            elif link and not title:
-                self.statusbar.showMessage(link)
-            elif link and title:
-                self.statusbar.showMessage("%s (%s)" % (title, link))
-        else:
-            self.statusbar.showMessage("")
+        self.statusbar.showMessage(link)
 
     # action (en register_actions)
     def navigate(self, url=None):
@@ -300,7 +291,7 @@ class WebTab(QWidget):
         if isinstance(url, QUrl):
             qurl = url
         else:
-            if not url:
+            if url is None:
                 url = self.address_bar.text()
             qurl = fix_url(url)
         self.set_title("Loading...")

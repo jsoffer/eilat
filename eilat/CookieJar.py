@@ -67,7 +67,7 @@ class CookieJar(QNetworkCookieJar):
             self.allowed = options['cookie_allow']
 
         self.storage = options['cookie_file']
-        if self.storage:
+        if self.storage is not None:
             print(self.storage)
             try:
                 with open(self.storage, "r") as readfile:
@@ -84,7 +84,7 @@ class CookieJar(QNetworkCookieJar):
 
         """
 
-        if self.storage:
+        if self.storage is not None:
             print("Store cookies...")
             with open(self.storage, "w") as savefile:
                 for cookie in self.allCookies():
