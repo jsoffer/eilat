@@ -396,11 +396,11 @@ class AddressBar(QLineEdit):
         if root:
             if ':' in url[0]:
                 # [:3] accounts for 'http://' and then the host
-                new_url = url[:3].join('/')
+                new_url = '/'.join(url[:3])
             else:
                 new_url = url[0]
         else:
-            new_url = url[:-1].join('/')
+            new_url = ('/').join(url[:-1])
 
         self.setText(new_url)
 
