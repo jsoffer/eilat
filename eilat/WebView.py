@@ -95,21 +95,51 @@ class WebView(QWebView):
             file_handle.write(data)
             file_handle.close()
 
+        def scroll(delta_x=0, delta_y=0):
+            """ One-time callback for QShortcut """
+            self.page().mainFrame().scroll(delta_x, delta_y)
+
+        def zoom(lvl):
+            """ One-time callback for QShortcut """
+            factor = self.zoomFactor() + (lvl * 0.25)
+            self.setZoomFactor(factor)
+
+        def set_paste():
+            """ To use as callback in WebTab; can be improved """
+            self.paste = True
+
+        def set_save():
+            """ To use as callback in WebTab; can be improved """
+            self.save = True
+
         set_shortcuts([
+            # DOM actions
+            ("Ctrl+M", self, dump_dom),
+            ("F2", self, self.delete_fixed),
+            ("Shift+F2", self, partial(self.delete_fixed, delete=False)),
+            # webkit interaction
             ("Alt+Left", self, self.back),
             ("Alt+Right", self, self.forward),
+            ("F5", self, self.reload),
+            ("R", self, self.reload),
+            # view interaction
+            ("J", self, partial(scroll, delta_y=40)),
+            ("K", self, partial(scroll, delta_y=-40)),
+            ("H", self, partial(scroll, delta_x=-40)),
+            ("L", self, partial(scroll, delta_x=40)),
+            ("Ctrl+Up", self, partial(zoom, 1)),
+            ("Ctrl+Down", self, partial(zoom, -1)),
             ("Ctrl+J", self, partial(handle_key, Qt.Key_Enter)),
-            ("Ctrl+M", self, dump_dom),
             ("Ctrl+H", self, partial(handle_key, Qt.Key_Backspace)),
+            ("C", self, handle_click),
+            # spatial navigation
             ("Shift+H", self, partial(handle_key, Qt.Key_Left)),
             ("Shift+J", self, partial(handle_key, Qt.Key_Down)),
             ("Shift+K", self, partial(handle_key, Qt.Key_Up)),
             ("Shift+L", self, partial(handle_key, Qt.Key_Right)),
-            ("C", self, handle_click),
-            ("F5", self, self.reload),
-            ("F2", self, self.delete_fixed),
-            ("Shift+F2", self, partial(self.delete_fixed, delete=False)),
-            ("R", self, self.reload)
+            # clipboard related behavior
+            ("I", self, set_paste),
+            ("S", self, set_save)
             ])
 
     def delete_fixed(self, delete=True):
@@ -126,14 +156,6 @@ class WebView(QWebView):
                 node.removeFromDocument()
             else:
                 node.setStyleProperty('position', 'absolute')
-
-    def set_paste(self):
-        """ To use as callback in WebTab; can be improved """
-        self.paste = True
-
-    def set_save(self):
-        """ To use as callback in WebTab; can be improved """
-        self.save = True
 
     def mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks

@@ -277,6 +277,8 @@ def extract_url(url):
     Returns the http://something.com
 
     """
+    if url is None:
+        return
 
     query = urlparse(url).query
     for (_, value) in parse_qsl(query):

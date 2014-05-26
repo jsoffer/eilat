@@ -101,25 +101,28 @@ class MainWin(QMainWindow):
                     print("---- SHOWING FILTERED ----")
 
         set_shortcuts([
+            # new tabs
             ("Ctrl+T", self, self.add_tab),
             ("Ctrl+Shift+T", self, partial(self.add_tab, scripting=True)),
             ("Y", self, self.new_tab_from_clipboard),
             ("Ctrl+Y", self, partial(
                 self.new_tab_from_clipboard, extract=True)),
-            ("Shift+Y", self, partial(
-                self.new_tab_from_clipboard, scripting=True)),
-            ("U", self, restore_last_closed),
-            ("Ctrl+W", self, self.del_tab),
+            # movement
+            ("M", self, self.inc_tab),
             ("N", self, partial(self.inc_tab, -1)),
             ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
-            ("M", self, self.inc_tab),
+            ("Ctrl+PgDown", self, self.inc_tab),
+            # toggles
             ("Z", self, toggle_log),
             ("Shift+Z", self, partial(toggle_log, local=True)),
-            ("Ctrl+PgDown", self, self.inc_tab),
+            # destroy/undestroy
+            ("U", self, restore_last_closed),
+            ("Ctrl+W", self, self.del_tab),
             ("Ctrl+Q", self, QApplication.closeAllWindows)
             ])
 
-    def new_tab_from_clipboard(self, scripting=False, extract=False):
+    #def new_tab_from_clipboard(self, scripting=False, extract=False):
+    def new_tab_from_clipboard(self, extract=False):
         """ One-use callback for QShortcut.
         Reads the content of the PRIMARY clipboard and navigates to it
         on a new tab.
@@ -134,7 +137,7 @@ class MainWin(QMainWindow):
             url = extract_url(url)
 
         if url is not None:
-            self.add_tab(url, scripting)
+            self.add_tab(url)
 
     def close_event(self, event):
         """ Intercept the imminent end of the run; save cookies """

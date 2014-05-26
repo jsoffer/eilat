@@ -154,15 +154,6 @@ class WebTab(QWidget):
             self.webkit.findText("")
             self.webkit.setFocus()
 
-        def scroll(delta_x=0, delta_y=0):
-            """ One-time callback for QShortcut """
-            self.webkit.page().mainFrame().scroll(delta_x, delta_y)
-
-        def zoom(lvl):
-            """ One-time callback for QShortcut """
-            factor = self.webkit.zoomFactor() + (lvl * 0.25)
-            self.webkit.setZoomFactor(factor)
-
         def navigate_completion(key=Qt.Key_Down):
             """ Sends an "arrow press" to the completion popup to navigate
             results.
@@ -171,40 +162,34 @@ class WebTab(QWidget):
             function is being called by that arrow press.
 
             """
-
             event = QKeyEvent(QEvent.KeyPress, key, Qt.KeyboardModifiers())
 
             QApplication.sendEvent(
                 self.address_bar.completer().popup(), event)
 
         set_shortcuts([
-            ("Ctrl+L", self.webkit, self.address_bar.setFocus),
+            # search
+            ("G", self.webkit, show_search),
+            ("Escape", self.search_frame, hide_search),
+            ("Return", self.search_frame, self.do_search),
+            ("Ctrl+J", self.search_frame, self.do_search),
+            # go to page
             ("Ctrl+J", self.address_bar, self.navigate),
+            ("Return", self.address_bar, self.navigate),
+            # address bar interaction
+            ("Ctrl+L", self.webkit, self.address_bar.setFocus),
+            ("Escape", self.address_bar, self.webkit.setFocus),
             ("Ctrl+I", self.address_bar, navigate_completion),
             ("Ctrl+O", self.address_bar, partial(
                 navigate_completion, Qt.Key_Up)),
-            ("Return", self.address_bar, self.navigate),
+            # toggle
             ("Ctrl+Space", self.webkit, toggle_status),
             ("Q", self.webkit, self.toggle_script),
-            ("J", self.webkit, partial(scroll, delta_y=40)),
-            ("K", self.webkit, partial(scroll, delta_y=-40)),
-            ("H", self.webkit, partial(scroll, delta_x=-40)),
-            ("L", self.webkit, partial(scroll, delta_x=40)),
+            # clipboard
             ("E", self, partial(copy_to_clipboard,
                                 self.browser.clipboard,
-                                self.address_bar.text)),
-            ("Ctrl+Up", self, partial(zoom, 1)),
-            ("Ctrl+Down", self, partial(zoom, -1)),
-            ("G", self.webkit, show_search),
-            ("I", self.webkit, self.webkit.set_paste),
-            ("S", self.webkit, self.webkit.set_save),
-            ("Return", self.search_frame, self.do_search),
-            ("Ctrl+J", self.search_frame, self.do_search),
-            ("Escape", self.search_frame, hide_search),
-            ("Escape", self.address_bar, self.webkit.setFocus)
+                                self.address_bar.text))
             ])
-
-        #self.browser.tab_widget.tabBar().tabButton(0,1).hide()
 
     def toggle_script(self):
         """ Activa o desactiva javascript, y notifica cambiando el color
@@ -367,34 +352,12 @@ class AddressBar(QLineEdit):
 
         set_shortcuts([
             ("Ctrl+H", self, self.backspace),
-            ("Ctrl+Y", self, self.crop_right),
-            ("Ctrl+U", self, partial(self.crop_right, root=True))
             ])
 
         self.set_color()
 
-        if model:
+        if model is not None:
             self.setCompleter(QCompleter(model, self))
-
-    def crop_right(self, root=False):
-        """
-        Removes the final '/something' on an url
-        If 'root' is requested, it removes everything right of the host
-
-        """
-        url = self.text().split('/')
-
-        if root:
-            if ':' in url[0]:
-                # [:3] accounts for 'http://' and then the host
-                new_url = '/'.join(url[:3])
-            else:
-                new_url = url[0]
-        else:
-            new_url = ('/').join(url[:-1])
-
-        self.setText(new_url)
-
 
     def set_color(self, rgb=(255, 255, 255)):
         """ Sets the background color of the address bar """
