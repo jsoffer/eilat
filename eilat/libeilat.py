@@ -41,6 +41,8 @@ from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
 import json
 
+from urllib.parse import parse_qsl, urlparse
+
 from base64 import encodestring
 from subprocess import Popen, PIPE
 
@@ -263,3 +265,15 @@ def osd(message, corner=False):
               stdin=PIPE).communicate(input=message.encode())
 
     Thread(target=call_osd).start()
+
+def extract_url(url):
+    """ From string to string.
+
+    Takes a "facebook.com/something/q?u=http://something.com/&etc..." form
+    Returns the http://something.com
+
+    """
+    query = urlparse(url).query
+    for (_, value) in parse_qsl(query):
+        if value[:4] == 'http':
+            return value
