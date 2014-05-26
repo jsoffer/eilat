@@ -38,8 +38,8 @@ Non-features
 
 * Has no cache. Will not have. Depends on a proxy.
 * Does not have a fully featured bookmarks management.
-* Has onDownloadRequest disabled. Options are being assessed.
-* Does not report error when not able to do something. Check the console (to be fixed)
+* Has no means to make downloads. Copies the download URL to clipboard and
+leaves the actual download to external means.
 
 Usage
 -----
@@ -53,8 +53,8 @@ bottom is an address bar. Write a partial URL, as, for example, **xkcd.com**. Pr
 **Ctrl+j** (**Enter** also works). The domain will be identified, the address completed,
 and the browser will navigate to **http://xkcd.com**.
 
-Press **Ctrl+Space**. This enables the status bar. Hover the comic. The alt text
-will appear on the status bar. Hovering over a link makes the href appear too.
+Press **Ctrl+Space**. This enables the status bar.
+Hovering over a link makes the href appear in the bar.
 Press Ctrl+Space to disable the status bar again.
 
 Press **Ctrl+t**. A new tab will appear. Select this: http://sidigital.co/
@@ -64,7 +64,7 @@ to the address stored on the primary clipboard. The animation will not run yet:
 javascript is disabled. Press **j** to scroll the page down, **k** to scroll up.
 
 Press **q**. The address bar should have turned blue: javascript is enabled now,
-for this tab only. Press **F5** to reload. It works now. You can even keep pressing
+for this tab only. Press **F5** to reload. It works in the bar. You can even keep pressing
 **q** to pause and resume the animation.
 
 Press **Ctrl-t** to create another new tab. Press **m**, **n** (if the web view is 
