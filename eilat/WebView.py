@@ -107,20 +107,25 @@ class WebView(QWebView):
             ("Shift+L", self, partial(handle_key, Qt.Key_Right)),
             ("C", self, handle_click),
             ("F5", self, self.reload),
-            ("F2", self, self.del_fixed),
+            ("F2", self, self.delete_fixed),
+            ("Shift+F2", self, partial(self.delete_fixed, delete=False)),
             ("R", self, self.reload)
             ])
 
-    def del_fixed(self):
+    def delete_fixed(self, delete=True):
         """ Removes all 'div, header {position: fixed}' nodes """
 
         document = self.page().mainFrame().documentElement()
         nodes = document.findAll("div, header")
-        #nodes = [node.removeFromDocument() for node in nodes if
-        [node.setStyleProperty('position', 'absolute') for node in nodes if
-                node.styleProperty(
-                    "position",
-                    QWebElement.ComputedStyle) == 'fixed']
+
+        for node in nodes:
+            if node.styleProperty(
+                        "position",
+                        QWebElement.ComputedStyle) == 'fixed':
+                if delete:
+                    node.removeFromDocument()
+                else:
+                    node.setStyleProperty('position', 'absolute')
 
     def set_paste(self):
         """ To use as callback in WebTab; can be improved """
