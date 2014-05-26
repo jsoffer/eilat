@@ -260,7 +260,7 @@ class WebTab(QWidget):
             self.navigate(qurl)
 
     # connect (en constructor)
-    def on_link_hovered(self, link, _, dummy):
+    def on_link_hovered(self, link, unused_title, unused_content):
         """ The mouse is over an image or link.
         Display the href (if there's no href, it's '') on the status bar.
 
