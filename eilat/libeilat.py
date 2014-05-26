@@ -41,7 +41,11 @@ from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
 import json
 
-from urllib.parse import parse_qsl, urlparse
+# to keep some support of python2
+try:
+    from urllib.parse import parse_qsl, urlparse
+except ImportError:
+    from urlparse import parse_qsl, urlparse
 
 from base64 import encodestring
 from subprocess import Popen, PIPE
@@ -273,6 +277,7 @@ def extract_url(url):
     Returns the http://something.com
 
     """
+
     query = urlparse(url).query
     for (_, value) in parse_qsl(query):
         if value[:4] == 'http':
