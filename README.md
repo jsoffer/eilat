@@ -3,6 +3,11 @@ Eilat
 
 Homebrew, Qt-Webkit based web browser
 
+Part of the purpose of this project is to familiarize the user with the workings
+of a web browser and of the Internet in general. Setting up and tuning is not
+expected to be trivial, requiring (rather minor) knowledge of Python and system
+administration, hopefully in exchange for a more finely grained set of features.
+
 Requirements
 ------------
 
@@ -10,10 +15,16 @@ Requirements
 * PyQt4, including Qt, QtGui, QtCore, QtWebKit, QtSql, QtNetwork as Python
 bindings, as well as sqlite3 support on the native QtSql
 * osd_cat from xosd (http://sourceforge.net/projects/libxosd/) for on-screen display
+* a proxy cache (like squid or polipo)
 
 Installation
 ------------
 
+A proxy cache is required. If it does not run in port 3128, or if the user chooses
+not to run a proxy, it can be tuned up on the file **eilat.py**, function **main**,
+under 'if options['use_proxy']:'. Failing to do so would result on pages not loading.
+It's recommended to read first the function **extract_options** to find out why e.g.
+opening twitter.com from the command line will ignore the proxy settings.
 
 Features
 --------
