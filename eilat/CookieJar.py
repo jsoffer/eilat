@@ -43,11 +43,11 @@ def format_cookie(url, cookies):
     """
     prefix = "\n< COOKIES (%s%s) " % (url.host(), url.path())
     suffix = ", ".join(["[[%s%s] %s => %s]" %
-        (cookie.domain(),
-            cookie.path(),
-            cookie.name(),
-            cookie.value())
-        for cookie in cookies])
+                        (cookie.domain(),
+                         cookie.path(),
+                         cookie.name(),
+                         cookie.value())
+                        for cookie in cookies])
     return prefix + suffix
 
 class CookieJar(QNetworkCookieJar):
@@ -72,7 +72,7 @@ class CookieJar(QNetworkCookieJar):
             try:
                 with open(self.storage, "r") as readfile:
                     cookies = [QNetworkCookie.parseCookies(k)
-                            for k in readfile.readlines()]
+                               for k in readfile.readlines()]
                     cookies = [x for y in cookies for x in y] # flatten
                     self.setAllCookies(cookies)
             except IOError:

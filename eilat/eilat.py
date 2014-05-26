@@ -70,12 +70,12 @@ def extract_options(site):
         host = sub("^https?://", "", site).split('/')[0].split('.')[-2]
 
     private_instances = [
-            "facebook", "twitter", "google", "linkedin", "youtube"]
+        "facebook", "twitter", "google", "linkedin", "youtube"
+    ]
 
     if site is None or host not in private_instances:
         print("GENERAL")
-        return {
-                'use_proxy': True,
+        return {'use_proxy': True,
                 'host_whitelist': None,
                 'cookie_allow': [
                     "github.com"],
@@ -83,8 +83,7 @@ def extract_options(site):
                 'prefix': ""}
     elif host == "linkedin":
         print("LINKEDIN")
-        return {
-                'use_proxy': False,
+        return {'use_proxy': False,
                 'host_whitelist': [
                     "linkedin.com",
                     "licdn.com"
@@ -94,8 +93,7 @@ def extract_options(site):
                 'prefix': "LI"}
     elif host in ["youtube"]:
         print("YOUTUBE")
-        return {
-                'use_proxy': False,
+        return {'use_proxy': False,
                 'host_whitelist': [
                     "youtube.com",
                     "ytimg.com"
@@ -105,8 +103,7 @@ def extract_options(site):
                 'prefix': "YT"}
     elif host == "facebook":
         print("FACEBOOK")
-        return {
-                'use_proxy': False,
+        return {'use_proxy': False,
                 'host_whitelist': [
                     "facebook.com",
                     "akamaihd.net",
@@ -116,16 +113,14 @@ def extract_options(site):
                 'prefix': "FB"}
     elif host == "twitter":
         print("TWITTER")
-        return {
-                'use_proxy': False,
+        return {'use_proxy': False,
                 'host_whitelist': ["twitter.com", "twimg.com"],
                 'cookie_allow': ["twitter.com"],
                 'cookie_file': "twcookies.cj",
                 'prefix': "TW"}
     elif host == "google":
         print("GOOGLE")
-        return {
-                'use_proxy': False,
+        return {'use_proxy': False,
                 'host_whitelist': [
                     "google.com",
                     "google.com.mx",
@@ -157,7 +152,7 @@ def main():
 
     if options['cookie_file'] is not None:
         options['cookie_file'] = (
-                expanduser("~/.eilat/cookies/") + options['cookie_file'])
+            expanduser("~/.eilat/cookies/") + options['cookie_file'])
 
     # Proxy
     if options['use_proxy']:

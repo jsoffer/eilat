@@ -35,7 +35,8 @@
 """
 
 from PyQt4.QtGui import (QWidget, QProgressBar, QStatusBar, QGridLayout,
-        QApplication, QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent)
+                         QApplication, QFrame, QLabel, QLineEdit,
+                         QCompleter, QKeyEvent)
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl, Qt, QEvent
 
@@ -47,7 +48,7 @@ import datetime
 # local
 from WebView import WebView
 from libeilat import (set_shortcuts, fix_url, real_host, encode_css,
-        copy_to_clipboard, osd)
+                      copy_to_clipboard, osd)
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
@@ -62,27 +63,11 @@ class WebTab(QWidget):
         self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.webkit.linkClicked.connect(self.on_link_click)
         self.webkit.settings().setAttribute(
-                QWebSettings.PluginsEnabled, False)
+            QWebSettings.PluginsEnabled, False)
         self.webkit.settings().setAttribute(
-                QWebSettings.JavascriptEnabled, False)
+            QWebSettings.JavascriptEnabled, False)
         self.webkit.settings().setAttribute(
-               QWebSettings.SpatialNavigationEnabled, True)
-        self.webkit.settings().setAttribute(
-               QWebSettings.SiteSpecificQuirksEnabled, False)
-        #self.webkit.settings().setAttribute(
-        #       QWebSettings.DeveloperExtrasEnabled, True)
-
-        main_frame = self.webkit.page().mainFrame()
-
-        # test_javascript = """ window.onload=function(){
-        # var txt = document.createTextNode("new text");
-        # document.getElementsByTagName('body')[0].appendChild(txt);
-        # }
-        # """
-
-        test_javascript = ''
-        main_frame.initialLayoutCompleted.connect(
-                partial(main_frame.evaluateJavaScript, test_javascript))
+            QWebSettings.SpatialNavigationEnabled, True)
 
         def process_clipboard(notify, request):
             """ notify and save to clipboard """
@@ -125,13 +110,15 @@ class WebTab(QWidget):
             """
             host_id = real_host(qurl.host())
             css_file = self.browser.css_path + host_id + ".css"
+
             try:
                 with open(css_file, 'r') as css_fh:
                     css_encoded = encode_css(css_fh.read()).strip()
             except IOError:
                 css_encoded = encode_css('')
+
             self.webkit.settings().setUserStyleSheetUrl(
-                    QUrl(css_encoded))
+                QUrl(css_encoded))
             self.address_bar.setText(qurl.toString())
 
         self.webkit.urlChanged.connect(url_changed)
@@ -189,7 +176,7 @@ class WebTab(QWidget):
             event = QKeyEvent(QEvent.KeyPress, key, Qt.KeyboardModifiers())
 
             QApplication.sendEvent(
-                    self.address_bar.completer().popup(), event)
+                self.address_bar.completer().popup(), event)
 
         set_shortcuts([
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
@@ -205,8 +192,8 @@ class WebTab(QWidget):
             ("H", self.webkit, partial(scroll, delta_x=-40)),
             ("L", self.webkit, partial(scroll, delta_x=40)),
             ("E", self, partial(copy_to_clipboard,
-                self.browser.clipboard,
-                self.address_bar.text)),
+                                self.browser.clipboard,
+                                self.address_bar.text)),
             ("Ctrl+Up", self, partial(zoom, 1)),
             ("Ctrl+Down", self, partial(zoom, -1)),
             ("G", self.webkit, show_search),
@@ -226,14 +213,17 @@ class WebTab(QWidget):
 
         Callback for shortcut action
         """
-        if self.webkit.settings().testAttribute(
-                QWebSettings.JavascriptEnabled):
+
+        javascript_on = self.webkit.settings().testAttribute(
+            QWebSettings.JavascriptEnabled)
+
+        if javascript_on:
             self.webkit.settings().setAttribute(
-                    QWebSettings.JavascriptEnabled, False)
+                QWebSettings.JavascriptEnabled, False)
             self.address_bar.set_color()
         else:
             self.webkit.settings().setAttribute(
-                    QWebSettings.JavascriptEnabled, True)
+                QWebSettings.JavascriptEnabled, True)
             self.address_bar.set_color((230, 230, 255))
 
     def load_progress(self, val):
@@ -320,12 +310,10 @@ class WebTab(QWidget):
         path = qurl.path().rstrip("/ ")
 
         do_not_store = [
-                "duckduckgo.com",
-                "t.co",
-                "i.imgur.com",
-                "imgur.com"]
+            "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
+        ]
 
-        if(
+        if (
                 (host not in do_not_store) and
                 (not qurl.hasQuery()) and
                 len(path.split('/')) < 4):
@@ -343,7 +331,7 @@ class WebTab(QWidget):
         tab's title
         """
         self.browser.tab_widget.setTabText(
-                self.browser.tab_widget.indexOf(self), title[:40])
+            self.browser.tab_widget.indexOf(self), title[:40])
 
     # connection in constructor and action
     def do_search(self, search=None):
@@ -420,7 +408,7 @@ class AddressBar(QLineEdit):
     def set_color(self, rgb=(255, 255, 255)):
         """ Sets the background color of the address bar """
         self.setStyleSheet(
-                "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)
+            "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)
 
     def focus_out_event(self, event):
         """ Close completion if it's open while the tab is changed """

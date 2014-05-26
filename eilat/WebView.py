@@ -63,27 +63,27 @@ class WebView(QWebView):
         def handle_key(key):
             """ Generate a fake key click in the webkit """
             enter_event = QKeyEvent(
-                    QEvent.KeyPress, key,
-                    Qt.KeyboardModifiers())
+                QEvent.KeyPress, key,
+                Qt.KeyboardModifiers())
             QApplication.sendEvent(self, enter_event)
 
         def handle_click():
             """ Generate a fake mouse click in the webkit """
             enter_event = QMouseEvent(
-                    QEvent.MouseButtonPress,
-                    self.mapFromGlobal(QCursor.pos()),
-                    Qt.LeftButton,
-                    Qt.MouseButtons(),
-                    Qt.KeyboardModifiers())
+                QEvent.MouseButtonPress,
+                self.mapFromGlobal(QCursor.pos()),
+                Qt.LeftButton,
+                Qt.MouseButtons(),
+                Qt.KeyboardModifiers())
 
             QApplication.sendEvent(self, enter_event)
 
             exit_event = QMouseEvent(
-                    QEvent.MouseButtonRelease,
-                    self.mapFromGlobal(QCursor.pos()),
-                    Qt.LeftButton,
-                    Qt.MouseButtons(),
-                    Qt.KeyboardModifiers())
+                QEvent.MouseButtonRelease,
+                self.mapFromGlobal(QCursor.pos()),
+                Qt.LeftButton,
+                Qt.MouseButtons(),
+                Qt.KeyboardModifiers())
 
             QApplication.sendEvent(self, exit_event)
 
@@ -116,16 +116,16 @@ class WebView(QWebView):
         """ Removes all 'div, header {position: fixed}' nodes """
 
         document = self.page().mainFrame().documentElement()
-        nodes = document.findAll("div, header")
+        nodes = [node for node in document.findAll("div, header")
+                 if node.styleProperty(
+                     "position",
+                     QWebElement.ComputedStyle) == 'fixed']
 
         for node in nodes:
-            if node.styleProperty(
-                        "position",
-                        QWebElement.ComputedStyle) == 'fixed':
-                if delete:
-                    node.removeFromDocument()
-                else:
-                    node.setStyleProperty('position', 'absolute')
+            if delete:
+                node.removeFromDocument()
+            else:
+                node.setStyleProperty('position', 'absolute')
 
     def set_paste(self):
         """ To use as callback in WebTab; can be improved """

@@ -63,14 +63,14 @@ def fix_url(url):
     # search if a non-alphanum (including space, that will be stripped) leads;
     # also search if the text has no url structure
     search = (not url[0].isalnum() or
-            not ('.' in url) or
-            not url.split('/')[0].split('.')[-1] in TLDS)
+              not ('.' in url) or
+              not url.split('/')[0].split('.')[-1] in TLDS)
 
     url = url.lstrip()
 
     if search:
         return QUrl(
-                "http://duckduckgo.com/html/?q=%s" % (url.replace(" ", "+")))
+            "http://duckduckgo.com/html/?q=%s" % (url.replace(" ", "+")))
     else:
         return QUrl.fromUserInput(url)
 
@@ -128,10 +128,10 @@ def es_font(url):
             (url.path()[-4:] == '.ico') or
             (url.path()[-5:] == '.woff') or
             (url.scheme() == 'data' and url.path()[:4] == 'font') or
-            (url.scheme() == 'data' and url.path()[:22] ==
-                'application/x-font-ttf') or
-            (url.scheme() == 'data' and url.path()[:21] ==
-                'application/font-woff') or
+            (url.scheme() == 'data' and
+             url.path()[:22] == 'application/x-font-ttf') or
+            (url.scheme() == 'data' and
+             url.path()[:21] == 'application/font-woff') or
             (url.path()[-4:] == '.svg' and "font" in url.path()))
 
 def usando_whitelist(whitelist, url):
@@ -143,7 +143,7 @@ def usando_whitelist(whitelist, url):
     return (whitelist and
             (not any(
                 [url.host()[-len(k):] == k
-                    for k in whitelist])))
+                 for k in whitelist])))
 
 TLDS = ["ac", "academy", "ad", "ae", "aero", "af", "ag", "ai", "al", "am", "an",
         "ao", "aq", "ar", "arpa", "as", "asia", "at", "au", "aw", "ax", "az",
@@ -212,13 +212,13 @@ def user_agent_for_url(*args):
 
     if real_host(args[1].host()) in ['whatsmyuseragent']:
         user_agent = (
-               "Mozilla/5.0 (X11; FreeBSD amd64; rv:27.0) " +
-               "(Hello WIMUA) " +
-               "Gecko/20100101 Firefox/27.0")
+            "Mozilla/5.0 (X11; FreeBSD amd64; rv:27.0) " +
+            "(Hello WIMUA) " +
+            "Gecko/20100101 Firefox/27.0")
     else:
         user_agent = (
-               "Mozilla/5.0 (X11; FreeBSD amd64; rv:27.0) " +
-               "Gecko/20100101 Firefox/27.0")
+            "Mozilla/5.0 (X11; FreeBSD amd64; rv:27.0) " +
+            "Gecko/20100101 Firefox/27.0")
 
     return user_agent
 
@@ -233,7 +233,7 @@ def copy_to_clipboard(clipboard, request):
     if isinstance(request, QUrl):
         qstring_to_copy = request.toString()
     elif (isinstance(request, QNetworkRequest) or
-            isinstance(request, QNetworkReply)):
+          isinstance(request, QNetworkReply)):
         qstring_to_copy = request.url().toString()
     elif callable(request):
         qstring_to_copy = request()
@@ -256,10 +256,10 @@ def osd(message, corner=False):
     def call_osd():
         """ As a lambda it would be too long """
         Popen(['osd_cat', '-l2'] +
-                params_position +
-                params_color +
-                params_font +
-                params_time,
-                stdin=PIPE).communicate(input=message.encode())
+              params_position +
+              params_color +
+              params_font +
+              params_time,
+              stdin=PIPE).communicate(input=message.encode())
 
     Thread(target=call_osd).start()

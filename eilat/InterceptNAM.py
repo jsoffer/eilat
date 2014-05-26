@@ -77,7 +77,7 @@ class InterceptNAM(QNetworkAccessManager):
             """
 
             status = reply.attribute(
-                        QNetworkRequest.HttpStatusCodeAttribute)
+                QNetworkRequest.HttpStatusCodeAttribute)
 
             acc = self.showing_accepted
             fil = status is None or status >= 400
@@ -90,13 +90,13 @@ class InterceptNAM(QNetworkAccessManager):
                     (loc and es_local)):
                 if reply.hasRawHeader('X-Cache'):
                     cache_header = (
-                            reply.rawHeader('X-Cache').data().decode() +
-                            '\t')
+                        reply.rawHeader('X-Cache').data().decode() +
+                        '\t')
                 else:
                     cache_header = ''
                 print(
-                        "%s%s %s" % (
-                            cache_header, str(status), reply.url().toString()))
+                    "%s%s %s" % (
+                        cache_header, str(status), reply.url().toString()))
 
         self.finished.connect(reply_complete)
 
@@ -112,7 +112,7 @@ class InterceptNAM(QNetworkAccessManager):
             if self.show_local:
                 print("LOCAL " + qurl.toString()[:80])
             return QNetworkAccessManager.createRequest(
-                    self, operation, request, data)
+                self, operation, request, data)
 
         if (usando_whitelist(self.whitelist, qurl) or
                 es_font(qurl) or es_num_ip(request.url().host())):
@@ -133,10 +133,10 @@ class InterceptNAM(QNetworkAccessManager):
             print("-_-_-_-")
 
         request.setAttribute(
-                QNetworkRequest.HttpPipeliningAllowedAttribute, True)
+            QNetworkRequest.HttpPipeliningAllowedAttribute, True)
 
         response = QNetworkAccessManager.createRequest(
-                self, operation, request, data)
+            self, operation, request, data)
 
         return response
 
