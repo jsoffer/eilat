@@ -92,3 +92,7 @@ either that, the proxy, or net access is down). Run **node searchserver.js**
 on a command line on a directory containing the subdirectory **templates/**
 and try again. An ugly page will appear containing the search results for
 that non-url entry.
+
+----
+
+If using vim, edit with https://github.com/hynek/vim-python-pep8-indent/
