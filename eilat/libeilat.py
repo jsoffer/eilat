@@ -261,12 +261,16 @@ def osd(message, corner=False):
 
     def call_osd():
         """ As a lambda it would be too long """
-        Popen(['osd_cat', '-l2'] +
-              params_position +
-              params_color +
-              params_font +
-              params_time,
-              stdin=PIPE).communicate(input=message.encode())
+        try:
+            Popen(['osd_cat_', '-l2'] +
+                  params_position +
+                  params_color +
+                  params_font +
+                  params_time,
+                  stdin=PIPE).communicate(input=message.encode())
+        except FileNotFoundError:
+            print("OSD not available - install osd_cat from xosd")
+            print("OSD Message was: " + message)
 
     Thread(target=call_osd).start()
 
