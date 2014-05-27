@@ -28,6 +28,13 @@ under 'if options['use_proxy']:'. Failing to do so would result on pages not loa
 It's recommended to read first the function **extract_options** to find out why e.g.
 opening twitter.com from the command line will ignore the proxy settings.
 
+Very quick install: uncompress **dot_eilat.tar.bz2**, move it to ~/.eilat; the empty
+history database and the cookies directory will be filled in runtime, and styles
+will be searched on the css directory. Run 'python eilat.py [optional url]'
+inside the 'eilat/eilat' directory.
+
+Better instructions to be written later.
+
 Features
 --------
 
