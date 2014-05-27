@@ -47,6 +47,7 @@ from CookieJar import CookieJar
 from libeilat import es_url_local, usando_whitelist, es_font, es_num_ip
 
 from pprint import PrettyPrinter
+import tldextract
 
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
@@ -70,6 +71,8 @@ class InterceptNAM(QNetworkAccessManager):
         self.cookie_jar = CookieJar(self, options)
         self.setCookieJar(self.cookie_jar)
 
+        self.log = parent.log
+
         def reply_complete(reply):
             """ Prints when a request completes, handles the filter that
             chooses between successful and filtered requests
@@ -84,7 +87,7 @@ class InterceptNAM(QNetworkAccessManager):
             loc = self.show_local
             es_local = es_url_local(reply.url())
 
-            if (
+            if status is not None and (
                     (acc and not fil and not es_local) or
                     (not acc and fil and not es_local) or
                     (loc and es_local)):
@@ -107,6 +110,21 @@ class InterceptNAM(QNetworkAccessManager):
         """
 
         qurl = request.url()
+        url = qurl.toString()
+        rurl = tldextract.extract(url)
+        domain = rurl.domain if rurl.domain != '' else None
+        suffix = rurl.suffix if rurl.suffix != '' else None
+        subdomain = rurl.subdomain if rurl.subdomain != '' else None
+
+        if (self.whitelist is None and
+                self.log.is_blacklisted(domain, suffix, subdomain)):
+            print("******* BLACKLISTED: %s || %s || %s " % (subdomain, domain,
+                                                            suffix))
+            return QNetworkAccessManager.createRequest(
+                self,
+                QNetworkAccessManager.GetOperation,
+                QNetworkRequest(QUrl("about:blank")),
+                None)
 
         if es_url_local(qurl) and not es_font(qurl):
             if self.show_local:

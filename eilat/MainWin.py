@@ -58,11 +58,10 @@ class MainWin(QMainWindow):
         self.last_closed = None
         self.css_path = expanduser("~/.eilat/css/")
 
+        self.log = DatabaseLogLite(options['prefix'])
         self.netmanager = InterceptNAM(options, self)
 
         self.clipboard = clipboard
-
-        self.log = DatabaseLogLite(options['prefix'])
 
         self.tab_widget = QTabWidget(self)
         self.tab_widget.setTabBar(MidClickTabBar())

@@ -54,13 +54,13 @@ class DatabaseLogLite(object):
         else:
             self.table = 'navigation'
 
-        self.query_nav = QSqlQuery(
+        query_nav = QSqlQuery(
             "select host || path from %s " % (self.table) +
             "order by count desc",
             self.litedb)
 
         self.model = QSqlQueryModel()
-        self.model.setQuery(self.query_nav)
+        self.model.setQuery(query_nav)
 
     def store_navigation(self, host, path):
         """ save host, path and increase its count """
@@ -78,3 +78,56 @@ class DatabaseLogLite(object):
 
         self.litedb.exec_(insert_or_ignore)
         self.litedb.exec_(update)
+
+    def is_blacklisted(self, domain, suffix, subdomain=None):
+        """ Returns a bool indicating if subdomain.domain.tld is
+        going to be blocked
+
+        Missing case: when we'll blanket block all suffixes and
+        subdomains of a domain
+
+        """
+
+        check_tld = (
+            "select count(*) from blacklist where " +
+            "domain = '%s' and tld = '%s'" % (domain, suffix))
+
+        query_tld = QSqlQuery(check_tld, self.litedb)
+        query_tld.exec_()
+        query_tld.next()
+        blacklisted_tld = bool(query_tld.value(0))
+
+        if not blacklisted_tld:
+            return False
+
+        # first, if there's a no-subdomain entry, it covers everything
+        check_no_subdomain = (
+            "select count(*) from blacklist where " +
+            "domain = '%s' and tld = '%s' " % (domain, suffix) +
+            "and subdomain is null")
+
+        query_no_subdomain = QSqlQuery(check_no_subdomain, self.litedb)
+        query_no_subdomain.exec_()
+        query_no_subdomain.next()
+        blacklisted_plus_no_subdomain = bool(query_no_subdomain.value(0))
+
+        if blacklisted_plus_no_subdomain:
+            return True
+
+        # lastly (rare case), if only a subdomain is blacklisted,
+        # let's check if it's this one
+
+        if subdomain is None:
+            return False
+
+        check_subdomain = (
+            "select count(*) from blacklist where " +
+            "domain = '%s' and tld = '%s' " % (domain, suffix) +
+            "and subdomain = '%s'" % (subdomain))
+
+        query_subdomain = QSqlQuery(check_subdomain, self.litedb)
+        query_subdomain.exec_()
+        query_subdomain.next()
+        blacklisted_plus_subdomain = bool(query_subdomain.value(0))
+
+        return blacklisted_plus_subdomain
