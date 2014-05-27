@@ -15,7 +15,7 @@ Requirements
 * PyQt4, including Qt, QtGui, QtCore, QtWebKit, QtSql, QtNetwork as Python
 bindings, as well as sqlite3 support on the native QtSql
 * tldextract (https://github.com/john-kurkowski/tldextract); install the latest
-version (with pip install -e git://github...) if using Python 3
+version (with pip install -e git://github...), pip has (as of now) a very obsolete one
 * osd_cat from xosd (http://sourceforge.net/projects/libxosd/) for on-screen display
 * a proxy cache (like squid or polipo)
 
