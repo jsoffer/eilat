@@ -65,8 +65,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.whitelist = options['host_whitelist']
         self.prefix = options['prefix']
 
-        self.showing_accepted = True
-        self.show_local = False
+        self.show_detail = True
 
         self.printer = PrettyPrinter(indent=4).pprint
 
@@ -127,8 +126,8 @@ class InterceptNAM(QNetworkAccessManager):
                 None)
 
         if es_url_local(qurl) and not es_font(qurl):
-            if self.show_local:
-                print("%s LOCAL %s%s" % (Fore.GREEN,
+            if self.show_detail:
+                print("%sLOCAL %s%s" % (Fore.GREEN,
                                          qurl.toString()[:80],
                                          Fore.RESET))
             return QNetworkAccessManager.createRequest(
@@ -136,9 +135,10 @@ class InterceptNAM(QNetworkAccessManager):
 
         if (usando_whitelist(self.whitelist, qurl) or
                 es_font(qurl) or es_num_ip(request.url().host())):
-            # different 'flows' for shown, filtered
-            if not self.showing_accepted:
-                print("FILTERING %s" % qurl.toString()[:255])
+            if self.show_detail:
+                print("%sFILTERING %s%s" % (Fore.GREEN,
+                                            qurl.toString()[:255],
+                                            Fore.RESET)
             return QNetworkAccessManager.createRequest(
                 self,
                 QNetworkAccessManager.GetOperation,

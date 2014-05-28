@@ -80,17 +80,17 @@ class MainWin(QMainWindow):
                 self.add_tab(url)
                 self.last_closed = None
 
-        def toggle_log_local():
+        def toggle_log_detail():
             """ Inverts a value, toggling between printing responses
             that were accepted by the webkit or (some of) those that
             were filtered at some point.
 
             """
-            self.netmanager.show_local ^= True
-            if self.netmanager.show_local:
-                print("---- SHOWING LOCAL ----")
+            self.netmanager.show_detail ^= True
+            if self.netmanager.show_detail:
+                print("---- SHOWING DETAILS ----")
             else:
-                print("---- HIDING LOCAL ----")
+                print("---- HIDING DETAILS ----")
 
         set_shortcuts([
             # new tabs
@@ -105,7 +105,7 @@ class MainWin(QMainWindow):
             ("Ctrl+PgUp", self, partial(self.inc_tab, -1)),
             ("Ctrl+PgDown", self, self.inc_tab),
             # toggles
-            ("Z", self, toggle_log_local),
+            ("Z", self, toggle_log_detail),
             # destroy/undestroy
             ("U", self, restore_last_closed),
             ("Ctrl+W", self, self.del_tab),
