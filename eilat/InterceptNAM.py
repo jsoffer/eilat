@@ -49,6 +49,8 @@ from libeilat import es_url_local, usando_whitelist, es_font, es_num_ip
 from pprint import PrettyPrinter
 import tldextract
 
+from colorama import Fore
+
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
     by web pages, besides of the page itself. Has primitive support to allow
@@ -82,24 +84,22 @@ class InterceptNAM(QNetworkAccessManager):
             status = reply.attribute(
                 QNetworkRequest.HttpStatusCodeAttribute)
 
-            acc = self.showing_accepted
-            fil = status is None or status >= 400
-            loc = self.show_local
+            fil = status is not None and status >= 400
             es_local = es_url_local(reply.url())
 
-            if status is not None and (
-                    (acc and not fil and not es_local) or
-                    (not acc and fil and not es_local) or
-                    (loc and es_local)):
+            colour = Fore.RED if fil else Fore.BLUE
+
+            if status is not None and not es_local:
                 if reply.hasRawHeader('X-Cache'):
                     cache_header = (
                         reply.rawHeader('X-Cache').data().decode() +
                         '\t')
                 else:
                     cache_header = ''
-                print(
-                    "%s%s %s" % (
-                        cache_header, str(status), reply.url().toString()))
+                print("%s%s%s %s%s" % (colour,
+                                       cache_header, str(status),
+                                       reply.url().toString(),
+                                       Fore.RESET))
 
         self.finished.connect(reply_complete)
 
@@ -128,7 +128,9 @@ class InterceptNAM(QNetworkAccessManager):
 
         if es_url_local(qurl) and not es_font(qurl):
             if self.show_local:
-                print("LOCAL " + qurl.toString()[:80])
+                print("%s LOCAL %s%s" % (Fore.GREEN,
+                                         qurl.toString()[:80],
+                                         Fore.RESET))
             return QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
