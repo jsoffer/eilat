@@ -107,24 +107,23 @@ class InterceptNAM(QNetworkAccessManager):
 
         """
 
+        request.setAttribute(
+            QNetworkRequest.HttpPipeliningAllowedAttribute, True)
+
         qurl = request.url()
         url = qurl.toString()
 
-        rurl = tldextract.extract(url)
-        domain = rurl.domain if rurl.domain != '' else None
-        suffix = rurl.suffix if rurl.suffix != '' else None
-        subdomain = rurl.subdomain if rurl.subdomain != '' else None
+        # if keeping a log of the POST data, do it before anything else
+        if operation == QNetworkAccessManager.PostOperation:
+            post_str = data.peek(4096).data().decode()
+            print("_-_-_-_")
+            print(url)
+            self.printer(parse_qsl(post_str, keep_blank_values=True))
+            print("-_-_-_-")
 
-        if (self.whitelist is None and
-                self.log.is_blacklisted(domain, suffix, subdomain)):
-            print("******* BLACKLISTED: %s || %s || %s " % (subdomain, domain,
-                                                            suffix))
-            return QNetworkAccessManager.createRequest(
-                self,
-                QNetworkAccessManager.GetOperation,
-                QNetworkRequest(QUrl("about:blank")),
-                None)
 
+        # stop here if the request is local enough as for not
+        # requiring further scrutiny
         if es_url_local(qurl) and not es_font(qurl):
             if self.show_detail:
                 print("%sLOCAL %s%s" % (Fore.GREEN,
@@ -133,27 +132,55 @@ class InterceptNAM(QNetworkAccessManager):
             return QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
-        if (usando_whitelist(self.whitelist, qurl) or
-                es_font(qurl) or es_num_ip(request.url().host())):
+        # it may be an un-dns'ed request; careful here
+        if es_num_ip(qurl.host()):
             if self.show_detail:
-                print("%sFILTERING %s%s" % (Fore.GREEN,
-                                            url[:255],
-                                            Fore.RESET))
+                print("******* NUMERICAL: %s" % (url))
             return QNetworkAccessManager.createRequest(
                 self,
                 QNetworkAccessManager.GetOperation,
                 QNetworkRequest(QUrl("about:blank")),
                 None)
 
-        if operation == QNetworkAccessManager.PostOperation:
-            post_str = data.peek(4096).data().decode()
-            print("_-_-_-_")
-            print(url)
-            self.printer(parse_qsl(post_str, keep_blank_values=True))
-            print("-_-_-_-")
+        # It's not a local request; it should have a proper URL structure
+        # then. 'domain' and 'suffix' must be non-None (and non-empty).
 
-        request.setAttribute(
-            QNetworkRequest.HttpPipeliningAllowedAttribute, True)
+        (subdomain, domain, suffix) = tldextract.extract(url)
+        subdomain = subdomain if subdomain != '' else None
+
+        # send a generic request for about:blank if the request should be
+        # refused. There are many possible reasons; log what happens,
+        # then send the request.
+
+        for (stop_case, description) in [
+                # if 'domain' or 'suffix' are not valid, stop;
+                # should never happen
+                (domain == '' or suffix == '',
+                 "******* SHOULD NOT HAPPEN: %s || %s || %s " % (subdomain,
+                                                                 domain,
+                                                                 suffix)),
+                # found the requested URL in the blacklist
+                (self.whitelist is None and self.log.is_blacklisted(domain,
+                                                                    suffix,
+                                                                    subdomain),
+                 "******* BLACKLISTED: %s || %s || %s " % (subdomain,
+                                                           domain,
+                                                           suffix)),
+                # whitelist exists, and the requested URL is not in it
+                (usando_whitelist(self.whitelist, qurl),
+                 "******* NON WHITELISTED: %s" % (url)),
+                # stop the resource if it's a web font (or similar)
+                (es_font(qurl), "******* TRIM WEBFONT: %s" % (url))
+        ]:
+            if stop_case:
+                if self.show_detail:
+                    print(description)
+
+                return QNetworkAccessManager.createRequest(
+                    self,
+                    QNetworkAccessManager.GetOperation,
+                    QNetworkRequest(QUrl("about:blank")),
+                    None)
 
         return QNetworkAccessManager.createRequest(self, operation,
                                                    request, data)
