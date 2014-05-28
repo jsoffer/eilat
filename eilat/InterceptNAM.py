@@ -103,13 +103,13 @@ class InterceptNAM(QNetworkAccessManager):
         self.finished.connect(reply_complete)
 
     def create_request(self, operation, request, data):
-        """ Reimplemented to intercept requests. Stops blacklisted requests,
-        matches requests with replies. Stores on a PostgreSQL database.
+        """ Reimplemented to intercept requests. Stops blacklisted requests
 
         """
 
         qurl = request.url()
         url = qurl.toString()
+
         rurl = tldextract.extract(url)
         domain = rurl.domain if rurl.domain != '' else None
         suffix = rurl.suffix if rurl.suffix != '' else None
@@ -128,7 +128,7 @@ class InterceptNAM(QNetworkAccessManager):
         if es_url_local(qurl) and not es_font(qurl):
             if self.show_detail:
                 print("%sLOCAL %s%s" % (Fore.GREEN,
-                                        qurl.toString()[:80],
+                                        url[:80],
                                         Fore.RESET))
             return QNetworkAccessManager.createRequest(
                 self, operation, request, data)
@@ -137,7 +137,7 @@ class InterceptNAM(QNetworkAccessManager):
                 es_font(qurl) or es_num_ip(request.url().host())):
             if self.show_detail:
                 print("%sFILTERING %s%s" % (Fore.GREEN,
-                                            qurl.toString()[:255],
+                                            url[:255],
                                             Fore.RESET))
             return QNetworkAccessManager.createRequest(
                 self,
@@ -148,17 +148,15 @@ class InterceptNAM(QNetworkAccessManager):
         if operation == QNetworkAccessManager.PostOperation:
             post_str = data.peek(4096).data().decode()
             print("_-_-_-_")
-            print(qurl.toString())
+            print(url)
             self.printer(parse_qsl(post_str, keep_blank_values=True))
             print("-_-_-_-")
 
         request.setAttribute(
             QNetworkRequest.HttpPipeliningAllowedAttribute, True)
 
-        response = QNetworkAccessManager.createRequest(
-            self, operation, request, data)
-
-        return response
+        return QNetworkAccessManager.createRequest(self, operation,
+                                                   request, data)
 
     # Clean reimplement for Qt
     # pylint: disable=C0103

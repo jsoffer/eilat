@@ -88,30 +88,23 @@ class DatabaseLogLite(object):
 
         """
 
-        check_tld = (
-            "select count(*) from blacklist where " +
-            "domain = '%s' and tld = '%s'" % (domain, suffix))
+        def run_query(query):
+            """ template; returns bool of existence of result """
+            q_query = QSqlQuery(query, self.litedb)
+            q_query.exec_()
+            q_query.next()
+            return bool(q_query.value(0))
 
-        query_tld = QSqlQuery(check_tld, self.litedb)
-        query_tld.exec_()
-        query_tld.next()
-        blacklisted_tld = bool(query_tld.value(0))
-
-        if not blacklisted_tld:
+        if not run_query(
+                "select count(*) from blacklist where " +
+                "domain = '%s' and tld = '%s'" % (domain, suffix)):
             return False
 
         # first, if there's a no-subdomain entry, it covers everything
-        check_no_subdomain = (
-            "select count(*) from blacklist where " +
-            "domain = '%s' and tld = '%s' " % (domain, suffix) +
-            "and subdomain is null")
-
-        query_no_subdomain = QSqlQuery(check_no_subdomain, self.litedb)
-        query_no_subdomain.exec_()
-        query_no_subdomain.next()
-        blacklisted_plus_no_subdomain = bool(query_no_subdomain.value(0))
-
-        if blacklisted_plus_no_subdomain:
+        if run_query(
+                "select count(*) from blacklist where " +
+                "domain = '%s' and tld = '%s' " % (domain, suffix) +
+                "and subdomain is null"):
             return True
 
         # lastly (rare case), if only a subdomain is blacklisted,
@@ -120,14 +113,7 @@ class DatabaseLogLite(object):
         if subdomain is None:
             return False
 
-        check_subdomain = (
+        return run_query(
             "select count(*) from blacklist where " +
             "domain = '%s' and tld = '%s' " % (domain, suffix) +
             "and subdomain = '%s'" % (subdomain))
-
-        query_subdomain = QSqlQuery(check_subdomain, self.litedb)
-        query_subdomain.exec_()
-        query_subdomain.next()
-        blacklisted_plus_subdomain = bool(query_subdomain.value(0))
-
-        return blacklisted_plus_subdomain
