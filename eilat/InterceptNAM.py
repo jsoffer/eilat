@@ -128,8 +128,8 @@ class InterceptNAM(QNetworkAccessManager):
         if es_url_local(qurl) and not es_font(qurl):
             if self.show_detail:
                 print("%sLOCAL %s%s" % (Fore.GREEN,
-                                         qurl.toString()[:80],
-                                         Fore.RESET))
+                                        qurl.toString()[:80],
+                                        Fore.RESET))
             return QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
@@ -138,7 +138,7 @@ class InterceptNAM(QNetworkAccessManager):
             if self.show_detail:
                 print("%sFILTERING %s%s" % (Fore.GREEN,
                                             qurl.toString()[:255],
-                                            Fore.RESET)
+                                            Fore.RESET))
             return QNetworkAccessManager.createRequest(
                 self,
                 QNetworkAccessManager.GetOperation,
