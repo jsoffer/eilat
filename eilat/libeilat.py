@@ -203,7 +203,10 @@ def copy_to_clipboard(clipboard, request):
     so it can be easily pasted with middle click (or shift+insert,
     or xsel, or xclip, or 'Y' keybinding) anywhere it's needed
 
-
+    Accepting a callable is required because binding the function to
+    a QLineEdit.text() will bind forever to the content of the line edit
+    at bind time, but a binding to QLineEdit.text will be evaluated
+    when the shortcut is called
     """
 
     if isinstance(request, QUrl):
