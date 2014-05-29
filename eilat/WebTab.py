@@ -68,6 +68,8 @@ class WebTab(QWidget):
             QWebSettings.JavascriptEnabled, False)
         self.webkit.settings().setAttribute(
             QWebSettings.SpatialNavigationEnabled, True)
+        self.webkit.settings().setAttribute(
+            QWebSettings.FrameFlatteningEnabled, True)
 
         def process_clipboard(notify, request):
             """ notify and save to clipboard """

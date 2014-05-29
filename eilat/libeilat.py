@@ -165,8 +165,16 @@ GLOBAL_CSS = b""" *:focus { border: #00a 1px solid ! important; }
 def encode_css(style):
     """ Takes a css as string, returns a proper base64 encoded "file" """
     header = b"data:text/css;charset=utf-8;base64,"
-    content = encodestring(GLOBAL_CSS + style.encode())
-    return (header + content).decode()
+    encoded = encodestring(GLOBAL_CSS + style.encode())
+    return (header + encoded).decode()
+
+def encode_blocked(message, url):
+    """ Generates a 'data:' string to use as reply when blocking an URL """
+    header = b"data:text/html;base64,"
+    content = "<html><head></head><body>%s <a href=%s>%s</a></body>" % (
+        message, url, url)
+    encoded = encodestring(content.encode())
+    return (header + encoded).decode()
 
 def user_agent_for_url(*args):
     """ Returns a User Agent that will be seen by the website.

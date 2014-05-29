@@ -44,7 +44,9 @@ from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
 
 from CookieJar import CookieJar
-from libeilat import es_url_local, usando_whitelist, es_font, es_num_ip
+from libeilat import (es_url_local, usando_whitelist,
+                      es_font, es_num_ip,
+                      encode_blocked)
 
 from pprint import PrettyPrinter
 import tldextract
@@ -179,7 +181,8 @@ class InterceptNAM(QNetworkAccessManager):
                 return QNetworkAccessManager.createRequest(
                     self,
                     QNetworkAccessManager.GetOperation,
-                    QNetworkRequest(QUrl("about:blank")),
+                    #QNetworkRequest(QUrl("about:blank")),
+                    QNetworkRequest(QUrl(encode_blocked(description, url))),
                     None)
 
         return QNetworkAccessManager.createRequest(self, operation,
