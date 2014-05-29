@@ -44,8 +44,8 @@ from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.Qt import QUrl
 
 from CookieJar import CookieJar
-from libeilat import (es_url_local, usando_whitelist,
-                      es_font, es_num_ip,
+from libeilat import (is_local, non_whitelisted,
+                      is_font, is_numerical,
                       encode_blocked)
 
 from pprint import PrettyPrinter
@@ -86,11 +86,11 @@ class InterceptNAM(QNetworkAccessManager):
                 QNetworkRequest.HttpStatusCodeAttribute)
 
             fil = status is not None and status >= 400
-            es_local = es_url_local(reply.url())
+            local = is_local(reply.url())
 
             colour = Fore.RED if fil else Fore.BLUE
 
-            if status is not None and not es_local:
+            if status is not None and not local:
                 if reply.hasRawHeader('X-Cache'):
                     cache_header = (
                         reply.rawHeader('X-Cache').data().decode() +
@@ -126,7 +126,7 @@ class InterceptNAM(QNetworkAccessManager):
 
         # stop here if the request is local enough as for not
         # requiring further scrutiny
-        if es_url_local(qurl) and not es_font(qurl):
+        if is_local(qurl) and not is_font(qurl):
             if self.show_detail:
                 print("%sLOCAL %s%s" % (Fore.GREEN,
                                         url[:80],
@@ -135,7 +135,7 @@ class InterceptNAM(QNetworkAccessManager):
                 self, operation, request, data)
 
         # it may be an un-dns'ed request; careful here
-        if es_num_ip(qurl.host()):
+        if is_numerical(qurl.host()):
             if self.show_detail:
                 print("******* NUMERICAL: %s" % (url))
             return QNetworkAccessManager.createRequest(
@@ -169,10 +169,10 @@ class InterceptNAM(QNetworkAccessManager):
                                                            domain,
                                                            suffix)),
                 # whitelist exists, and the requested URL is not in it
-                (usando_whitelist(self.whitelist, qurl),
+                (non_whitelisted(self.whitelist, qurl),
                  "******* NON WHITELISTED: %s" % (url)),
                 # stop the resource if it's a web font (or similar)
-                (es_font(qurl), "******* TRIM WEBFONT: %s" % (url))
+                (is_font(qurl), "******* TRIM WEBFONT: %s" % (url))
         ]:
             if stop_case:
                 if self.show_detail:
