@@ -134,6 +134,16 @@ class InterceptNAM(QNetworkAccessManager):
             return QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
+        # may still be local
+        if is_font(qurl):
+            if self.show_detail:
+                print("******* TRIM WEBFONT: %s" % (url[:255]))
+            return QNetworkAccessManager.createRequest(
+                self,
+                QNetworkAccessManager.GetOperation,
+                QNetworkRequest(QUrl("about:blank")),
+                None)
+
         # it may be an un-dns'ed request; careful here
         if is_numerical(qurl.host()):
             if self.show_detail:
@@ -170,9 +180,7 @@ class InterceptNAM(QNetworkAccessManager):
                                                            suffix)),
                 # whitelist exists, and the requested URL is not in it
                 (non_whitelisted(self.whitelist, qurl),
-                 "******* NON WHITELISTED: %s" % (url)),
-                # stop the resource if it's a web font (or similar)
-                (is_font(qurl), "******* TRIM WEBFONT: %s" % (url))
+                 "******* NON WHITELISTED: %s" % (url))
         ]:
             if stop_case:
                 if self.show_detail:

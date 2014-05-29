@@ -109,7 +109,7 @@ def set_shortcuts(lista, context=Qt.WidgetWithChildrenShortcut):
     for (shortcut, owner, callback) in lista:
         QShortcut(shortcut, owner, callback).setContext(context)
 
-def es_url_local(url):
+def is_local(url):
     """ Predicate for create_request
     Is the URL not making an external request?
 
@@ -118,7 +118,7 @@ def es_url_local(url):
             url.host() == 'localhost' or
             url.scheme() == 'data')
 
-def es_num_ip(url):
+def is_numerical(url):
     """ Predicate for create_request
     Is the URL an already resolved numeric ip address?
 
@@ -127,22 +127,24 @@ def es_num_ip(url):
         return False
     return not ([k for k in url if k not in "0123456789."])
 
-def es_font(url):
+def is_font(qurl):
     """ Predicate for create_request
     Is requesting for a web font? Include icons, too
 
     """
-    return ((url.path()[-4:] == '.ttf') or
-            (url.path()[-4:] == '.ico') or
-            (url.path()[-5:] == '.woff') or
-            (url.scheme() == 'data' and url.path()[:4] == 'font') or
-            (url.scheme() == 'data' and
-             url.path()[:22] == 'application/x-font-ttf') or
-            (url.scheme() == 'data' and
-             url.path()[:21] == 'application/font-woff') or
-            (url.path()[-4:] == '.svg' and "font" in url.path()))
+    return ((qurl.path().endswith(('.ttf', '.ico', '.woff')) or
+             (qurl.scheme() == 'data' and qurl.path().split(';')[0] in [
+                 'font/opentype',
+                 'application/x-font-ttf',
+                 'application/x-font-opentype',
+                 'application/font-woff',
+                 'application/font-sfnt',
+                 'application/vnd.ms-fontobject',
+                 'image/svg+xml' # may not be a font?
+             ]) or
+             (qurl.path().endswith('.svg') and "font" in qurl.path())))
 
-def usando_whitelist(whitelist, url):
+def non_whitelisted(whitelist, url):
     """ Predicate for create_request
     If 'whitelist' active, is the URL host listed on it? Allow to pass.
     If 'whitelist' is not active, allow too.
