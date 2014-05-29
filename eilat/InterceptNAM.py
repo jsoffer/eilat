@@ -116,13 +116,15 @@ class InterceptNAM(QNetworkAccessManager):
         url = qurl.toString()
 
         # if keeping a log of the POST data, do it before anything else
-        if operation == QNetworkAccessManager.PostOperation:
-            post_str = data.peek(4096).data().decode()
-            print("_-_-_-_")
-            print(url)
-            self.printer(parse_qsl(post_str, keep_blank_values=True))
-            print("-_-_-_-")
-
+        try:
+            if operation == QNetworkAccessManager.PostOperation:
+                post_str = data.peek(4096).data().decode()
+                print("_-_-_-_")
+                print(url)
+                self.printer(parse_qsl(post_str, keep_blank_values=True))
+                print("-_-_-_-")
+        except UnicodeDecodeError:
+            print("Binary POST upload")
 
         # stop here if the request is local enough as for not
         # requiring further scrutiny
@@ -134,50 +136,14 @@ class InterceptNAM(QNetworkAccessManager):
             return QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
-        # may still be local
-        if is_font(qurl):
-            if self.show_detail:
-                print("******* TRIM WEBFONT: %s" % (url[:255]))
-            return QNetworkAccessManager.createRequest(
-                self,
-                QNetworkAccessManager.GetOperation,
-                QNetworkRequest(QUrl("about:blank")),
-                None)
-
-        # it may be an un-dns'ed request; careful here
-        if is_numerical(qurl.host()):
-            if self.show_detail:
-                print("******* NUMERICAL: %s" % (url))
-            return QNetworkAccessManager.createRequest(
-                self,
-                QNetworkAccessManager.GetOperation,
-                QNetworkRequest(QUrl("about:blank")),
-                None)
-
-        # It's not a local request; it should have a proper URL structure
-        # then. 'domain' and 'suffix' must be non-None (and non-empty).
-
-        (subdomain, domain, suffix) = tldextract.extract(url)
-        subdomain = subdomain if subdomain != '' else None
-
-        # send a generic request for about:blank if the request should be
-        # refused. There are many possible reasons; log what happens,
-        # then send the request.
+        # If the request is going to be intercepted a custom request is
+        # built and returned after optionally reporting the reason
 
         for (stop_case, description) in [
-                # if 'domain' or 'suffix' are not valid, stop;
-                # should never happen
-                (domain == '' or suffix == '',
-                 "******* SHOULD NOT HAPPEN: %s || %s || %s " % (subdomain,
-                                                                 domain,
-                                                                 suffix)),
-                # found the requested URL in the blacklist
-                (self.whitelist is None and self.log.is_blacklisted(domain,
-                                                                    suffix,
-                                                                    subdomain),
-                 "******* BLACKLISTED: %s || %s || %s " % (subdomain,
-                                                           domain,
-                                                           suffix)),
+                # may still be local
+                (is_font(qurl), "******* TRIM WEBFONT: %s" % (url[:255])),
+                # it may be an un-dns'ed request; careful here
+                (is_numerical(qurl.host()), "******* NUMERICAL: %s" % (url)),
                 # whitelist exists, and the requested URL is not in it
                 (non_whitelisted(self.whitelist, qurl),
                  "******* NON WHITELISTED: %s" % (url))
@@ -189,7 +155,38 @@ class InterceptNAM(QNetworkAccessManager):
                 return QNetworkAccessManager.createRequest(
                     self,
                     QNetworkAccessManager.GetOperation,
-                    #QNetworkRequest(QUrl("about:blank")),
+                    QNetworkRequest(QUrl("about:blank")),
+                    None)
+
+        # It's not a local request; it should have a proper URL structure
+        # then. 'domain' and 'suffix' must be non-None (and non-empty).
+
+        (subdomain, domain, suffix) = tldextract.extract(url)
+        subdomain = subdomain if subdomain != '' else None
+
+        for (stop_case, description) in [
+                # if 'domain' or 'suffix' are not valid, stop;
+                # should never happen (even though it does - some providers
+                # don't have a proper 'domain' according to tldextract
+                (domain == '' or suffix == '',
+                 "******* SHOULD NOT HAPPEN: %s || %s || %s " % (subdomain,
+                                                                 domain,
+                                                                 suffix)),
+                # found the requested URL in the blacklist
+                (self.whitelist is None and self.log.is_blacklisted(domain,
+                                                                    suffix,
+                                                                    subdomain),
+                 "******* BLACKLISTED: %s || %s || %s " % (subdomain,
+                                                           domain,
+                                                           suffix))
+        ]:
+            if stop_case:
+                if self.show_detail:
+                    print(description)
+
+                return QNetworkAccessManager.createRequest(
+                    self,
+                    QNetworkAccessManager.GetOperation,
                     QNetworkRequest(QUrl(encode_blocked(description, url))),
                     None)
 
