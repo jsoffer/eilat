@@ -143,10 +143,10 @@ class WebView(QWebView):
             ])
 
     def delete_fixed(self, delete=True):
-        """ Removes all 'div, header {position: fixed}' nodes """
+        """ Removes all '??? {position: fixed}' nodes """
 
         document = self.page().mainFrame().documentElement()
-        nodes = [node for node in document.findAll("div, header")
+        nodes = [node for node in document.findAll("div, header, nav")
                  if node.styleProperty(
                      "position",
                      QWebElement.ComputedStyle) == 'fixed']
