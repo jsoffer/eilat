@@ -53,6 +53,8 @@ class WebView(QWebView):
         self.paste = False
         self.save = False # here, just to get these two together
 
+        self.testnav = []
+
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
         #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
 
@@ -116,6 +118,7 @@ class WebView(QWebView):
             # DOM actions
             ("Ctrl+M", self, dump_dom),
             ("F2", self, self.delete_fixed),
+            ("F3", self, self.test_navigation),
             ("Shift+F2", self, partial(self.delete_fixed, delete=False)),
             # webkit interaction
             ("Alt+Left", self, self.back),
@@ -156,6 +159,34 @@ class WebView(QWebView):
                 node.removeFromDocument()
             else:
                 node.setStyleProperty('position', 'absolute')
+
+    def test_navigation(self):
+        """ find web link nodes, move through them;
+        initial testing to replace webkit's spatial navigation
+
+        """
+        if not self.testnav:
+            document = self.page().mainFrame().documentElement()
+            self.testnav = document.findAll("a[href]").toList()
+
+        if not self.testnav:
+            print("No anchors?")
+            return
+
+        node = self.testnav.pop()
+        while not node.geometry():
+            if not self.testnav:
+                print("Out of anchors?")
+                return
+            node = self.testnav.pop()
+
+        print("**************************************************************")
+        geom = node.geometry()
+        print(geom, bool(geom))
+        pos = self.page().mainFrame().scrollPosition()
+        self.page().mainFrame().scroll(geom.x() - pos.x(), geom.y() - pos.y())
+        print("focusing %s" % node.toOuterXml())
+        node.setFocus()
 
     def mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks
