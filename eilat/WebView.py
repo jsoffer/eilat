@@ -174,7 +174,10 @@ class WebView(QWebView):
             document = self.page().mainFrame().documentElement()
             self.testnav = [node for node
                             in document.findAll("a[href]").toList()
-                            if node.geometry()]
+                            if node.geometry() and
+                            node.styleProperty(
+                                "visibility",
+                                QWebElement.ComputedStyle) == 'visible']
         else:
             if reverse:
                 self.testnav = self.testnav[-1:] + self.testnav[:-1]
