@@ -43,6 +43,8 @@ from functools import partial
 #from WebPage import WebPage
 from libeilat import set_shortcuts
 
+from pprint import PrettyPrinter
+
 class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
@@ -54,6 +56,7 @@ class WebView(QWebView):
         self.save = False # here, just to get these two together
 
         self.testnav = []
+        self.printer = PrettyPrinter(indent=4).pprint
 
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
         #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
@@ -119,6 +122,7 @@ class WebView(QWebView):
             ("Ctrl+M", self, dump_dom),
             ("F2", self, self.delete_fixed),
             ("F3", self, self.test_navigation),
+            ("F4", self, partial(self.test_navigation, reverse=True)),
             ("Shift+F2", self, partial(self.delete_fixed, delete=False)),
             # webkit interaction
             ("Alt+Left", self, self.back),
@@ -160,32 +164,36 @@ class WebView(QWebView):
             else:
                 node.setStyleProperty('position', 'absolute')
 
-    def test_navigation(self):
+    def test_navigation(self, reverse=False):
         """ find web link nodes, move through them;
         initial testing to replace webkit's spatial navigation
 
         """
         if not self.testnav:
+            print("INIT self.testnav for url")
             document = self.page().mainFrame().documentElement()
-            self.testnav = document.findAll("a[href]").toList()
+            self.testnav = [node for node
+                            in document.findAll("a[href]").toList()
+                            if node.geometry()]
+        else:
+            if reverse:
+                self.testnav = self.testnav[-1:] + self.testnav[:-1]
+            else:
+                self.testnav = self.testnav[1:] + self.testnav[:1]
+
+
+        #self.printer([(a.geometry().x(), a.geometry().y(), a.attribute("href"))
+        #       for a in self.testnav])
 
         if not self.testnav:
             print("No anchors?")
             return
 
-        node = self.testnav.pop()
-        while not node.geometry():
-            if not self.testnav:
-                print("Out of anchors?")
-                return
-            node = self.testnav.pop()
-
-        print("**************************************************************")
+        node = self.testnav[0]
         geom = node.geometry()
-        print(geom, bool(geom))
         pos = self.page().mainFrame().scrollPosition()
         self.page().mainFrame().scroll(geom.x() - pos.x(), geom.y() - pos.y())
-        print("focusing %s" % node.toOuterXml())
+        self.parent().statusbar.showMessage(node.attribute("href"))
         node.setFocus()
 
     def mouse_press_event(self, event):

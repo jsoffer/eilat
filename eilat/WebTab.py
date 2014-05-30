@@ -265,6 +265,8 @@ class WebTab(QWidget):
 
         If 'url' is None, extract it directly from the address bar.
 
+        FIXME: definitely goes in the QWebView object
+
         """
 
         self.search_frame.setVisible(False)
@@ -298,6 +300,8 @@ class WebTab(QWidget):
 
         print(">>>\t\t" + datetime.datetime.now().isoformat())
         print(">>> NAVIGATE " + qurl.toString())
+
+        self.webkit.testnav = []
 
         self.webkit.load(qurl)
         self.webkit.setFocus()
