@@ -102,7 +102,7 @@ class WebTab(QWidget):
 
         self.webkit.loadStarted.connect(self.show_progress_bar)
         self.webkit.loadFinished.connect(self.load_finished)
-        self.webkit.page().titleChanged.connect(self.set_title)
+        self.webkit.titleChanged.connect(self.set_title)
         self.webkit.loadProgress.connect(self.load_progress)
 
         def url_changed(qurl):
@@ -281,7 +281,6 @@ class WebTab(QWidget):
             if url is None:
                 url = self.address_bar.text()
             qurl = fix_url(url)
-        self.set_title("Loading...")
 
         ### LOG NAVIGATION
         host = sub("^www.", "", qurl.host())
