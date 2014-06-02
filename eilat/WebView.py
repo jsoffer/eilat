@@ -56,6 +56,7 @@ class WebView(QWebView):
         self.save = False # here, just to get these two together
 
         self.testnav = []
+        self.localnav = []
         self.printer = PrettyPrinter(indent=4).pprint
 
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
@@ -121,8 +122,8 @@ class WebView(QWebView):
             # DOM actions
             ("Ctrl+M", self, dump_dom),
             ("F2", self, self.delete_fixed),
-            ("F3", self, self.test_navigation),
-            ("F4", self, partial(self.test_navigation, reverse=True)),
+            ("F7", self, self.test_nav_w),
+            ("F8", self, partial(self.test_nav_w, reverse=True)),
             ("Shift+F2", self, partial(self.delete_fixed, delete=False)),
             # webkit interaction
             ("Alt+Left", self, self.back),
@@ -164,11 +165,16 @@ class WebView(QWebView):
             else:
                 node.setStyleProperty('position', 'absolute')
 
-    def test_navigation(self, reverse=False):
+    def test_nav_w(self, reverse=False):
         """ find web link nodes, move through them;
         initial testing to replace webkit's spatial navigation
 
         """
+
+        # updating every time; not needed unless scroll or resize
+        geom = self.page().mainFrame().geometry()
+        geom.translate(self.page().mainFrame().scrollPosition())
+
         if not self.testnav:
             print("INIT self.testnav for url")
             document = self.page().mainFrame().documentElement()
@@ -178,24 +184,30 @@ class WebView(QWebView):
                             node.styleProperty(
                                 "visibility",
                                 QWebElement.ComputedStyle) == 'visible']
-        else:
-            if reverse:
-                self.testnav = self.testnav[-1:] + self.testnav[:-1]
-            else:
-                self.testnav = self.testnav[1:] + self.testnav[:1]
-
-
-        #self.printer([(a.geometry().x(), a.geometry().y(), a.attribute("href"))
-        #       for a in self.testnav])
 
         if not self.testnav:
-            print("No anchors?")
+            print("No anchors - at all?")
             return
 
-        node = self.testnav[0]
-        geom = node.geometry()
-        pos = self.page().mainFrame().scrollPosition()
-        self.page().mainFrame().scroll(geom.x() - pos.x(), geom.y() - pos.y())
+        # wrong - may have to rebuild if has scrolled any amount,
+        # this is not enough
+        if (
+                not self.localnav or
+                not geom.intersect(self.localnav[0].geometry())):
+            print("REBUILD local view cache")
+            self.localnav = [node for node in self.testnav
+                             if geom.intersect(node.geometry())]
+        else:
+            if reverse:
+                self.localnav = self.localnav[-1:] + self.localnav[:-1]
+            else:
+                self.localnav = self.localnav[1:] + self.localnav[:1]
+
+        if not self.localnav:
+            print("No anchors in current view?")
+            return
+
+        node = self.localnav[0]
         self.parent().statusbar.showMessage(node.attribute("href"))
         node.setFocus()
 

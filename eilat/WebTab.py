@@ -302,6 +302,7 @@ class WebTab(QWidget):
         print(">>> NAVIGATE " + qurl.toString())
 
         self.webkit.testnav = []
+        self.webkit.localnav = []
 
         self.webkit.load(qurl)
         self.webkit.setFocus()
