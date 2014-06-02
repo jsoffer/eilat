@@ -176,9 +176,9 @@ class InterceptNAM(QNetworkAccessManager):
                 (self.whitelist is None and self.log.is_blacklisted(domain,
                                                                     suffix,
                                                                     subdomain),
-                 "******* BLACKLISTED: %s || %s || %s " % (subdomain,
-                                                           domain,
-                                                           suffix))
+                 "******* filter: %s || %s || %s " % (subdomain,
+                                                      domain,
+                                                      suffix))
         ]:
             if stop_case:
                 if self.show_detail:
