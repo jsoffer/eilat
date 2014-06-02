@@ -57,6 +57,8 @@ class WebView(QWebView):
 
         self.testnav = []
         self.localnav = []
+        self.has_scrolled = False
+
         self.printer = PrettyPrinter(indent=4).pprint
 
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
@@ -65,6 +67,11 @@ class WebView(QWebView):
         # replace the Network Access Manager (log connections)
         if netmanager is not None:
             self.page().setNetworkAccessManager(netmanager)
+
+        def notify_scrollreq(*_):
+            """ local callback for 'connect' """
+            self.has_scrolled = True
+        self.page().scrollRequested.connect(notify_scrollreq)
 
         def handle_key(key):
             """ Generate a fake key click in the webkit """
@@ -189,14 +196,15 @@ class WebView(QWebView):
             print("No anchors - at all?")
             return
 
-        # wrong - may have to rebuild if has scrolled any amount,
-        # this is not enough
+        # still missing handler for window resize
         if (
+                self.has_scrolled or
                 not self.localnav or
                 not geom.intersect(self.localnav[0].geometry())):
             print("REBUILD local view cache")
             self.localnav = [node for node in self.testnav
                              if geom.intersect(node.geometry())]
+            self.has_scrolled = False
         else:
             if reverse:
                 self.localnav = self.localnav[-1:] + self.localnav[:-1]
