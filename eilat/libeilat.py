@@ -160,9 +160,12 @@ def real_host(url):
     return tldextract.extract(url).domain
 
 GLOBAL_CSS = b""" :focus {
-    outline: rgba(160, 160, 255, 0.6) 5px ridge ! important; }
+outline-color: rgba(160, 160, 255, 0.6) ! important;
+outline-width: 10px ! important;
+outline-offset: 1px ! important;
+outline-style: ridge ! important;
+}
 * { box-shadow: none ! important; }
-/* * { position: inherit ! important ; } */
 """
 
 def encode_css(style):
