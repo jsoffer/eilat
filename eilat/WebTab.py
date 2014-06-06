@@ -55,6 +55,8 @@ class WebTab(QWidget):
     def __init__(self, browser, parent=None):
         super(WebTab, self).__init__(parent)
 
+        self.current_title = None
+
         self.browser = browser
 
         # webkit: la parte que entra a internet
@@ -102,7 +104,7 @@ class WebTab(QWidget):
 
         self.webkit.loadStarted.connect(self.show_progress_bar)
         self.webkit.loadFinished.connect(self.load_finished)
-        self.webkit.titleChanged.connect(self.set_title)
+        self.webkit.titleChanged.connect(self.save_title)
         self.webkit.loadProgress.connect(self.load_progress)
 
         def url_changed(qurl):
@@ -216,6 +218,7 @@ class WebTab(QWidget):
         """ Callback for connection """
         if self.pbar.isVisible():
             self.pbar.setValue(val)
+            self.set_title(str(val) + "% " + self.current_title)
 
     # connect (en constructor)
     def show_progress_bar(self):
@@ -226,9 +229,13 @@ class WebTab(QWidget):
     # connect (en constructor)
     def load_finished(self, success):
         """ Callback for connection """
+
         self.pbar.setVisible(False)
+        self.set_title(self.current_title)
+
         if self.address_bar.hasFocus():
             self.webkit.setFocus()
+
         if not success:
             osd("loadFinished: failed", corner=True)
             print("loadFinished: failed")
@@ -264,8 +271,6 @@ class WebTab(QWidget):
         if it's not, construct a web search.
 
         If 'url' is None, extract it directly from the address bar.
-
-        FIXME: definitely goes in the QWebView object
 
         """
 
@@ -308,12 +313,20 @@ class WebTab(QWidget):
         self.webkit.setFocus()
 
     # connect (en constructor)
+
+    def save_title(self, title):
+        """ Store a recently changed title, and display it """
+        self.current_title = title
+        self.set_title(title)
+
     def set_title(self, title):
         """ Go upwards to the web browser's tab widget and set this
         tab's title
         """
+
         self.browser.tab_widget.setTabText(
-            self.browser.tab_widget.indexOf(self), title[:40])
+            self.browser.tab_widget.indexOf(self),
+            title[:40])
 
     # connection in constructor and action
     def do_search(self, search=None):
