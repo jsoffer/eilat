@@ -230,6 +230,8 @@ class WebTab(QWidget):
     def load_finished(self, success):
         """ Callback for connection """
 
+        self.webkit.testnav = []
+
         self.pbar.setVisible(False)
         self.set_title(self.current_title)
 
