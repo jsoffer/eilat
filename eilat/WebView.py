@@ -57,7 +57,7 @@ class WebView(QWebView):
 
         self.testnav = []
         self.localnav = []
-        self.has_scrolled = False
+        self.in_focus = None
 
         self.printer = PrettyPrinter(indent=4).pprint
 
@@ -67,11 +67,6 @@ class WebView(QWebView):
         # replace the Network Access Manager (log connections)
         if netmanager is not None:
             self.page().setNetworkAccessManager(netmanager)
-
-        def notify_scrollreq(*_):
-            """ local callback for 'connect' """
-            self.has_scrolled = True
-        self.page().scrollRequested.connect(notify_scrollreq)
 
         def handle_key(key):
             """ Generate a fake key click in the webkit """
@@ -172,13 +167,14 @@ class WebView(QWebView):
             else:
                 node.setStyleProperty('position', 'absolute')
 
-    def test_nav_w(self, reverse=False):
+    def test_nav_w(self, x_axis=True, reverse=False):
         """ find web link nodes, move through them;
         initial testing to replace webkit's spatial navigation
 
         """
 
         # updating every time; not needed unless scroll or resize
+        # but maybe tracking scroll/resize is more expensive...
         geom = self.page().mainFrame().geometry()
         geom.translate(self.page().mainFrame().scrollPosition())
 
@@ -191,33 +187,46 @@ class WebView(QWebView):
                             node.styleProperty(
                                 "visibility",
                                 QWebElement.ComputedStyle) == 'visible']
+            self.testnav.sort(
+                key=(lambda node: (node.geometry().y(),
+                                   node.geometry().x())))
 
         if not self.testnav:
             print("No anchors - at all?")
             return
 
-        # still missing handler for window resize
-        if (
-                self.has_scrolled or
-                not self.localnav or
-                not geom.intersect(self.localnav[0].geometry())):
-            print("REBUILD local view cache")
-            self.localnav = [node for node in self.testnav
-                             if geom.intersect(node.geometry())]
-            self.has_scrolled = False
-        else:
-            if reverse:
-                self.localnav = self.localnav[-1:] + self.localnav[:-1]
-            else:
-                self.localnav = self.localnav[1:] + self.localnav[:1]
+        # rebuilt it whole; there are less expensive methods, for
+        # now it's enough if it works
+        self.localnav = [node for node in self.testnav
+                         if geom.intersect(node.geometry())]
 
         if not self.localnav:
             print("No anchors in current view?")
             return
 
-        node = self.localnav[0]
-        self.parent().statusbar.showMessage(node.attribute("href"))
-        node.setFocus()
+        # transform
+
+        if self.in_focus in self.localnav:
+            idx = self.localnav.index(self.in_focus)
+            if reverse:
+                self.in_focus = self.localnav[idx - 1]
+            else:
+                try:
+                    self.in_focus = self.localnav[idx + 1]
+                except IndexError:
+                    self.in_focus = self.localnav[0]
+        else:
+            if reverse:
+                self.in_focus = self.localnav[-1]
+            else:
+                self.in_focus = self.localnav[0]
+
+        self.parent().statusbar.showMessage(
+            str(self.in_focus.geometry()) + " " +
+            self.in_focus.attribute("href")
+        )
+
+        self.in_focus.setFocus()
 
     def mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks
