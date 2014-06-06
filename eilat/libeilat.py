@@ -150,10 +150,12 @@ def non_whitelisted(whitelist, url):
     If 'whitelist' is not active, allow too.
 
     """
-    return (whitelist and
-            (not any(
-                [url.host()[-len(k):] == k
-                 for k in whitelist])))
+
+    parsed = tldextract.extract(url.host())
+    host = parsed.domain + "." + parsed.suffix
+    #path = url.path()
+
+    return whitelist and not host in whitelist
 
 def real_host(url):
     """ Extracts the last not-tld term from the url """
