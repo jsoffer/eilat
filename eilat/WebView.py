@@ -120,6 +120,9 @@ class WebView(QWebView):
             """ To use as callback in WebTab; can be improved """
             self.save = True
 
+        def clear_focused():
+            self.in_focus = None
+
         set_shortcuts([
             # DOM actions
             ("Ctrl+M", self, dump_dom),
@@ -147,6 +150,7 @@ class WebView(QWebView):
             ("Ctrl+Shift+J", self, partial(handle_key, Qt.Key_Down)),
             ("Ctrl+Shift+K", self, partial(handle_key, Qt.Key_Up)),
             ("Ctrl+Shift+L", self, partial(handle_key, Qt.Key_Right)),
+            ("Shift+I", self, clear_focused),
             ("Shift+H", self, partial(self.test_nav_w, True, True)),
             ("Shift+J", self, partial(self.test_nav_w, False, False)),
             ("Shift+K", self, partial(self.test_nav_w, False, True)),
@@ -191,7 +195,7 @@ class WebView(QWebView):
                             node.styleProperty(
                                 "visibility",
                                 QWebElement.ComputedStyle) == 'visible' and
-                            not node.attribute("href").startswith("#") and
+                            node.attribute("href") != "#" and
                             not node.attribute("href").startswith(
                                 "javascript:")]
 
@@ -215,9 +219,12 @@ class WebView(QWebView):
         # transform
 
         if self.in_focus in self.localnav:
+            top = self.in_focus.geometry().top()
+            bottom = self.in_focus.geometry().bottom()
+            center = self.in_focus.geometry().center().y()
             if x_axis:
                 row = [node for node in self.localnav
-                       if self.in_focus.geometry().y() == node.geometry().y()]
+                       if center == node.geometry().center().y()]
                 idx = row.index(self.in_focus)
                 if reverse:
                     self.in_focus = row[idx - 1]
@@ -227,21 +234,19 @@ class WebView(QWebView):
                     except IndexError:
                         self.in_focus = row[0]
             else:
-                top = self.in_focus.geometry().top()
-                bottom = self.in_focus.geometry().bottom()
                 if reverse:
                     region = [node for node in self.localnav
-                              if node.geometry().bottom() < top]
+                              if node.geometry().center().y() < center]
                     if region:
                         region.sort(
-                            key=(lambda node: node.geometry().y()))
+                            key=(lambda node: node.geometry().center().y()))
                         self.in_focus = region[-1]
                 else:
                     region = [node for node in self.localnav
-                              if node.geometry().top() > bottom]
+                              if node.geometry().center().y() > center]
                     if region:
                         region.sort(
-                            key=(lambda node: node.geometry().y()))
+                            key=(lambda node: node.geometry().center().y()))
                         self.in_focus = region[0]
 
         else:
@@ -252,6 +257,7 @@ class WebView(QWebView):
 
         self.parent().statusbar.showMessage(
             str(self.in_focus.geometry()) + " " +
+            str(self.in_focus.geometry().center()) + " " +
             self.in_focus.attribute("href")
         )
 
