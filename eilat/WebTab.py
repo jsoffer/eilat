@@ -55,7 +55,7 @@ class WebTab(QWidget):
     def __init__(self, browser, parent=None):
         super(WebTab, self).__init__(parent)
 
-        self.current_title = None
+        self.current_title = "[EMPTY]"
 
         self.browser = browser
 
@@ -323,6 +323,9 @@ class WebTab(QWidget):
         """ Go upwards to the web browser's tab widget and set this
         tab's title
         """
+
+        if title is None:
+            title = "[NO TITLE]"
 
         self.browser.tab_widget.setTabText(
             self.browser.tab_widget.indexOf(self),
