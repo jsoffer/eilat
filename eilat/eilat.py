@@ -70,66 +70,78 @@ def extract_options(site):
         host = sub("^https?://", "", site).split('/')[0].split('.')[-2]
 
     private_instances = [
-        "facebook", "twitter", "google", "linkedin", "youtube"
+        "facebook", "twitter", "google", "linkedin", "youtube", "reddit"
     ]
+
+    options = {'use_proxy': True,
+               'host_whitelist': None,
+               'cookie_allow': [
+                   "github.com"],
+               'cookie_file': None,
+               'prefix': ""}
 
     if site is None or host not in private_instances:
         print("GENERAL")
-        return {'use_proxy': True,
-                'host_whitelist': None,
-                'cookie_allow': [
-                    "github.com"],
-                'cookie_file': None,
-                'prefix': ""}
+    elif host == "reddit":
+        print("REDDIT")
+        options = {'use_proxy': False,
+                   'host_whitelist': [
+                       "reddit.com/r/programming"
+                   ],
+                   'cookie_allow': None,
+                   'cookie_file': None,
+                   'prefix': "RD"}
     elif host == "linkedin":
         print("LINKEDIN")
-        return {'use_proxy': False,
-                'host_whitelist': [
-                    "linkedin.com",
-                    "licdn.com"
-                    ],
-                'cookie_allow': ["linkedin.com"],
-                'cookie_file': "licookies.cj",
-                'prefix': "LI"}
+        options = {'use_proxy': False,
+                   'host_whitelist': [
+                       "linkedin.com",
+                       "licdn.com"
+                   ],
+                   'cookie_allow': ["linkedin.com"],
+                   'cookie_file': "licookies.cj",
+                   'prefix': "LI"}
     elif host in ["youtube"]:
         print("YOUTUBE")
-        return {'use_proxy': False,
-                'host_whitelist': [
-                    "youtube.com",
-                    "ytimg.com"
-                    ],
-                'cookie_allow': None,
-                'cookie_file': None,
-                'prefix': "YT"}
+        options = {'use_proxy': False,
+                   'host_whitelist': [
+                       "youtube.com",
+                       "ytimg.com"
+                   ],
+                   'cookie_allow': None,
+                   'cookie_file': None,
+                   'prefix': "YT"}
     elif host == "facebook":
         print("FACEBOOK")
-        return {'use_proxy': False,
-                'host_whitelist': [
-                    "facebook.com",
-                    "akamaihd.net",
-                    "fbcdn.net"],
-                'cookie_allow': ["facebook.com"],
-                'cookie_file': "fbcookies.cj",
-                'prefix': "FB"}
+        options = {'use_proxy': False,
+                   'host_whitelist': [
+                       "facebook.com",
+                       "akamaihd.net",
+                       "fbcdn.net"],
+                   'cookie_allow': ["facebook.com"],
+                   'cookie_file': "fbcookies.cj",
+                   'prefix': "FB"}
     elif host == "twitter":
         print("TWITTER")
-        return {'use_proxy': False,
-                'host_whitelist': ["twitter.com", "twimg.com"],
-                'cookie_allow': ["twitter.com"],
-                'cookie_file': "twcookies.cj",
-                'prefix': "TW"}
+        options = {'use_proxy': False,
+                   'host_whitelist': ["twitter.com", "twimg.com"],
+                   'cookie_allow': ["twitter.com"],
+                   'cookie_file': "twcookies.cj",
+                   'prefix': "TW"}
     elif host == "google":
         print("GOOGLE")
-        return {'use_proxy': False,
-                'host_whitelist': [
-                    "google.com",
-                    "google.com.mx",
-                    "googleusercontent.com",
-                    "gstatic.com",
-                    "googleapis.com"],
-                'cookie_allow': ["google.com"],
-                'cookie_file': "gcookies.cj",
-                'prefix': "G"}
+        options = {'use_proxy': False,
+                   'host_whitelist': [
+                       "google.com",
+                       "google.com.mx",
+                       "googleusercontent.com",
+                       "gstatic.com",
+                       "googleapis.com"],
+                   'cookie_allow': ["google.com"],
+                   'cookie_file': "gcookies.cj",
+                   'prefix': "G"}
+
+    return options
 
 APP = QApplication([])
 APP.setApplicationName("Eilat")

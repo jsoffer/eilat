@@ -153,9 +153,11 @@ def non_whitelisted(whitelist, url):
 
     parsed = tldextract.extract(url.host())
     host = parsed.domain + "." + parsed.suffix
-    #path = url.path()
+    path = url.path()
 
-    return whitelist and not host in whitelist
+    return whitelist and not (
+        host in whitelist or
+        any([(host + path).startswith(k) for k in whitelist]))
 
 def real_host(url):
     """ Extracts the last not-tld term from the url """
