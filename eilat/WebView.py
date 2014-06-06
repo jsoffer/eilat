@@ -166,24 +166,15 @@ class WebView(QWebView):
             ])
 
     def unembed_frames(self):
-        """ Finds frames containing self-marked content (from generating
-        html to replace filtered content) and removes the frame, inserting
-        the content on its place.
-
-        FIXME test concept; will not work if iframes not containing
-        marked text are on the main frame, and maybe inserts the extracted
-        content on the wrong order (not yet verified)
+        """ Replaces the content of iframes with a link to their source
 
         """
 
-        elements = []
-        for frame in self.page().mainFrame().childFrames():
-            framedoc = frame.documentElement()
-            elements.append(framedoc.findFirst(".eilat_blocked"))
         document = self.page().mainFrame().documentElement()
-        nodes = [node for node in document.findAll("iframe")]
+        nodes = [node for node in document.findAll("iframe[src]")]
         for node in nodes:
-            node.replace(elements.pop())
+            url = node.attribute('src')
+            node.setOuterXml("""<a href="http:%s">%s</a>""" % (url, url))
 
     def delete_fixed(self, delete=True):
         """ Removes all '??? {position: fixed}' nodes """
