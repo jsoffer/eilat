@@ -143,10 +143,14 @@ class WebView(QWebView):
             ("Ctrl+H", self, partial(handle_key, Qt.Key_Backspace)),
             ("C", self, handle_click),
             # spatial navigation
-            ("Shift+H", self, partial(handle_key, Qt.Key_Left)),
-            ("Shift+J", self, partial(handle_key, Qt.Key_Down)),
-            ("Shift+K", self, partial(handle_key, Qt.Key_Up)),
-            ("Shift+L", self, partial(handle_key, Qt.Key_Right)),
+            ("Ctrl+Shift+H", self, partial(handle_key, Qt.Key_Left)),
+            ("Ctrl+Shift+J", self, partial(handle_key, Qt.Key_Down)),
+            ("Ctrl+Shift+K", self, partial(handle_key, Qt.Key_Up)),
+            ("Ctrl+Shift+L", self, partial(handle_key, Qt.Key_Right)),
+            ("Shift+H", self, partial(self.test_nav_w, True, True)),
+            ("Shift+J", self, partial(self.test_nav_w, False, False)),
+            ("Shift+K", self, partial(self.test_nav_w, False, True)),
+            ("Shift+L", self, partial(self.test_nav_w, True, False)),
             # clipboard related behavior
             ("I", self, set_paste),
             ("S", self, set_save)
@@ -186,10 +190,10 @@ class WebView(QWebView):
                             if node.geometry() and
                             node.styleProperty(
                                 "visibility",
-                                QWebElement.ComputedStyle) == 'visible']
-            self.testnav.sort(
-                key=(lambda node: (node.geometry().y(),
-                                   node.geometry().x())))
+                                QWebElement.ComputedStyle) == 'visible' and
+                            not node.attribute("href").startswith("#") and
+                            not node.attribute("href").startswith(
+                                "javascript:")]
 
         if not self.testnav:
             print("No anchors - at all?")
@@ -200,6 +204,10 @@ class WebView(QWebView):
         self.localnav = [node for node in self.testnav
                          if geom.intersect(node.geometry())]
 
+        self.localnav.sort(
+            key=(lambda node: (node.geometry().y(),
+                               node.geometry().x())))
+
         if not self.localnav:
             print("No anchors in current view?")
             return
@@ -207,14 +215,35 @@ class WebView(QWebView):
         # transform
 
         if self.in_focus in self.localnav:
-            idx = self.localnav.index(self.in_focus)
-            if reverse:
-                self.in_focus = self.localnav[idx - 1]
+            if x_axis:
+                row = [node for node in self.localnav
+                       if self.in_focus.geometry().y() == node.geometry().y()]
+                idx = row.index(self.in_focus)
+                if reverse:
+                    self.in_focus = row[idx - 1]
+                else:
+                    try:
+                        self.in_focus = row[idx + 1]
+                    except IndexError:
+                        self.in_focus = row[0]
             else:
-                try:
-                    self.in_focus = self.localnav[idx + 1]
-                except IndexError:
-                    self.in_focus = self.localnav[0]
+                top = self.in_focus.geometry().top()
+                bottom = self.in_focus.geometry().bottom()
+                if reverse:
+                    region = [node for node in self.localnav
+                              if node.geometry().bottom() < top]
+                    if region:
+                        region.sort(
+                            key=(lambda node: node.geometry().y()))
+                        self.in_focus = region[-1]
+                else:
+                    region = [node for node in self.localnav
+                              if node.geometry().top() > bottom]
+                    if region:
+                        region.sort(
+                            key=(lambda node: node.geometry().y()))
+                        self.in_focus = region[0]
+
         else:
             if reverse:
                 self.in_focus = self.localnav[-1]
