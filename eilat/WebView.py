@@ -121,11 +121,16 @@ class WebView(QWebView):
             self.save = True
 
         def clear_focused():
+            """ Clears known focused, forcing a rechoice;
+            does not remove focus
+
+            """
             self.in_focus = None
 
         set_shortcuts([
             # DOM actions
             ("Ctrl+M", self, dump_dom),
+            ("F", self, self.unembed_frames),
             ("F2", self, self.delete_fixed),
             ("F7", self, self.test_nav_w),
             ("F8", self, partial(self.test_nav_w, reverse=True)),
@@ -159,6 +164,26 @@ class WebView(QWebView):
             ("I", self, set_paste),
             ("S", self, set_save)
             ])
+
+    def unembed_frames(self):
+        """ Finds frames containing self-marked content (from generating
+        html to replace filtered content) and removes the frame, inserting
+        the content on its place.
+
+        FIXME test concept; will not work if iframes not containing
+        marked text are on the main frame, and maybe inserts the extracted
+        content on the wrong order (not yet verified)
+
+        """
+
+        elements = []
+        for frame in self.page().mainFrame().childFrames():
+            framedoc = frame.documentElement()
+            elements.append(framedoc.findFirst(".eilat_blocked"))
+        document = self.page().mainFrame().documentElement()
+        nodes = [node for node in document.findAll("iframe")]
+        for node in nodes:
+            node.replace(elements.pop())
 
     def delete_fixed(self, delete=True):
         """ Removes all '??? {position: fixed}' nodes """
@@ -219,8 +244,8 @@ class WebView(QWebView):
         # transform
 
         if self.in_focus in self.localnav:
-            top = self.in_focus.geometry().top()
-            bottom = self.in_focus.geometry().bottom()
+            #top = self.in_focus.geometry().top()
+            #bottom = self.in_focus.geometry().bottom()
             center = self.in_focus.geometry().center().y()
             if x_axis:
                 row = [node for node in self.localnav
