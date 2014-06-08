@@ -69,13 +69,14 @@ def extract_options(url):
 
     """
 
+    options = OPTIONS['general']
+
     if url is None:
-        return
+        return options
 
     host = tldextract.extract(url).domain
 
     if host not in OPTIONS.keys():
-        options = OPTIONS['general']
         print("GENERAL")
     else:
         options = OPTIONS[host]
