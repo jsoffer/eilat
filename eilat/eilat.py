@@ -49,6 +49,8 @@ from PyQt4.QtNetwork import QNetworkProxy
 # local
 from MainWin import MainWin
 
+from options import OPTIONS
+
 from sys import argv
 from os.path import expanduser
 from re import sub
@@ -73,73 +75,13 @@ def extract_options(site):
         "facebook", "twitter", "google", "linkedin", "youtube", "reddit"
     ]
 
-    options = {'use_proxy': True,
-               'host_whitelist': None,
-               'cookie_allow': [
-                   "github.com"],
-               'cookie_file': None,
-               'prefix': ""}
+    options = OPTIONS['general']
 
     if site is None or host not in private_instances:
         print("GENERAL")
-    elif host == "reddit":
-        print("REDDIT")
-        options = {'use_proxy': False,
-                   'host_whitelist': [
-                       "reddit.com/r/programming"
-                   ],
-                   'cookie_allow': None,
-                   'cookie_file': None,
-                   'prefix': "RD"}
-    elif host == "linkedin":
-        print("LINKEDIN")
-        options = {'use_proxy': False,
-                   'host_whitelist': [
-                       "linkedin.com",
-                       "licdn.com"
-                   ],
-                   'cookie_allow': ["linkedin.com"],
-                   'cookie_file': "licookies.cj",
-                   'prefix': "LI"}
-    elif host in ["youtube"]:
-        print("YOUTUBE")
-        options = {'use_proxy': False,
-                   'host_whitelist': [
-                       "youtube.com",
-                       "ytimg.com"
-                   ],
-                   'cookie_allow': None,
-                   'cookie_file': None,
-                   'prefix': "YT"}
-    elif host == "facebook":
-        print("FACEBOOK")
-        options = {'use_proxy': False,
-                   'host_whitelist': [
-                       "facebook.com",
-                       "akamaihd.net",
-                       "fbcdn.net"],
-                   'cookie_allow': ["facebook.com"],
-                   'cookie_file': "fbcookies.cj",
-                   'prefix': "FB"}
-    elif host == "twitter":
-        print("TWITTER")
-        options = {'use_proxy': False,
-                   'host_whitelist': ["twitter.com", "twimg.com"],
-                   'cookie_allow': ["twitter.com"],
-                   'cookie_file': "twcookies.cj",
-                   'prefix': "TW"}
-    elif host == "google":
-        print("GOOGLE")
-        options = {'use_proxy': False,
-                   'host_whitelist': [
-                       "google.com",
-                       "google.com.mx",
-                       "googleusercontent.com",
-                       "gstatic.com",
-                       "googleapis.com"],
-                   'cookie_allow': ["google.com"],
-                   'cookie_file': "gcookies.cj",
-                   'prefix': "G"}
+    else:
+        options = OPTIONS[host]
+        print("INSTANCE: %s" % options['prefix'])
 
     return options
 
