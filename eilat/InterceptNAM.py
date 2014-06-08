@@ -67,7 +67,8 @@ class InterceptNAM(QNetworkAccessManager):
         self.whitelist = options['host_whitelist']
         self.prefix = options['prefix']
 
-        self.show_detail = True
+        self.show_detail = self.prefix == ''
+        self.show_log = self.prefix == ''
 
         self.printer = PrettyPrinter(indent=4).pprint
 
@@ -97,10 +98,11 @@ class InterceptNAM(QNetworkAccessManager):
                         '\t')
                 else:
                     cache_header = ''
-                print("%s%s%s %s%s" % (colour,
-                                       cache_header, str(status),
-                                       reply.url().toString(),
-                                       Fore.RESET))
+                if self.show_log:
+                    print("%s%s%s %s%s" % (colour,
+                                           cache_header, str(status),
+                                           reply.url().toString(),
+                                           Fore.RESET))
 
         self.finished.connect(reply_complete)
 
