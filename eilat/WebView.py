@@ -180,7 +180,7 @@ class WebView(QWebView):
         """ Removes all '??? {position: fixed}' nodes """
 
         frame = self.page().mainFrame()
-        nodes = [node for node in document.findAllElements("div, header, nav")
+        nodes = [node for node in frame.findAllElements("div, header, nav")
                  if node.styleProperty(
                      "position",
                      QWebElement.ComputedStyle) == 'fixed']
