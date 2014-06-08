@@ -170,17 +170,17 @@ class WebView(QWebView):
 
         """
 
-        document = self.page().mainFrame().documentElement()
-        nodes = [node for node in document.findAll("iframe[src]")]
+        frame = self.page().mainFrame()
+        nodes = [node for node in frame.findAllElements("iframe[src]")]
         for node in nodes:
             url = node.attribute('src')
-            node.setOuterXml("""<a href="http:%s">%s</a>""" % (url, url))
+            node.setOuterXml("""<a href="%s">%s</a>""" % (url, url))
 
     def delete_fixed(self, delete=True):
         """ Removes all '??? {position: fixed}' nodes """
 
-        document = self.page().mainFrame().documentElement()
-        nodes = [node for node in document.findAll("div, header, nav")
+        frame = self.page().mainFrame()
+        nodes = [node for node in frame.findAllElements("div, header, nav")
                  if node.styleProperty(
                      "position",
                      QWebElement.ComputedStyle) == 'fixed']
@@ -204,9 +204,9 @@ class WebView(QWebView):
 
         if not self.testnav:
             print("INIT self.testnav for url")
-            document = self.page().mainFrame().documentElement()
+            frame = self.page().mainFrame()
             self.testnav = [node for node
-                            in document.findAll("a[href]").toList()
+                            in frame.findAllElements("a[href]").toList()
                             if node.geometry() and
                             node.styleProperty(
                                 "visibility",
