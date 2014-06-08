@@ -53,7 +53,8 @@ from options import OPTIONS
 
 from sys import argv
 from os.path import expanduser
-from re import sub
+
+import tldextract
 
 def all_urls(tab_widget):
     """
@@ -62,22 +63,19 @@ def all_urls(tab_widget):
     for i in range(tab_widget.count()):
         print(tab_widget.widget(i).webkit.url().toString())
 
-def extract_options(site):
+def extract_options(url):
     """ Given a site, decide if cookies are allowed, if only some sites
     will not be blocked, etc.
 
     """
 
-    if site is not None:
-        host = sub("^https?://", "", site).split('/')[0].split('.')[-2]
+    if url is None:
+        return
 
-    private_instances = [
-        "facebook", "twitter", "google", "linkedin", "youtube", "reddit"
-    ]
+    host = tldextract.extract(url).domain
 
-    options = OPTIONS['general']
-
-    if site is None or host not in private_instances:
+    if host not in OPTIONS.keys():
+        options = OPTIONS['general']
         print("GENERAL")
     else:
         options = OPTIONS[host]
