@@ -217,6 +217,8 @@ def copy_to_clipboard(clipboard, request):
     when the shortcut is called
     """
 
+    if isinstance(request, str):
+        qstring_to_copy = request
     if isinstance(request, QUrl):
         qstring_to_copy = request.toString()
     elif (isinstance(request, QNetworkRequest) or

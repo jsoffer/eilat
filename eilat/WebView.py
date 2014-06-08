@@ -41,7 +41,7 @@ from PyQt4.QtCore import Qt, QEvent
 from functools import partial
 
 #from WebPage import WebPage
-from libeilat import set_shortcuts
+from libeilat import set_shortcuts, copy_to_clipboard
 
 from pprint import PrettyPrinter
 
@@ -58,6 +58,7 @@ class WebView(QWebView):
         self.testnav = []
         self.localnav = []
         self.in_focus = None
+        self.points_at = None
 
         self.printer = PrettyPrinter(indent=4).pprint
 
@@ -118,7 +119,8 @@ class WebView(QWebView):
 
         def set_save():
             """ To use as callback in WebTab; can be improved """
-            self.save = True
+            #self.save = True
+            copy_to_clipboard(self.parent().browser.clipboard, self.points_at)
 
         def clear_focused():
             """ Clears known focused, forcing a rechoice;
@@ -197,6 +199,8 @@ class WebView(QWebView):
 
         """
 
+        frame = self.page().mainFrame()
+
         # updating every time; not needed unless scroll or resize
         # but maybe tracking scroll/resize is more expensive...
         geom = self.page().mainFrame().geometry()
@@ -204,7 +208,6 @@ class WebView(QWebView):
 
         if not self.testnav:
             print("INIT self.testnav for url")
-            frame = self.page().mainFrame()
             self.testnav = [node for node
                             in frame.findAllElements("a[href]").toList()
                             if node.geometry() and
@@ -271,10 +274,17 @@ class WebView(QWebView):
             else:
                 self.in_focus = self.localnav[0]
 
+        self.points_at = self.in_focus.attribute('href')
+        if self.points_at[0] == '/':
+            self.points_at = (
+                frame.baseUrl().scheme() + "://" +
+                frame.baseUrl().host() +
+                self.points_at)
+
         self.parent().statusbar.showMessage(
             str(self.in_focus.geometry()) + " " +
             str(self.in_focus.geometry().center()) + " " +
-            self.in_focus.attribute("href")
+            self.points_at
         )
 
         self.in_focus.setFocus()
