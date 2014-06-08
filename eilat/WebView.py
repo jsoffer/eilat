@@ -41,7 +41,7 @@ from PyQt4.QtCore import Qt, QEvent
 from functools import partial
 
 #from WebPage import WebPage
-from libeilat import set_shortcuts, copy_to_clipboard
+from libeilat import set_shortcuts
 
 from pprint import PrettyPrinter
 
@@ -58,7 +58,6 @@ class WebView(QWebView):
         self.testnav = []
         self.localnav = []
         self.in_focus = None
-        self.points_at = None
 
         self.printer = PrettyPrinter(indent=4).pprint
 
@@ -119,8 +118,7 @@ class WebView(QWebView):
 
         def set_save():
             """ To use as callback in WebTab; can be improved """
-            #self.save = True
-            copy_to_clipboard(self.parent().browser.clipboard, self.points_at)
+            self.save = True
 
         def clear_focused():
             """ Clears known focused, forcing a rechoice;
@@ -172,8 +170,8 @@ class WebView(QWebView):
 
         """
 
-        frame = self.page().mainFrame()
-        nodes = [node for node in frame.findAllElements("iframe[src]")]
+        document = self.page().mainFrame().documentElement()
+        nodes = [node for node in document.findAll("iframe[src]")]
         for node in nodes:
             url = node.attribute('src')
             node.setOuterXml("""<a href="%s">%s</a>""" % (url, url))
@@ -181,8 +179,8 @@ class WebView(QWebView):
     def delete_fixed(self, delete=True):
         """ Removes all '??? {position: fixed}' nodes """
 
-        frame = self.page().mainFrame()
-        nodes = [node for node in frame.findAllElements("div, header, nav")
+        document = self.page().mainFrame().documentElement()
+        nodes = [node for node in document.findAll("div, header, nav")
                  if node.styleProperty(
                      "position",
                      QWebElement.ComputedStyle) == 'fixed']
@@ -199,8 +197,6 @@ class WebView(QWebView):
 
         """
 
-        frame = self.page().mainFrame()
-
         # updating every time; not needed unless scroll or resize
         # but maybe tracking scroll/resize is more expensive...
         geom = self.page().mainFrame().geometry()
@@ -208,8 +204,9 @@ class WebView(QWebView):
 
         if not self.testnav:
             print("INIT self.testnav for url")
+            document = self.page().mainFrame().documentElement()
             self.testnav = [node for node
-                            in frame.findAllElements("a[href]").toList()
+                            in document.findAll("a[href]").toList()
                             if node.geometry() and
                             node.styleProperty(
                                 "visibility",
@@ -274,17 +271,10 @@ class WebView(QWebView):
             else:
                 self.in_focus = self.localnav[0]
 
-        self.points_at = self.in_focus.attribute('href')
-        if self.points_at[0] == '/':
-            self.points_at = (
-                frame.baseUrl().scheme() + "://" +
-                frame.baseUrl().host() +
-                self.points_at)
-
         self.parent().statusbar.showMessage(
             str(self.in_focus.geometry()) + " " +
             str(self.in_focus.geometry().center()) + " " +
-            self.points_at
+            self.in_focus.attribute("href")
         )
 
         self.in_focus.setFocus()
