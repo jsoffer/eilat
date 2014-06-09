@@ -230,7 +230,7 @@ class WebTab(QWidget):
     def load_finished(self, success):
         """ Callback for connection """
 
-        self.webkit.testnav = []
+        self.webkit.navlist = []
 
         self.pbar.setVisible(False)
         self.set_title(self.current_title)
@@ -308,7 +308,7 @@ class WebTab(QWidget):
         print(">>>\t\t" + datetime.datetime.now().isoformat())
         print(">>> NAVIGATE " + qurl.toString())
 
-        self.webkit.testnav = []
+        self.webkit.navlist = []
 
         self.webkit.load(qurl)
         self.webkit.setFocus()

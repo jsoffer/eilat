@@ -55,7 +55,7 @@ class WebView(QWebView):
         self.paste = False
         self.save = False # here, just to get these two together
 
-        self.testnav = []
+        self.navlist = []
         self.in_focus = None
 
         self.printer = PrettyPrinter(indent=4).pprint
@@ -174,7 +174,7 @@ class WebView(QWebView):
             node.setOuterXml("""<a href="%s">%s</a>""" % (url, url))
 
         # We've added a[href] nodes to the page... rebuild the navigation list
-        self.testnav = []
+        self.navlist = []
 
     def delete_fixed(self, delete=True):
         """ Removes all '??? {position: fixed}' nodes """
@@ -199,10 +199,10 @@ class WebView(QWebView):
         be cleared when navigating or reloading a page
         """
 
-        if not self.testnav:
-            print("INIT self.testnav for url")
+        if not self.navlist:
+            print("INIT self.navlist for url")
             frame = self.page().mainFrame()
-            self.testnav = [node for node
+            self.navlist = [node for node
                             in frame.findAllElements("a[href]").toList()
                             if node.geometry() and
                             node.styleProperty(
@@ -212,7 +212,7 @@ class WebView(QWebView):
                             not node.attribute("href").startswith(
                                 "javascript:")]
 
-        if not self.testnav:
+        if not self.navlist:
             print("No anchors in this page, at all?")
 
     def test_nav_w(self, x_axis=True, reverse=False):
@@ -230,10 +230,10 @@ class WebView(QWebView):
 
         # just for this time; which nodes from the entire page are, in any way,
         # visible right now?
-        localnav = [node for node in self.testnav
+        localnav = [node for node in self.navlist
                     if view_geom.intersects(node.geometry())]
 
-        if not self.testnav or not localnav:
+        if not self.navlist or not localnav:
             print("No anchors in current view?")
             return
 
@@ -251,10 +251,10 @@ class WebView(QWebView):
                 rect.setHeight(3)
             elif not x_axis and not reverse:
                 rect.translate(0, rect.height())
-                rect.setHeight(45)
+                rect.setHeight(15)
             else:
-                rect.translate(0, -45)
-                rect.setHeight(45)
+                rect.translate(0, -15)
+                rect.setHeight(15)
 
             # 'mininav' is a list of the nodes close to the focused one,
             # on the relevant direction
