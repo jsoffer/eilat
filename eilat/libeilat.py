@@ -163,14 +163,16 @@ def real_host(url):
     """ Extracts the last not-tld term from the url """
     return tldextract.extract(url).domain
 
-GLOBAL_CSS = b""" :focus {
+GLOBAL_CSS = b""" :focus > img, a:focus {
 outline-color: rgba(160, 160, 255, 0.6) ! important;
 outline-width: 10px ! important;
-outline-offset: 1px ! important;
+/* outline-offset: 1px ! important; */
 outline-style: ridge ! important;
 }
 * { box-shadow: none ! important; }
 """
+
+_GLOBAL_CSS = b""" * { box-shadow: none ! important; } """
 
 def encode_css(style):
     """ Takes a css as string, returns a proper base64 encoded "file" """
@@ -219,7 +221,7 @@ def copy_to_clipboard(clipboard, request):
 
     if isinstance(request, str):
         qstring_to_copy = request
-    if isinstance(request, QUrl):
+    elif isinstance(request, QUrl):
         qstring_to_copy = request.toString()
     elif (isinstance(request, QNetworkRequest) or
           isinstance(request, QNetworkReply)):
