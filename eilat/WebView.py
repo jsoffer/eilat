@@ -132,8 +132,6 @@ class WebView(QWebView):
             ("Ctrl+M", self, dump_dom),
             ("F", self, self.unembed_frames),
             ("F2", self, self.delete_fixed),
-            ("F7", self, self.test_nav_w),
-            ("F8", self, partial(self.test_nav_w, reverse=True)),
             ("Shift+F2", self, partial(self.delete_fixed, delete=False)),
             # webkit interaction
             ("Alt+Left", self, self.back),
@@ -180,10 +178,10 @@ class WebView(QWebView):
         """ Removes all '??? {position: fixed}' nodes """
 
         frame = self.page().mainFrame()
-        nodes = [node for node in frame.findAllElements("div, header, nav")
-                 if node.styleProperty(
-                     "position",
-                     QWebElement.ComputedStyle) == 'fixed']
+        fixables = "div, header, footer, nav"
+        nodes = [node for node in frame.findAllElements(fixables)
+                 if node.styleProperty("position",
+                                       QWebElement.ComputedStyle) == 'fixed']
 
         for node in nodes:
             if delete:
@@ -202,6 +200,8 @@ class WebView(QWebView):
         geom = self.page().mainFrame().geometry()
         geom.translate(self.page().mainFrame().scrollPosition())
 
+        # make sure there's a current list of all the links in the page.
+        # cleared in navigation and reload, rebuilt here
         if not self.testnav:
             print("INIT self.testnav for url")
             frame = self.page().mainFrame()
@@ -219,61 +219,65 @@ class WebView(QWebView):
             print("No anchors - at all?")
             return
 
-        # rebuilt it whole; there are less expensive methods, for
-        # now it's enough if it works
+        # just for this time; which nodes from the entire page are, in any way,
+        # visible right now?
         self.localnav = [node for node in self.testnav
                          if geom.intersect(node.geometry())]
-
-        self.localnav.sort(
-            key=(lambda node: (node.geometry().y(),
-                               node.geometry().x())))
 
         if not self.localnav:
             print("No anchors in current view?")
             return
 
-        # transform
+        # if not in view, find the best upper/lower/left/right side node
+        in_view = self.in_focus in self.localnav
 
-        if self.in_focus in self.localnav:
-            #top = self.in_focus.geometry().top()
-            #bottom = self.in_focus.geometry().bottom()
-            center = self.in_focus.geometry().center().y()
-            if x_axis:
-                row = [node for node in self.localnav
-                       if center == node.geometry().center().y()]
-                idx = row.index(self.in_focus)
-                if reverse:
-                    self.in_focus = row[idx - 1]
-                else:
-                    try:
-                        self.in_focus = row[idx + 1]
-                    except IndexError:
-                        self.in_focus = row[0]
+        if in_view:
+            geom = self.in_focus.geometry()
+
+            # right
+            if x_axis and not reverse:
+                region = [node for node in self.localnav
+                          if node.geometry().left() > geom.left() and
+                          abs(geom.bottom() - node.geometry().bottom()) < 8]
+                region.sort(key=lambda node: node.geometry().left())
+                if region:
+                    self.in_focus = region[0]
+
+            # left
+            elif x_axis and reverse:
+                region = [node for node in self.localnav
+                          if node.geometry().right() < geom.right() and
+                          abs(geom.bottom() - node.geometry().bottom()) < 8]
+                region.sort(key=lambda node: node.geometry().right())
+                if region:
+                    self.in_focus = region[-1]
+
+            # down
+            elif not x_axis and not reverse:
+                region = [node for node in self.localnav
+                          if node.geometry().top() > geom.top()]
+                region.sort(key=lambda node: node.geometry().top())
+                if region:
+                    self.in_focus = region[0]
+
+            # up
             else:
-                if reverse:
-                    region = [node for node in self.localnav
-                              if node.geometry().center().y() < center]
-                    if region:
-                        region.sort(
-                            key=(lambda node: node.geometry().center().y()))
-                        self.in_focus = region[-1]
-                else:
-                    region = [node for node in self.localnav
-                              if node.geometry().center().y() > center]
-                    if region:
-                        region.sort(
-                            key=(lambda node: node.geometry().center().y()))
-                        self.in_focus = region[0]
+                region = [node for node in self.localnav
+                          if node.geometry().bottom() < geom.bottom()]
+                region.sort(key=lambda node: node.geometry().bottom())
+                if region:
+                    self.in_focus = region[-1]
 
         else:
             if reverse:
-                self.in_focus = self.localnav[-1]
+                self.in_focus = max(self.localnav, key=lambda node:
+                                    node.geometry().bottom())
             else:
-                self.in_focus = self.localnav[0]
+                self.in_focus = min(self.localnav, key=lambda node:
+                                    node.geometry().top())
 
+        # We're done, we have a node to focus; focus it, bind to status bar
         self.parent().statusbar.showMessage(
-            str(self.in_focus.geometry()) + " " +
-            str(self.in_focus.geometry().center()) + " " +
             self.in_focus.attribute("href")
         )
 
