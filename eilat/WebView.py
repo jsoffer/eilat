@@ -56,7 +56,6 @@ class WebView(QWebView):
         self.save = False # here, just to get these two together
 
         self.testnav = []
-        self.localnav = []
         self.in_focus = None
 
         self.printer = PrettyPrinter(indent=4).pprint
@@ -189,19 +188,14 @@ class WebView(QWebView):
             else:
                 node.setStyleProperty('position', 'absolute')
 
-    def test_nav_w(self, x_axis=True, reverse=False):
-        """ find web link nodes, move through them;
-        initial testing to replace webkit's spatial navigation
+    def populate_navlist(self):
+        """ Fill the spatial navigation list with the current mainFrame
+        anchor links
 
+        If it already exists and has content, do nothing; the list has to
+        be cleared when navigating or reloading a page
         """
 
-        # updating every time; not needed unless scroll or resize
-        # but maybe tracking scroll/resize is more expensive...
-        geom = self.page().mainFrame().geometry()
-        geom.translate(self.page().mainFrame().scrollPosition())
-
-        # make sure there's a current list of all the links in the page.
-        # cleared in navigation and reload, rebuilt here
         if not self.testnav:
             print("INIT self.testnav for url")
             frame = self.page().mainFrame()
@@ -216,27 +210,37 @@ class WebView(QWebView):
                                 "javascript:")]
 
         if not self.testnav:
-            print("No anchors - at all?")
-            return
+            print("No anchors in this page, at all?")
+
+    def test_nav_w(self, x_axis=True, reverse=False):
+        """ find web link nodes, move through them;
+        initial testing to replace webkit's spatial navigation
+
+        """
+
+        # updating every time; not needed unless scroll or resize
+        # but maybe tracking scroll/resize is more expensive...
+        view_geom = self.page().mainFrame().geometry()
+        view_geom.translate(self.page().mainFrame().scrollPosition())
+
+        self.populate_navlist()
 
         # just for this time; which nodes from the entire page are, in any way,
         # visible right now?
-        self.localnav = [node for node in self.testnav
-                         if geom.intersect(node.geometry())]
+        localnav = [node for node in self.testnav
+                    if view_geom.intersect(node.geometry())]
 
-        if not self.localnav:
+        if not self.testnav or not localnav:
             print("No anchors in current view?")
             return
 
-        # if not in view, find the best upper/lower/left/right side node
-        in_view = self.in_focus in self.localnav
-
-        if in_view:
+        # find the best node to move to
+        if self.in_focus in localnav:
             geom = self.in_focus.geometry()
 
             # right
             if x_axis and not reverse:
-                region = [node for node in self.localnav
+                region = [node for node in localnav
                           if node.geometry().left() > geom.left() and
                           abs(geom.bottom() - node.geometry().bottom()) < 8]
                 region.sort(key=lambda node: node.geometry().left())
@@ -245,7 +249,7 @@ class WebView(QWebView):
 
             # left
             elif x_axis and reverse:
-                region = [node for node in self.localnav
+                region = [node for node in localnav
                           if node.geometry().right() < geom.right() and
                           abs(geom.bottom() - node.geometry().bottom()) < 8]
                 region.sort(key=lambda node: node.geometry().right())
@@ -254,7 +258,7 @@ class WebView(QWebView):
 
             # down
             elif not x_axis and not reverse:
-                region = [node for node in self.localnav
+                region = [node for node in localnav
                           if node.geometry().top() > geom.top()]
                 region.sort(key=lambda node: node.geometry().top())
                 if region:
@@ -262,7 +266,7 @@ class WebView(QWebView):
 
             # up
             else:
-                region = [node for node in self.localnav
+                region = [node for node in localnav
                           if node.geometry().bottom() < geom.bottom()]
                 region.sort(key=lambda node: node.geometry().bottom())
                 if region:
@@ -270,10 +274,10 @@ class WebView(QWebView):
 
         else:
             if reverse:
-                self.in_focus = max(self.localnav, key=lambda node:
+                self.in_focus = max(localnav, key=lambda node:
                                     node.geometry().bottom())
             else:
-                self.in_focus = min(self.localnav, key=lambda node:
+                self.in_focus = min(localnav, key=lambda node:
                                     node.geometry().top())
 
         # We're done, we have a node to focus; focus it, bind to status bar
