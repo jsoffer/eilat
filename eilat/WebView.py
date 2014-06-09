@@ -173,6 +173,9 @@ class WebView(QWebView):
             url = node.attribute('src')
             node.setOuterXml("""<a href="%s">%s</a>""" % (url, url))
 
+        # We've added a[href] nodes to the page... rebuild the navigation list
+        self.testnav = []
+
     def delete_fixed(self, delete=True):
         """ Removes all '??? {position: fixed}' nodes """
 
@@ -228,7 +231,7 @@ class WebView(QWebView):
         # just for this time; which nodes from the entire page are, in any way,
         # visible right now?
         localnav = [node for node in self.testnav
-                    if view_geom.intersect(node.geometry())]
+                    if view_geom.intersects(node.geometry())]
 
         if not self.testnav or not localnav:
             print("No anchors in current view?")
@@ -236,41 +239,80 @@ class WebView(QWebView):
 
         # find the best node to move to
         if self.in_focus in localnav:
+
+            rect = self.in_focus.geometry()
+            if x_axis and not reverse:
+                rect.translate(rect.width(), rect.height() // 2)
+                rect.setWidth(15)
+                rect.setHeight(3)
+            elif x_axis and reverse:
+                rect.translate(-15, rect.height() // 2)
+                rect.setWidth(15)
+                rect.setHeight(3)
+            elif not x_axis and not reverse:
+                rect.translate(0, rect.height())
+                rect.setHeight(45)
+            else:
+                rect.translate(0, -45)
+                rect.setHeight(45)
+
+            # 'mininav' is a list of the nodes close to the focused one,
+            # on the relevant direction
+            mininav = [node for node in localnav
+                       if node != self.in_focus and
+                       rect.intersects(node.geometry())]
+            print("mininav: ", str([node.toPlainText() for node in mininav]),
+                  str(self.in_focus.geometry()), str(rect))
+
             geom = self.in_focus.geometry()
 
             # right
             if x_axis and not reverse:
-                region = [node for node in localnav
-                          if node.geometry().left() > geom.left() and
-                          abs(geom.bottom() - node.geometry().bottom()) < 8]
-                region.sort(key=lambda node: node.geometry().left())
-                if region:
-                    self.in_focus = region[0]
+                if mininav:
+                    mininav.sort(key=lambda node: node.geometry().left())
+                    self.in_focus = mininav[0]
+                else:
+                    region = [node for node in localnav
+                              if node.geometry().left() > geom.left() and
+                              abs(geom.bottom() - node.geometry().bottom()) < 12]
+                    region.sort(key=lambda node: node.geometry().left())
+                    self.in_focus = self.in_focus if not region else region[0]
 
             # left
             elif x_axis and reverse:
-                region = [node for node in localnav
-                          if node.geometry().right() < geom.right() and
-                          abs(geom.bottom() - node.geometry().bottom()) < 8]
-                region.sort(key=lambda node: node.geometry().right())
-                if region:
-                    self.in_focus = region[-1]
+                if mininav:
+                    mininav.sort(key=lambda node: node.geometry().right())
+                    self.in_focus = mininav[-1]
+                else:
+                    region = [node for node in localnav
+                              if node.geometry().right() < geom.right() and
+                              abs(geom.bottom() - node.geometry().bottom()) < 12]
+                    region.sort(key=lambda node: node.geometry().right())
+                    self.in_focus = self.in_focus if not region else region[-1]
 
             # down
             elif not x_axis and not reverse:
-                region = [node for node in localnav
-                          if node.geometry().top() > geom.top()]
-                region.sort(key=lambda node: node.geometry().top())
-                if region:
-                    self.in_focus = region[0]
+                if mininav:
+                    mininav.sort(key=lambda node: node.geometry().top())
+                    self.in_focus = mininav[0]
+                else:
+                    region = [node for node in localnav
+                              if node.geometry().top() > geom.top() and
+                              abs(geom.bottom() - node.geometry().bottom()) > 8]
+                    region.sort(key=lambda node: node.geometry().top())
+                    self.in_focus = self.in_focus if not region else region[0]
 
             # up
             else:
-                region = [node for node in localnav
-                          if node.geometry().bottom() < geom.bottom()]
-                region.sort(key=lambda node: node.geometry().bottom())
-                if region:
-                    self.in_focus = region[-1]
+                if mininav:
+                    mininav.sort(key=lambda node: node.geometry().bottom())
+                    self.in_focus = mininav[-1]
+                else:
+                    region = [node for node in localnav
+                              if node.geometry().bottom() < geom.bottom() and
+                              abs(geom.bottom() - node.geometry().bottom()) > 8]
+                    region.sort(key=lambda node: node.geometry().bottom())
+                    self.in_focus = self.in_focus if not region else region[-1]
 
         else:
             if reverse:
@@ -282,6 +324,7 @@ class WebView(QWebView):
 
         # We're done, we have a node to focus; focus it, bind to status bar
         self.parent().statusbar.showMessage(
+            str(self.in_focus.geometry()) + " " +
             self.in_focus.attribute("href")
         )
 
