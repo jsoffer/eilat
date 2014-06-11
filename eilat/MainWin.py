@@ -35,7 +35,7 @@
 """
 
 from PyQt4.Qt import QClipboard
-from PyQt4.QtGui import QMainWindow, QTabWidget, QApplication, QTabBar
+from PyQt4.QtGui import QMainWindow, QTabWidget, QTabBar
 from PyQt4.QtCore import Qt
 
 from functools import partial
@@ -117,7 +117,7 @@ class MainWin(QMainWindow):
             # destroy/undestroy
             ("U", self, restore_last_closed),
             ("Ctrl+W", self, self.del_tab),
-            ("Ctrl+Q", self, QApplication.closeAllWindows)
+            ("Ctrl+Q", self, self.close)
             ])
 
     #def new_tab_from_clipboard(self, scripting=False, extract=False):
