@@ -83,7 +83,7 @@ def extract_options(url):
 
 APP = QApplication([])
 APP.setApplicationName("Eilat")
-APP.setApplicationVersion("1.3.002")
+APP.setApplicationVersion("1.4.001")
 
 CLIPBOARD = APP.clipboard()
 

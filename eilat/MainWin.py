@@ -139,7 +139,11 @@ class MainWin(QMainWindow):
             self.add_tab(url)
 
     def close_event(self, event):
-        """ Intercept the imminent end of the run; save cookies """
+        """ Intercept the imminent end of the run; save cookies
+
+        An alternative is QCoreApplication.aboutToQuit
+
+        """
 
         self.netmanager.cookie_jar.store_cookies()
         event.accept()
