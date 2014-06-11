@@ -49,7 +49,7 @@ from PyQt4.QtNetwork import QNetworkProxy
 # local
 from MainWin import MainWin
 
-from options import OPTIONS, extract_options
+from options import extract_options
 
 from sys import argv
 from os.path import expanduser
