@@ -273,3 +273,34 @@ def extract_url(url):
     for (_, value) in parse_qsl(query):
         if value[:4] == 'http':
             return value
+
+# Poor man's symbols (enum would be better - Python 3.4 and up only)
+UP = 0
+RIGHT = 1
+DOWN = 2
+LEFT = 3
+
+def node_neighborhood(rect, direction):
+    """ Finds a rectangle next to the node, where close by
+    nodes could be
+
+    """
+
+    if direction == RIGHT:
+        rect.translate(rect.width(), rect.height() // 2)
+        rect.setWidth(15)
+        rect.setHeight(3)
+    elif direction == LEFT:
+        rect.translate(-15, rect.height() // 2)
+        rect.setWidth(15)
+        rect.setHeight(3)
+    elif direction == DOWN:
+        rect.translate(0, rect.height())
+        rect.setHeight(15)
+    # up
+    else:
+        rect.translate(0, -15)
+        rect.setHeight(15)
+
+    return rect
+
