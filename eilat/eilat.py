@@ -49,37 +49,10 @@ from PyQt4.QtNetwork import QNetworkProxy
 # local
 from MainWin import MainWin
 
-from options import OPTIONS
+from options import OPTIONS, extract_options
 
 from sys import argv
 from os.path import expanduser
-
-import tldextract
-
-def all_urls(tab_widget):
-    """
-    Prints all the urls held on a tab widget
-    """
-    for i in range(tab_widget.count()):
-        print(tab_widget.widget(i).webkit.url().toString())
-
-def extract_options(url):
-    """ Given a site, decide if cookies are allowed, if only some sites
-    will not be blocked, etc.
-
-    """
-
-    options = OPTIONS['general']
-
-    host = None if url is None else tldextract.extract(url).domain
-
-    if not host in OPTIONS.keys():
-        print("GENERAL")
-    else:
-        options = OPTIONS[host]
-        print("INSTANCE: %s" % options['prefix'])
-
-    return options
 
 APP = QApplication([])
 APP.setApplicationName("Eilat")

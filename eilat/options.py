@@ -3,6 +3,27 @@ Default values for NAM instances
 
 """
 
+import tldextract
+
+
+def extract_options(url):
+    """ Given a site, decide if cookies are allowed, if only some sites
+    will not be blocked, etc.
+
+    """
+
+    options = OPTIONS['general']
+
+    host = None if url is None else tldextract.extract(url).domain
+
+    if not host in OPTIONS.keys():
+        print("GENERAL")
+    else:
+        options = OPTIONS[host]
+        print("INSTANCE: %s" % options['prefix'])
+
+    return options
+
 OPTIONS = {
     'general': {
         'use_proxy': True,
