@@ -35,13 +35,15 @@
 """
 
 from PyQt4.QtGui import QKeyEvent, QMouseEvent, QCursor, QApplication
-from PyQt4.QtWebKit import QWebView, QWebElement
+from PyQt4.QtWebKit import QWebPage, QWebSettings, QWebView, QWebElement
 from PyQt4.QtCore import Qt, QEvent
 
 from functools import partial
 
 #from WebPage import WebPage
-from libeilat import set_shortcuts, node_neighborhood, UP, DOWN, LEFT, RIGHT
+from libeilat import (set_shortcuts, node_neighborhood,
+                      UP, DOWN, LEFT, RIGHT,
+                      copy_to_clipboard, osd)
 
 from pprint import PrettyPrinter
 
@@ -59,6 +61,31 @@ class WebView(QWebView):
         self.in_focus = None
 
         self.printer = PrettyPrinter(indent=4).pprint
+
+        self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+
+        self.settings().setAttribute(
+            QWebSettings.PluginsEnabled, False)
+        self.settings().setAttribute(
+            QWebSettings.JavascriptEnabled, False)
+        self.settings().setAttribute(
+            QWebSettings.SpatialNavigationEnabled, True)
+        self.settings().setAttribute(
+            QWebSettings.FrameFlatteningEnabled, True)
+
+        self.page().setForwardUnsupportedContent(True)
+
+        def process_clipboard(notify, request):
+            """ notify and save to clipboard """
+            message = request.url().toString() + "\n" + notify
+            osd(message)
+            copy_to_clipboard(
+                self.parent().browser.clipboard, request)
+
+        self.page().downloadRequested.connect(partial(
+            process_clipboard, "Download Requested"))
+        self.page().unsupportedContent.connect(partial(
+            process_clipboard, "Unsupported Content"))
 
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
         #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)

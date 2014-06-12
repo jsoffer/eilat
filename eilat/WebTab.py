@@ -61,29 +61,7 @@ class WebTab(QWidget):
         # webkit: la parte que entra a internet
         # aquí se configura, cada tab tiene opciones independientes
         self.webkit = WebView(browser.netmanager, parent=self)
-        self.webkit.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.webkit.linkClicked.connect(self.on_link_click)
-        self.webkit.settings().setAttribute(
-            QWebSettings.PluginsEnabled, False)
-        self.webkit.settings().setAttribute(
-            QWebSettings.JavascriptEnabled, False)
-        self.webkit.settings().setAttribute(
-            QWebSettings.SpatialNavigationEnabled, True)
-        self.webkit.settings().setAttribute(
-            QWebSettings.FrameFlatteningEnabled, True)
-
-        def process_clipboard(notify, request):
-            """ notify and save to clipboard """
-            message = request.url().toString() + "\n" + notify
-            osd(message)
-            copy_to_clipboard(self.browser.clipboard, request)
-
-        self.webkit.page().downloadRequested.connect(partial(
-            process_clipboard, "Download Requested"))
-        self.webkit.page().unsupportedContent.connect(partial(
-            process_clipboard, "Unsupported Content"))
-
-        self.webkit.page().setForwardUnsupportedContent(True)
 
         # address bar
         self.address_bar = AddressBar(model=browser.log.model, parent=self)
