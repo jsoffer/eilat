@@ -35,8 +35,7 @@
 """
 
 from PyQt4.QtGui import (QWidget, QProgressBar, QStatusBar, QGridLayout,
-                         QApplication, QFrame, QLabel, QLineEdit,
-                         QCompleter, QKeyEvent)
+                         QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent)
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import QUrl, Qt, QEvent
 
@@ -166,10 +165,9 @@ class WebTab(QWidget):
             function is being called by that arrow press.
 
             """
-            event = QKeyEvent(QEvent.KeyPress, key, Qt.KeyboardModifiers())
+            event = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier)
 
-            QApplication.sendEvent(
-                self.address_bar.completer().popup(), event)
+            self.address_bar.completer().popup().keyPressEvent(event)
 
         set_shortcuts([
             # search
