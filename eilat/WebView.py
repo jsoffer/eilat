@@ -43,7 +43,7 @@ from functools import partial
 #from WebPage import WebPage
 from libeilat import (set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
-                      copy_to_clipboard, osd)
+                      real_host, copy_to_clipboard, osd)
 
 from pprint import PrettyPrinter
 
@@ -74,6 +74,26 @@ class WebView(QWebView):
             QWebSettings.FrameFlatteningEnabled, True)
 
         self.page().setForwardUnsupportedContent(True)
+
+        def url_changed(qurl):
+            """ One time callback for 'connect'
+            Sets the user style sheet, sets the address bar text
+
+            """
+            host_id = real_host(qurl.host())
+            css_file = self.parent().browser.css_path + host_id + ".css"
+
+            try:
+                with open(css_file, 'r') as css_fh:
+                    css_encoded = encode_css(css_fh.read()).strip()
+            except IOError:
+                css_encoded = encode_css('')
+
+            self.settings().setUserStyleSheetUrl(
+                QUrl(css_encoded))
+            self.parent().address_bar.setText(qurl.toString())
+
+        self.urlChanged.connect(url_changed)
 
         def process_clipboard(notify, request):
             """ notify and save to clipboard """

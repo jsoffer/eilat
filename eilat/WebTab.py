@@ -56,53 +56,38 @@ class WebTab(QWidget):
 
         self.current_title = "[EMPTY]"
 
+        # the window, as a window
         self.browser = browser
 
-        # webkit: la parte que entra a internet
-        # aquí se configura, cada tab tiene opciones independientes
+        # webkit (the actual "web engine")
         self.webkit = WebView(browser.netmanager, parent=self)
+
         self.webkit.linkClicked.connect(self.on_link_click)
+        self.webkit.loadStarted.connect(self.show_progress_bar)
+        self.webkit.loadFinished.connect(self.load_finished)
+        self.webkit.titleChanged.connect(self.save_title)
+        self.webkit.loadProgress.connect(self.load_progress)
 
         # address bar
         self.address_bar = AddressBar(model=browser.log.model, parent=self)
 
         # progress bar
         self.pbar = QProgressBar(self)
+
         self.pbar.setRange(0, 100)
         self.pbar.setTextVisible(False)
         self.pbar.setVisible(False)
         self.pbar.setMaximumHeight(7)
 
+        # search in page
         self.search_frame = SearchFrame(parent=self)
 
+        # status bar
         self.statusbar = QStatusBar(self)
+
         self.statusbar.setVisible(False)
         self.statusbar.setMaximumHeight(25)
 
-        self.webkit.loadStarted.connect(self.show_progress_bar)
-        self.webkit.loadFinished.connect(self.load_finished)
-        self.webkit.titleChanged.connect(self.save_title)
-        self.webkit.loadProgress.connect(self.load_progress)
-
-        def url_changed(qurl):
-            """ One time callback for 'connect'
-            Sets the user style sheet, sets the address bar text
-
-            """
-            host_id = real_host(qurl.host())
-            css_file = self.browser.css_path + host_id + ".css"
-
-            try:
-                with open(css_file, 'r') as css_fh:
-                    css_encoded = encode_css(css_fh.read()).strip()
-            except IOError:
-                css_encoded = encode_css('')
-
-            self.webkit.settings().setUserStyleSheetUrl(
-                QUrl(css_encoded))
-            self.address_bar.setText(qurl.toString())
-
-        self.webkit.urlChanged.connect(url_changed)
         self.webkit.page().linkHovered.connect(self.on_link_hovered)
 
         self.search_frame.search_line.textChanged.connect(self.do_search)
