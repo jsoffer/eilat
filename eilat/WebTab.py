@@ -46,8 +46,7 @@ import datetime
 
 # local
 from WebView import WebView
-from libeilat import (set_shortcuts, fix_url, real_host, encode_css,
-                      copy_to_clipboard, osd)
+from libeilat import set_shortcuts, fix_url, copy_to_clipboard, osd
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """

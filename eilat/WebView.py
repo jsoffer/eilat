@@ -36,14 +36,14 @@
 
 from PyQt4.QtGui import QKeyEvent, QMouseEvent, QCursor, QApplication
 from PyQt4.QtWebKit import QWebPage, QWebSettings, QWebView, QWebElement
-from PyQt4.QtCore import Qt, QEvent
+from PyQt4.QtCore import Qt, QEvent, QUrl
 
 from functools import partial
 
 #from WebPage import WebPage
 from libeilat import (set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
-                      real_host, copy_to_clipboard, osd)
+                      encode_css, real_host, copy_to_clipboard, osd)
 
 from pprint import PrettyPrinter
 
