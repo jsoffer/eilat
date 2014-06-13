@@ -44,7 +44,7 @@ from WebTab import WebTab
 from InterceptNAM import InterceptNAM
 from DatabaseLog import DatabaseLogLite
 
-from libeilat import set_shortcuts, extract_url, clipboard
+from libeilat import fix_url, set_shortcuts, extract_url, clipboard
 
 
 class MainWin(QMainWindow):
@@ -210,7 +210,8 @@ class MainWin(QMainWindow):
             tab.toggle_script()
 
         if url is not None:
-            tab.navigate(url)
+            qurl = fix_url(url)
+            tab.webkit.navigate(qurl)
         else:
             tab.address_bar.setFocus()
 

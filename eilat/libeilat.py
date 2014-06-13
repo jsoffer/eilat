@@ -82,7 +82,15 @@ def run_app():
     APP.exec_()
 
 def fix_url(url):
-    """ entra string, sale QUrl """
+    """ Converts an url string to a QUrl object; checks if turning to
+    search query is necessary
+
+    No-op if already a QUrl
+
+    """
+
+    if isinstance(url, QUrl):
+        return url
 
     # clean entry; standard case
     if url.strip()[:4] in ['http', 'file']:
