@@ -34,16 +34,16 @@
 
 """
 
-from PyQt4.QtGui import QKeyEvent, QMouseEvent, QCursor, QApplication
 from PyQt4.QtWebKit import QWebPage, QWebSettings, QWebView, QWebElement
-from PyQt4.QtCore import Qt, QEvent, QUrl
+from PyQt4.QtCore import Qt, QUrl
 
 from functools import partial
 
 #from WebPage import WebPage
 from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
-                      encode_css, real_host, copy_to_clipboard, osd)
+                      encode_css, real_host, copy_to_clipboard, osd,
+                      fake_key, fake_click)
 
 from os.path import expanduser
 from pprint import PrettyPrinter
@@ -134,33 +134,6 @@ class WebView(QWebView):
         if window.netmanager is not None:
             self.page().setNetworkAccessManager(window.netmanager)
 
-        def handle_key(key):
-            """ Generate a fake key click in the webkit """
-            enter_event = QKeyEvent(
-                QEvent.KeyPress, key,
-                Qt.KeyboardModifiers())
-            QApplication.sendEvent(self, enter_event)
-
-        def handle_click():
-            """ Generate a fake mouse click in the webkit """
-            enter_event = QMouseEvent(
-                QEvent.MouseButtonPress,
-                self.mapFromGlobal(QCursor.pos()),
-                Qt.LeftButton,
-                Qt.MouseButtons(),
-                Qt.KeyboardModifiers())
-
-            QApplication.sendEvent(self, enter_event)
-
-            exit_event = QMouseEvent(
-                QEvent.MouseButtonRelease,
-                self.mapFromGlobal(QCursor.pos()),
-                Qt.LeftButton,
-                Qt.MouseButtons(),
-                Qt.KeyboardModifiers())
-
-            QApplication.sendEvent(self, exit_event)
-
         def dump_dom():
             """ saves the content of the current web page """
             data = self.page().currentFrame().documentElement().toInnerXml()
@@ -196,14 +169,14 @@ class WebView(QWebView):
             ("L", self, partial(scroll, delta_x=40)),
             ("Ctrl+Up", self, partial(zoom, 1)),
             ("Ctrl+Down", self, partial(zoom, -1)),
-            ("Ctrl+J", self, partial(handle_key, Qt.Key_Enter)),
-            ("Ctrl+H", self, partial(handle_key, Qt.Key_Backspace)),
-            ("C", self, handle_click),
+            ("Ctrl+J", self, partial(fake_key, self, Qt.Key_Enter)),
+            ("Ctrl+H", self, partial(fake_key, self, Qt.Key_Backspace)),
+            ("C", self, partial(fake_click, self)),
             # spatial navigation
-            ("Ctrl+Shift+H", self, partial(handle_key, Qt.Key_Left)),
-            ("Ctrl+Shift+J", self, partial(handle_key, Qt.Key_Down)),
-            ("Ctrl+Shift+K", self, partial(handle_key, Qt.Key_Up)),
-            ("Ctrl+Shift+L", self, partial(handle_key, Qt.Key_Right)),
+            ("Ctrl+Shift+H", self, partial(fake_key, self, Qt.Key_Left)),
+            ("Ctrl+Shift+J", self, partial(fake_key, self, Qt.Key_Down)),
+            ("Ctrl+Shift+K", self, partial(fake_key, self, Qt.Key_Up)),
+            ("Ctrl+Shift+L", self, partial(fake_key, self, Qt.Key_Right)),
             ("Shift+I", self, partial(setattr, self, 'in_focus', None)),
             ("Shift+H", self, partial(self.spatialnav, LEFT)),
             ("Shift+J", self, partial(self.spatialnav, DOWN)),

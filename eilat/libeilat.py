@@ -34,8 +34,8 @@
 
 """
 
-from PyQt4.QtGui import QShortcut
-from PyQt4.QtCore import QUrl, Qt
+from PyQt4.QtGui import QShortcut, QMouseEvent, QKeyEvent, QCursor
+from PyQt4.QtCore import QUrl, QEvent, Qt
 from PyQt4.Qt import QClipboard, QApplication
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
@@ -298,3 +298,32 @@ def node_neighborhood(rect, direction):
         rect.setHeight(15)
 
     return rect
+
+
+def fake_key(widget, key):
+    """ Generate a fake key click in the widget """
+    enter_event = QKeyEvent(
+        QEvent.KeyPress, key,
+        Qt.KeyboardModifiers())
+    QApplication.sendEvent(widget, enter_event)
+
+def fake_click(widget):
+    """ Generate a fake mouse click in the cursor position inside 'widget' """
+    enter_event = QMouseEvent(
+        QEvent.MouseButtonPress,
+        widget.mapFromGlobal(QCursor.pos()),
+        Qt.LeftButton,
+        Qt.MouseButtons(),
+        Qt.KeyboardModifiers())
+
+    QApplication.sendEvent(widget, enter_event)
+
+    exit_event = QMouseEvent(
+        QEvent.MouseButtonRelease,
+        widget.mapFromGlobal(QCursor.pos()),
+        Qt.LeftButton,
+        Qt.MouseButtons(),
+        Qt.KeyboardModifiers())
+
+    QApplication.sendEvent(widget, exit_event)
+
