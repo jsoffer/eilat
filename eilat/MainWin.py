@@ -34,7 +34,6 @@
 
 """
 
-from PyQt4.Qt import QClipboard
 from PyQt4.QtGui import QMainWindow, QTabWidget, QTabBar
 from PyQt4.QtCore import Qt
 
@@ -49,7 +48,8 @@ from libeilat import set_shortcuts, extract_url, clipboard
 
 
 class MainWin(QMainWindow):
-    """ Esta ventana guarda las tabs """
+    """ It's a window, stores a TabWidget """
+
     def __init__(self, options, parent=None):
         super(MainWin, self).__init__(parent)
         self.setWindowTitle("Eilat Browser")
@@ -62,10 +62,11 @@ class MainWin(QMainWindow):
         self.tab_widget = QTabWidget(self)
         self.tab_widget.setTabBar(MidClickTabBar())
         self.tab_widget.tabBar().setMovable(True)
-        self.setCentralWidget(self.tab_widget)
         self.tab_widget.setTabsClosable(True)
 
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
+
+        self.setCentralWidget(self.tab_widget)
 
         def restore_last_closed():
             """ One-use callback for QShortcut.
@@ -124,7 +125,7 @@ class MainWin(QMainWindow):
 
         """
 
-        url = clipboard().text(mode=QClipboard.Selection).strip()
+        url = clipboard()
 
         if extract:
             url = extract_url(url)

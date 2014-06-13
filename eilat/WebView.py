@@ -350,7 +350,6 @@ class WebView(QWebView):
             if mininav:
                 self.in_focus = min(
                     mininav, key=lambda node: node.geometry().right())
-                self.in_focus = mininav[-1]
             else:
                 region = [node for node in localnav
                           if node.geometry().right() < geom.left()]

@@ -76,7 +76,7 @@ def clipboard():
     """ It seems 'from libeilat import CLIPBOARD' returns the
     non-assigned original declaration... to be fixed """
 
-    return CLIPBOARD
+    return CLIPBOARD.text(mode=QClipboard.Selection).strip()
 
 def run_app():
     """ Start the main loop. Done here because the global APP is required. """
