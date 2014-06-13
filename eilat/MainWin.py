@@ -187,8 +187,8 @@ class MainWin(QMainWindow):
             self.tab_widget.currentWidget().webkit.setFocus()
 
     # action (en register_actions)
-    # only way to create a new tab on the browser
-    # externo en eilat.py, crea la primera tab
+    # only way to create a new tab
+    # called externally in eilat.py to create the first tab
     def add_tab(self, url=None, scripting=False):
         """ Creates a new tab, either empty or navegating to the url.
         Sets itself as the active tab.
@@ -197,7 +197,7 @@ class MainWin(QMainWindow):
         the address bar is focused.
 
         """
-        tab = WebTab(browser=self, parent=self.tab_widget)
+        tab = WebTab(window=self, parent=self.tab_widget)
 
         self.tab_widget.addTab(tab, "New tab")
 

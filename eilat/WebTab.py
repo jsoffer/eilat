@@ -50,16 +50,16 @@ from libeilat import set_shortcuts, fix_url, copy_to_clipboard, osd
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
-    def __init__(self, browser, parent=None):
+    def __init__(self, window, parent=None):
         super(WebTab, self).__init__(parent)
 
         self.current_title = "[EMPTY]"
 
         # the window, as a window
-        self.browser = browser
+        self.window = window
 
         # webkit (the actual "web engine")
-        self.webkit = WebView(browser.netmanager, parent=self)
+        self.webkit = WebView(window.netmanager, parent=self)
 
         self.webkit.linkClicked.connect(self.on_link_click)
         self.webkit.loadStarted.connect(self.show_progress_bar)
@@ -68,7 +68,7 @@ class WebTab(QWidget):
         self.webkit.loadProgress.connect(self.load_progress)
 
         # address bar
-        self.address_bar = AddressBar(model=browser.log.model, parent=self)
+        self.address_bar = AddressBar(model=window.log.model, parent=self)
 
         # progress bar
         self.pbar = QProgressBar(self)
@@ -209,7 +209,7 @@ class WebTab(QWidget):
 
         """
         if self.webkit.paste:
-            self.browser.add_tab(qurl)
+            self.window.add_tab(qurl)
             self.webkit.paste = False
         else:
             self.navigate(qurl)
@@ -262,7 +262,7 @@ class WebTab(QWidget):
                 (host not in do_not_store) and
                 (not qurl.hasQuery()) and
                 len(path.split('/')) < 4):
-            self.browser.log.store_navigation(host, path)
+            self.window.log.store_navigation(host, path)
 
         print(">>>\t\t" + datetime.datetime.now().isoformat())
         print(">>> NAVIGATE " + qurl.toString())
@@ -280,15 +280,15 @@ class WebTab(QWidget):
         self.set_title(title)
 
     def set_title(self, title):
-        """ Go upwards to the web browser's tab widget and set this
+        """ Go upwards to the main window's tab widget and set this
         tab's title
         """
 
         if title is None:
             title = "[NO TITLE]"
 
-        self.browser.tab_widget.setTabText(
-            self.browser.tab_widget.indexOf(self),
+        self.window.tab_widget.setTabText(
+            self.window.tab_widget.indexOf(self),
             title[:40])
 
     # connection in constructor and action

@@ -73,8 +73,7 @@ def start_app():
 # pylint: enable=W0603
 
 def clipboard():
-    """ It seems 'from libeilat import CLIPBOARD' returns the
-    non-assigned original declaration... to be fixed """
+    """ Global PRIMARY clipboard's contents """
 
     return CLIPBOARD.text(mode=QClipboard.Selection).strip()
 
