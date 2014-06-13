@@ -37,16 +37,13 @@
 from PyQt4.QtGui import (QWidget, QProgressBar, QStatusBar, QGridLayout,
                          QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent)
 from PyQt4.QtWebKit import QWebPage, QWebSettings
-from PyQt4.QtCore import QUrl, Qt, QEvent
+from PyQt4.QtCore import Qt, QEvent
 
 from functools import partial
-from re import sub
-
-import datetime
 
 # local
 from WebView import WebView
-from libeilat import set_shortcuts, fix_url, copy_to_clipboard, osd
+from libeilat import set_shortcuts, copy_to_clipboard, osd
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
@@ -61,7 +58,6 @@ class WebTab(QWidget):
         # webkit (the actual "web engine")
         self.webkit = WebView(window, parent=self)
 
-        self.webkit.linkClicked.connect(self.on_link_click)
         self.webkit.loadStarted.connect(self.show_progress_bar)
         self.webkit.loadFinished.connect(self.load_finished)
         self.webkit.titleChanged.connect(self.save_title)
@@ -138,8 +134,10 @@ class WebTab(QWidget):
             ("Return", self.search_frame, self.do_search),
             ("Ctrl+J", self.search_frame, self.do_search),
             # go to page
-            ("Ctrl+J", self.address_bar, self.navigate),
-            ("Return", self.address_bar, self.navigate),
+            ("Ctrl+J", self.address_bar, partial(
+                self.webkit.navigate, self.address_bar.text)),
+            ("Return", self.address_bar, partial(
+                self.webkit.navigate, self.address_bar.text)),
             # address bar interaction
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
             ("Escape", self.address_bar, self.webkit.setFocus),
@@ -182,6 +180,10 @@ class WebTab(QWidget):
     # connect (en constructor)
     def show_progress_bar(self):
         """ Callback for connection """
+
+        self.search_frame.setVisible(False)
+        self.address_bar.completer().popup().close()
+
         self.pbar.setValue(0)
         self.pbar.setVisible(True)
 
@@ -201,18 +203,6 @@ class WebTab(QWidget):
             osd("loadFinished: failed", corner=True)
             print("loadFinished: failed")
 
-    # connect (en constructor)
-    def on_link_click(self, qurl):
-        """ Callback for connection. Reads the 'paste' attribute from
-        the extended QWebView to know if a middle click requested to open
-        on a new tab.
-
-        """
-        if self.webkit.paste:
-            self.window.add_tab(qurl)
-            self.webkit.paste = False
-        else:
-            self.navigate(qurl)
 
     # connect (en constructor)
     def on_link_hovered(self, link, unused_title, unused_content):
@@ -221,56 +211,6 @@ class WebTab(QWidget):
 
         """
         self.statusbar.showMessage(link)
-
-    # action (en register_actions)
-    def navigate(self, url=None):
-        """ Open the url on this tab. If 'url' is already a QUrl
-        (if it comes from a href click), just send it. Otherwise,
-        it comes either from the address bar or the PRIMARY
-        clipboard through a keyboard shortcut.
-        Check if the "url" is actually one, partial or otherwise;
-        if it's not, construct a web search.
-
-        If 'url' is None, extract it directly from the address bar.
-
-        """
-
-        self.search_frame.setVisible(False)
-        self.address_bar.completer().popup().close()
-
-        if self.webkit.save:
-            copy_to_clipboard(url)
-            self.webkit.save = False
-            return
-
-        if isinstance(url, QUrl):
-            qurl = url
-        else:
-            if url is None:
-                url = self.address_bar.text()
-            qurl = fix_url(url)
-
-        ### LOG NAVIGATION
-        host = sub("^www.", "", qurl.host())
-        path = qurl.path().rstrip("/ ")
-
-        do_not_store = [
-            "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
-        ]
-
-        if (
-                (host not in do_not_store) and
-                (not qurl.hasQuery()) and
-                len(path.split('/')) < 4):
-            self.window.log.store_navigation(host, path)
-
-        print(">>>\t\t" + datetime.datetime.now().isoformat())
-        print(">>> NAVIGATE " + qurl.toString())
-
-        self.webkit.navlist = []
-
-        self.webkit.load(qurl)
-        self.webkit.setFocus()
 
     # connect (en constructor)
 

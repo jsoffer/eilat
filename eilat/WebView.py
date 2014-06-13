@@ -41,12 +41,14 @@ from PyQt4.QtCore import Qt, QEvent, QUrl
 from functools import partial
 
 #from WebPage import WebPage
-from libeilat import (set_shortcuts, node_neighborhood,
+from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
                       encode_css, real_host, copy_to_clipboard, osd)
 
 from os.path import expanduser
 from pprint import PrettyPrinter
+from re import sub
+import datetime
 
 class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
@@ -54,12 +56,13 @@ class WebView(QWebView):
     """
     def __init__(self, window, parent=None):
         super(WebView, self).__init__(parent)
-        #self.setPage(WebPage()) # for custom user agents (disabled)
+
+        self.window = window
 
         self.css_path = expanduser("~/.eilat/css/")
 
         self.paste = False
-        self.save = False # here, just to get these two together
+        self.save = False
 
         self.navlist = []
         self.in_focus = None
@@ -78,6 +81,20 @@ class WebView(QWebView):
             QWebSettings.FrameFlatteningEnabled, True)
 
         self.page().setForwardUnsupportedContent(True)
+
+        # connect (en constructor)
+        def on_link_click(qurl):
+            """ Callback for connection. Reads the 'paste' attribute
+            to know if a middle click requested to open on a new tab.
+
+            """
+            if self.paste:
+                self.window.add_tab(qurl)
+                self.paste = False
+            else:
+                self.navigate(qurl)
+
+        self.linkClicked.connect(on_link_click)
 
         def url_changed(qurl):
             """ One time callback for 'connect'
@@ -161,21 +178,6 @@ class WebView(QWebView):
             factor = self.zoomFactor() + (lvl * 0.25)
             self.setZoomFactor(factor)
 
-        def set_paste():
-            """ To use as callback in WebTab; can be improved """
-            self.paste = True
-
-        def set_save():
-            """ To use as callback in WebTab; can be improved """
-            self.save = True
-
-        def clear_focused():
-            """ Clears known focused, forcing a rechoice;
-            does not remove focus
-
-            """
-            self.in_focus = None
-
         set_shortcuts([
             # DOM actions
             ("Ctrl+M", self, dump_dom),
@@ -202,15 +204,63 @@ class WebView(QWebView):
             ("Ctrl+Shift+J", self, partial(handle_key, Qt.Key_Down)),
             ("Ctrl+Shift+K", self, partial(handle_key, Qt.Key_Up)),
             ("Ctrl+Shift+L", self, partial(handle_key, Qt.Key_Right)),
-            ("Shift+I", self, clear_focused),
+            ("Shift+I", self, partial(setattr, self, 'in_focus', None)),
             ("Shift+H", self, partial(self.spatialnav, LEFT)),
             ("Shift+J", self, partial(self.spatialnav, DOWN)),
             ("Shift+K", self, partial(self.spatialnav, UP)),
             ("Shift+L", self, partial(self.spatialnav, RIGHT)),
             # clipboard related behavior
-            ("I", self, set_paste),
-            ("S", self, set_save)
+            ("I", self, partial(setattr, self, 'paste', True)),
+            ("S", self, partial(setattr, self, 'save', True)),
             ])
+
+    # action (en register_actions)
+    def navigate(self, request=None):
+        """ Open the url on this tab. If 'url' is already a QUrl
+        (if it comes from a href click), just send it. Otherwise,
+        it comes either from the address bar or the PRIMARY
+        clipboard through a keyboard shortcut.
+        Check if the "url" is actually one, partial or otherwise;
+        if it's not, construct a web search.
+
+        """
+
+        #self.search_frame.setVisible(False)
+        #self.address_bar.completer().popup().close()
+
+        if isinstance(request, QUrl):
+            qurl = request
+            if self.save:
+                copy_to_clipboard(qurl)
+                self.save = False
+                return
+        elif callable(request):
+            url = request()
+            qurl = fix_url(url)
+        else:
+            raise RuntimeError("Navigating to non-navigable")
+
+        ### LOG NAVIGATION
+        host = sub("^www.", "", qurl.host())
+        path = qurl.path().rstrip("/ ")
+
+        do_not_store = [
+            "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
+        ]
+
+        if (
+                (host not in do_not_store) and
+                (not qurl.hasQuery()) and
+                len(path.split('/')) < 4):
+            self.window.log.store_navigation(host, path)
+
+        print(">>>\t\t" + datetime.datetime.now().isoformat())
+        print(">>> NAVIGATE " + qurl.toString())
+
+        self.navlist = []
+
+        self.load(qurl)
+        self.setFocus()
 
     def unembed_frames(self):
         """ Replaces the content of iframes with a link to their source
