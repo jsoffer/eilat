@@ -59,7 +59,7 @@ class WebTab(QWidget):
         self.window = window
 
         # webkit (the actual "web engine")
-        self.webkit = WebView(window.netmanager, parent=self)
+        self.webkit = WebView(window, parent=self)
 
         self.webkit.linkClicked.connect(self.on_link_click)
         self.webkit.loadStarted.connect(self.show_progress_bar)

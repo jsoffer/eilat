@@ -52,7 +52,7 @@ class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
     """
-    def __init__(self, netmanager, parent=None):
+    def __init__(self, window, parent=None):
         super(WebView, self).__init__(parent)
         #self.setPage(WebPage()) # for custom user agents (disabled)
 
@@ -114,8 +114,8 @@ class WebView(QWebView):
         #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
 
         # replace the Network Access Manager (log connections)
-        if netmanager is not None:
-            self.page().setNetworkAccessManager(netmanager)
+        if window.netmanager is not None:
+            self.page().setNetworkAccessManager(window.netmanager)
 
         def handle_key(key):
             """ Generate a fake key click in the webkit """
