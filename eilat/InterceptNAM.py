@@ -41,7 +41,7 @@ except ImportError:
     from urlparse import parse_qsl
 
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
-from PyQt4.Qt import QUrl
+from PyQt4.QtCore import QUrl
 
 from CookieJar import CookieJar
 from libeilat import (is_local, non_whitelisted,
