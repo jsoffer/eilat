@@ -39,8 +39,6 @@ from PyQt4.QtCore import QUrl, Qt
 from PyQt4.Qt import QClipboard
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
-import json
-
 # to keep some support of python2
 try:
     from urllib.parse import parse_qsl, urlparse
@@ -81,26 +79,6 @@ def fix_url(url):
             "http://duckduckgo.com/html/?q=%s" % (url.replace(" ", "+")))
     else:
         return QUrl.fromUserInput(url)
-
-def filtra(keyvalues):
-    """ Converts a [(key,value)] list of cookies first to a dictionary
-    and then to JSON. Single quotes are NOT escaped (the escape happens
-    when passing the string as second argument to .execute in psycopg)
-
-    """
-    if not keyvalues:
-        return None
-    ret = {}
-    for (key, value) in keyvalues:
-        ret[key] = value
-    return json.dumps(ret)
-
-def notnull(data):
-    """ Do not insert an empty string on the database """
-    if not data:
-        return None
-    else:
-        return data
 
 def set_shortcuts(lista, context=Qt.WidgetWithChildrenShortcut):
     """ Creates QShortcuts from a list of (key, owner, callback) 3-tuples
@@ -187,26 +165,6 @@ def encode_blocked(message, url):
     <a href=%s>%s</a></div></body>""" % (message, url, url)
     encoded = encodestring(content.encode())
     return (header + encoded).decode()
-
-def user_agent_for_url(*args):
-    """ Returns a User Agent that will be seen by the website.
-    The loose array for arguments is because this function is used to
-    replace a class method. The only justification is that 'self' will not
-    be used. May not be a sane idea.
-
-    """
-
-    if real_host(args[1].host()) in ['whatsmyuseragent']:
-        user_agent = (
-            "Mozilla/5.0 (X11; FreeBSD amd64; rv:27.0) " +
-            "(Hello WIMUA) " +
-            "Gecko/20100101 Firefox/27.0")
-    else:
-        user_agent = (
-            "Mozilla/5.0 (X11; FreeBSD amd64; rv:27.0) " +
-            "Gecko/20100101 Firefox/27.0")
-
-    return user_agent
 
 def copy_to_clipboard(clipboard, request):
     """ Write the requested download to the PRIMARY clipboard,
@@ -303,4 +261,3 @@ def node_neighborhood(rect, direction):
         rect.setHeight(15)
 
     return rect
-
