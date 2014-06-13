@@ -52,7 +52,6 @@ from MainWin import MainWin
 from options import extract_options
 
 from sys import argv
-from os.path import expanduser
 
 APP = QApplication([])
 APP.setApplicationName("Eilat")
@@ -72,10 +71,6 @@ def main():
         site = None
 
     options = extract_options(site)
-
-    if options['cookie_file'] is not None:
-        options['cookie_file'] = (
-            expanduser("~/.eilat/cookies/") + options['cookie_file'])
 
     # Proxy
     if options['use_proxy']:

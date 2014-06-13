@@ -45,6 +45,7 @@ from libeilat import (set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
                       encode_css, real_host, copy_to_clipboard, osd)
 
+from os.path import expanduser
 from pprint import PrettyPrinter
 
 class WebView(QWebView):
@@ -54,6 +55,9 @@ class WebView(QWebView):
     def __init__(self, netmanager, parent=None):
         super(WebView, self).__init__(parent)
         #self.setPage(WebPage()) # for custom user agents (disabled)
+
+        self.css_path = expanduser("~/.eilat/css/")
+
         self.paste = False
         self.save = False # here, just to get these two together
 
@@ -81,7 +85,7 @@ class WebView(QWebView):
 
             """
             host_id = real_host(qurl.host())
-            css_file = self.parent().browser.css_path + host_id + ".css"
+            css_file = self.css_path + host_id + ".css"
 
             try:
                 with open(css_file, 'r') as css_fh:

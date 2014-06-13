@@ -47,7 +47,6 @@ from DatabaseLog import DatabaseLogLite
 
 from libeilat import set_shortcuts, extract_url
 
-from os.path import expanduser
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
@@ -56,7 +55,6 @@ class MainWin(QMainWindow):
         self.setWindowTitle("Eilat Browser")
 
         self.last_closed = None
-        self.css_path = expanduser("~/.eilat/css/")
 
         self.log = DatabaseLogLite(options['prefix'])
         self.netmanager = InterceptNAM(options, self)

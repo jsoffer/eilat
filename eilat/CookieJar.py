@@ -35,6 +35,7 @@
 """
 
 from PyQt4.QtNetwork import QNetworkCookieJar, QNetworkCookie
+from os.path import expanduser
 
 def format_cookie(url, cookies):
     """ Constructs a log message from a list of cookies and the host
@@ -68,6 +69,7 @@ class CookieJar(QNetworkCookieJar):
 
         self.storage = options['cookie_file']
         if self.storage is not None:
+            self.storage = expanduser("~/.eilat/cookies/") + self.storage
             print(self.storage)
             try:
                 with open(self.storage, "r") as readfile:
