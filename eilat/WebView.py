@@ -103,8 +103,7 @@ class WebView(QWebView):
             """ notify and save to clipboard """
             message = request.url().toString() + "\n" + notify
             osd(message)
-            copy_to_clipboard(
-                self.parent().browser.clipboard, request)
+            copy_to_clipboard(request)
 
         self.page().downloadRequested.connect(partial(
             process_clipboard, "Download Requested"))

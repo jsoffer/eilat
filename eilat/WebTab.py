@@ -151,7 +151,6 @@ class WebTab(QWidget):
             ("Q", self.webkit, self.toggle_script),
             # clipboard
             ("E", self, partial(copy_to_clipboard,
-                                self.browser.clipboard,
                                 self.address_bar.text))
             ])
 
@@ -240,7 +239,7 @@ class WebTab(QWidget):
         self.address_bar.completer().popup().close()
 
         if self.webkit.save:
-            copy_to_clipboard(self.browser.clipboard, url)
+            copy_to_clipboard(url)
             self.webkit.save = False
             return
 

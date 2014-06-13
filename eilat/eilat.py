@@ -52,8 +52,7 @@ from options import extract_options
 
 from sys import argv
 
-from libeilat import start_app, run_app, clipboard
-
+from libeilat import start_app, run_app
 
 def main():
     """ Catch the url (if any); then choose adequate defaults and build
@@ -76,7 +75,7 @@ def main():
         proxy.setPort(3128)
         QNetworkProxy.setApplicationProxy(proxy)
 
-    mainwin = MainWin(clipboard=clipboard(), options=options, parent=None)
+    mainwin = MainWin(options=options, parent=None)
 
     if site is not None:
         mainwin.add_tab(site)

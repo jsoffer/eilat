@@ -190,7 +190,7 @@ def encode_blocked(message, url):
     encoded = encodestring(content.encode())
     return (header + encoded).decode()
 
-def copy_to_clipboard(clipb, request):
+def copy_to_clipboard(request):
     """ Write the requested download to the PRIMARY clipboard,
     so it can be easily pasted with middle click (or shift+insert,
     or xsel, or xclip, or 'Y' keybinding) anywhere it's needed
@@ -212,7 +212,7 @@ def copy_to_clipboard(clipb, request):
         qstring_to_copy = request()
 
     print("CLIPBOARD: " + qstring_to_copy)
-    clipb.setText(qstring_to_copy, mode=QClipboard.Selection)
+    CLIPBOARD.setText(qstring_to_copy, mode=QClipboard.Selection)
 
 def osd(message, corner=False):
     """ Call the external program osd_cat from a non-blocking thread """

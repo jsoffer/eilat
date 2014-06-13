@@ -45,12 +45,12 @@ from WebTab import WebTab
 from InterceptNAM import InterceptNAM
 from DatabaseLog import DatabaseLogLite
 
-from libeilat import set_shortcuts, extract_url
+from libeilat import set_shortcuts, extract_url, clipboard
 
 
 class MainWin(QMainWindow):
     """ Esta ventana guarda las tabs """
-    def __init__(self, clipboard, options, parent=None):
+    def __init__(self, options, parent=None):
         super(MainWin, self).__init__(parent)
         self.setWindowTitle("Eilat Browser")
 
@@ -58,8 +58,6 @@ class MainWin(QMainWindow):
 
         self.log = DatabaseLogLite(options['prefix'])
         self.netmanager = InterceptNAM(options, self)
-
-        self.clipboard = clipboard
 
         self.tab_widget = QTabWidget(self)
         self.tab_widget.setTabBar(MidClickTabBar())
@@ -125,10 +123,8 @@ class MainWin(QMainWindow):
         on a new tab.
 
         """
-        if self.clipboard is None:
-            return
 
-        url = self.clipboard.text(mode=QClipboard.Selection).strip()
+        url = clipboard().text(mode=QClipboard.Selection).strip()
 
         if extract:
             url = extract_url(url)
