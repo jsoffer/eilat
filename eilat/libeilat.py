@@ -55,16 +55,22 @@ from threading import Thread
 APP = None
 CLIPBOARD = None
 
+# intentionally updating (initializing) global constants
+# pylint: disable=W0603
 def start_app():
     """ Initialize the application; give global access to the clipboard """
 
     global APP, CLIPBOARD
+
+    if APP is not None or CLIPBOARD is not None:
+        raise RuntimeError("Attempting to initialize twice")
 
     APP = QApplication([])
     APP.setApplicationName("Eilat")
     APP.setApplicationVersion("1.4.001")
 
     CLIPBOARD = APP.clipboard()
+# pylint: enable=W0603
 
 def clipboard():
     """ It seems 'from libeilat import CLIPBOARD' returns the
