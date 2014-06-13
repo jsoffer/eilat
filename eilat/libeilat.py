@@ -36,7 +36,7 @@
 
 from PyQt4.QtGui import QShortcut
 from PyQt4.QtCore import QUrl, Qt
-from PyQt4.Qt import QClipboard
+from PyQt4.Qt import QClipboard, QApplication
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
 # to keep some support of python2
@@ -51,6 +51,30 @@ from base64 import encodestring
 from subprocess import Popen, PIPE
 
 from threading import Thread
+
+APP = None
+CLIPBOARD = None
+
+def start_app():
+    """ Initialize the application; give global access to the clipboard """
+
+    global APP, CLIPBOARD
+
+    APP = QApplication([])
+    APP.setApplicationName("Eilat")
+    APP.setApplicationVersion("1.4.001")
+
+    CLIPBOARD = APP.clipboard()
+
+def clipboard():
+    """ It seems 'from libeilat import CLIPBOARD' returns the
+    non-assigned original declaration... to be fixed """
+
+    return CLIPBOARD
+
+def run_app():
+    """ Start the main loop. Done here because the global APP is required. """
+    APP.exec_()
 
 def fix_url(url):
     """ entra string, sale QUrl """
@@ -166,7 +190,7 @@ def encode_blocked(message, url):
     encoded = encodestring(content.encode())
     return (header + encoded).decode()
 
-def copy_to_clipboard(clipboard, request):
+def copy_to_clipboard(clipb, request):
     """ Write the requested download to the PRIMARY clipboard,
     so it can be easily pasted with middle click (or shift+insert,
     or xsel, or xclip, or 'Y' keybinding) anywhere it's needed
@@ -188,7 +212,7 @@ def copy_to_clipboard(clipboard, request):
         qstring_to_copy = request()
 
     print("CLIPBOARD: " + qstring_to_copy)
-    clipboard.setText(qstring_to_copy, mode=QClipboard.Selection)
+    clipb.setText(qstring_to_copy, mode=QClipboard.Selection)
 
 def osd(message, corner=False):
     """ Call the external program osd_cat from a non-blocking thread """
