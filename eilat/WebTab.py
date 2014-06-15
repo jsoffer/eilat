@@ -55,16 +55,27 @@ class WebTab(QWidget):
         # the window, as a window
         self.window = window
 
+        # address bar
+        self.address_bar = AddressBar(model=window.log.model, parent=self)
+
         # webkit (the actual "web engine")
         self.webkit = WebView(window, parent=self)
 
+        def update_address(qurl):
+            """ Just because the 'connect' gives a QUrl and setText receives
+            a string
+
+            Required because a 3XX HTTP redirection will change the address,
+            and without updating, the address bar will be left stale
+
+            """
+            self.address_bar.setText(qurl.toString())
+
+        self.webkit.urlChanged.connect(update_address)
         self.webkit.loadStarted.connect(self.show_progress_bar)
         self.webkit.loadFinished.connect(self.load_finished)
         self.webkit.titleChanged.connect(self.save_title)
         self.webkit.loadProgress.connect(self.load_progress)
-
-        # address bar
-        self.address_bar = AddressBar(model=window.log.model, parent=self)
 
         # progress bar
         self.pbar = QProgressBar(self)

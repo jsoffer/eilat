@@ -112,7 +112,7 @@ class WebView(QWebView):
 
             self.settings().setUserStyleSheetUrl(
                 QUrl(css_encoded))
-            self.parent().address_bar.setText(qurl.toString())
+            #self.parent().address_bar.setText(qurl.toString())
 
         self.urlChanged.connect(url_changed)
 
@@ -173,10 +173,6 @@ class WebView(QWebView):
             ("Ctrl+H", self, partial(fake_key, self, Qt.Key_Backspace)),
             ("C", self, partial(fake_click, self)),
             # spatial navigation
-            ("Ctrl+Shift+H", self, partial(fake_key, self, Qt.Key_Left)),
-            ("Ctrl+Shift+J", self, partial(fake_key, self, Qt.Key_Down)),
-            ("Ctrl+Shift+K", self, partial(fake_key, self, Qt.Key_Up)),
-            ("Ctrl+Shift+L", self, partial(fake_key, self, Qt.Key_Right)),
             ("Shift+I", self, partial(setattr, self, 'in_focus', None)),
             ("Shift+H", self, partial(self.spatialnav, LEFT)),
             ("Shift+J", self, partial(self.spatialnav, DOWN)),
