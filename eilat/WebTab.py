@@ -43,22 +43,20 @@ from functools import partial
 
 # local
 from WebView import WebView
-from libeilat import set_shortcuts, copy_to_clipboard, osd
+from libeilat import set_shortcuts, copy_to_clipboard, osd, mainwin
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
-    def __init__(self, window=None, parent=None):
+    def __init__(self, parent=None):
         super(WebTab, self).__init__(parent)
 
         self.current_title = "[EMPTY]"
 
-        self.window = window
-
         # address bar
-        self.address_bar = AddressBar(model=window.log.model, parent=self)
+        self.address_bar = AddressBar(mainwin().log.model, parent=self)
 
         # webkit (the actual "web engine")
-        self.webkit = WebView(window=window, parent=self)
+        self.webkit = WebView(parent=self)
 
         def update_address(qurl):
             """ Just because the 'connect' gives a QUrl and setText receives
@@ -237,8 +235,8 @@ class WebTab(QWidget):
         if title is None:
             title = "[NO TITLE]"
 
-        self.window.tab_widget.setTabText(
-            self.window.tab_widget.indexOf(self),
+        mainwin().tab_widget.setTabText(
+            mainwin().tab_widget.indexOf(self),
             title[:40])
 
     # connection in constructor and action

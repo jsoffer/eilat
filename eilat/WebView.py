@@ -43,7 +43,8 @@ from functools import partial
 from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
                       encode_css, real_host, copy_to_clipboard, osd,
-                      fake_key, fake_click)
+                      fake_key, fake_click,
+                      mainwin)
 
 from os.path import expanduser
 from pprint import PrettyPrinter
@@ -54,10 +55,8 @@ class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
     """
-    def __init__(self, window=None, parent=None):
+    def __init__(self, parent=None):
         super(WebView, self).__init__(parent)
-
-        self.window = window
 
         self.css_path = expanduser("~/.eilat/css/")
 
@@ -89,7 +88,7 @@ class WebView(QWebView):
 
             """
             if self.paste:
-                window.add_tab(qurl)
+                mainwin().add_tab(qurl)
                 self.paste = False
             else:
                 self.navigate(qurl)
@@ -130,8 +129,8 @@ class WebView(QWebView):
         #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
 
         # replace the Network Access Manager (log connections)
-        if window.netmanager is not None:
-            self.page().setNetworkAccessManager(window.netmanager)
+        if mainwin().netmanager is not None:
+            self.page().setNetworkAccessManager(mainwin().netmanager)
 
         def dump_dom():
             """ saves the content of the current web page """
@@ -220,7 +219,7 @@ class WebView(QWebView):
                 (host not in do_not_store) and
                 (not qurl.hasQuery()) and
                 len(path.split('/')) < 4):
-            self.window.log.store_navigation(host, path)
+            mainwin().log.store_navigation(host, path)
 
         print(">>>\t\t" + datetime.datetime.now().isoformat())
         print(">>> NAVIGATE " + qurl.toString())

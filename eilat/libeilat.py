@@ -54,6 +54,7 @@ from threading import Thread
 
 APP = None
 CLIPBOARD = None
+MAINWIN = None
 
 # intentionally updating (initializing) global constants
 # pylint: disable=W0603
@@ -70,7 +71,27 @@ def start_app():
     APP.setApplicationVersion("1.4.001")
 
     CLIPBOARD = APP.clipboard()
+
+# intentionally updating (initializing) global constants
+# pylint: disable=W0603
+def init_mainwin(win):
+    """ Copy an initialized mainwin so it will be globally accessible
+
+    """
+    global MAINWIN
+
+    if MAINWIN is None:
+        MAINWIN = win
+    else:
+        raise RuntimeError("Attempting to initialize main window twice")
 # pylint: enable=W0603
+
+def mainwin():
+    """ Access the main window globally (fixable after passing 'options' in
+    a more sane way than through the window; imprement "add tab" directly")
+
+    """
+    return MAINWIN
 
 def clipboard():
     """ Global PRIMARY clipboard's contents """

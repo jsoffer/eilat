@@ -196,7 +196,7 @@ class MainWin(QMainWindow):
         the address bar is focused.
 
         """
-        tab = WebTab(window=self, parent=self.tab_widget)
+        tab = WebTab(parent=self.tab_widget)
 
         self.tab_widget.addTab(tab, "New tab")
 
