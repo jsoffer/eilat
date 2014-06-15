@@ -36,8 +36,7 @@
 
 from PyQt4.QtGui import QShortcut, QMouseEvent, QKeyEvent, QCursor
 from PyQt4.QtCore import QUrl, QEvent, Qt
-from PyQt4.Qt import QClipboard, QApplication
-from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
+from PyQt4.Qt import QApplication
 
 # to keep some support of python2
 try:
@@ -51,58 +50,6 @@ from base64 import encodestring
 from subprocess import Popen, PIPE
 
 from threading import Thread
-
-APP = None
-CLIPBOARD = None
-MAINWIN = None
-
-# intentionally updating (initializing) global constants
-# pylint: disable=W0603
-def start_app():
-    """ Initialize the application; give global access to the clipboard """
-
-    global APP, CLIPBOARD
-
-    if APP is None and CLIPBOARD is None:
-        APP = QApplication([])
-        APP.setApplicationName("Eilat")
-        APP.setApplicationVersion("1.4.001")
-
-        CLIPBOARD = APP.clipboard()
-    else:
-        raise RuntimeError("Attempting to initialize app twice")
-# pylint: enable=W0603
-
-
-# intentionally updating (initializing) global constants
-# pylint: disable=W0603
-def export_mainwin(win):
-    """ Copy an initialized mainwin so it will be globally accessible
-
-    """
-    global MAINWIN
-
-    if MAINWIN is None:
-        MAINWIN = win
-    else:
-        raise RuntimeError("Attempting to initialize main window twice")
-# pylint: enable=W0603
-
-def mainwin():
-    """ Access the main window globally (fixable after passing 'options' in
-    a more sane way than through the window; imprement "add tab" directly")
-
-    """
-    return MAINWIN
-
-def clipboard():
-    """ Global PRIMARY clipboard's contents """
-
-    return CLIPBOARD.text(mode=QClipboard.Selection).strip()
-
-def run_app():
-    """ Start the main loop. Done here because the global APP is required. """
-    APP.exec_()
 
 def fix_url(url):
     """ Converts an url string to a QUrl object; checks if turning to
@@ -225,30 +172,6 @@ def encode_blocked(message, url):
     <a href=%s>%s</a></div></body>""" % (message, url, url)
     encoded = encodestring(content.encode())
     return (header + encoded).decode()
-
-def copy_to_clipboard(request):
-    """ Write the requested download to the PRIMARY clipboard,
-    so it can be easily pasted with middle click (or shift+insert,
-    or xsel, or xclip, or 'Y' keybinding) anywhere it's needed
-
-    Accepting a callable is required because binding the function to
-    a QLineEdit.text() will bind forever to the content of the line edit
-    at bind time, but a binding to QLineEdit.text will be evaluated
-    when the shortcut is called
-    """
-
-    if isinstance(request, str):
-        qstring_to_copy = request
-    elif isinstance(request, QUrl):
-        qstring_to_copy = request.toString()
-    elif (isinstance(request, QNetworkRequest) or
-          isinstance(request, QNetworkReply)):
-        qstring_to_copy = request.url().toString()
-    elif callable(request):
-        qstring_to_copy = request()
-
-    print("CLIPBOARD: " + qstring_to_copy)
-    CLIPBOARD.setText(qstring_to_copy, mode=QClipboard.Selection)
 
 def osd(message, corner=False):
     """ Call the external program osd_cat from a non-blocking thread """

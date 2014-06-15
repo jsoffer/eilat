@@ -43,7 +43,8 @@ from functools import partial
 
 # local
 from WebView import WebView
-from libeilat import set_shortcuts, copy_to_clipboard, osd, mainwin
+from libeilat import set_shortcuts, osd
+from global_store import mainwin, clipboard
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
@@ -156,8 +157,7 @@ class WebTab(QWidget):
             ("Ctrl+Space", self.webkit, toggle_status),
             ("Q", self.webkit, self.toggle_script),
             # clipboard
-            ("E", self, partial(copy_to_clipboard,
-                                self.address_bar.text))
+            ("E", self, partial(clipboard, self.address_bar.text))
             ])
 
     def toggle_script(self):

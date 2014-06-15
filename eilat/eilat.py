@@ -43,6 +43,7 @@ davydm@gmail.com
 import sip
 sip.setapi('QString', 2)
 
+from PyQt4.Qt import QApplication
 from PyQt4.QtNetwork import QNetworkProxy
 
 # local
@@ -52,7 +53,12 @@ from options import extract_options
 
 from sys import argv
 
-from libeilat import start_app, run_app, export_mainwin
+from global_store import export_mainwin, export_clipboard
+
+APP = QApplication([])
+APP.setApplicationName("Eilat")
+APP.setApplicationVersion("1.4.001")
+export_clipboard(APP.clipboard())
 
 def main():
     """ Catch the url (if any); then choose adequate defaults and build
@@ -85,6 +91,5 @@ def main():
     mainwin.show()
 
 if __name__ == "__main__":
-    start_app()
     main()
-    run_app()
+    APP.exec_()

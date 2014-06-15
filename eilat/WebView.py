@@ -42,9 +42,9 @@ from functools import partial
 #from WebPage import WebPage
 from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
-                      encode_css, real_host, copy_to_clipboard, osd,
-                      fake_key, fake_click,
-                      mainwin)
+                      encode_css, real_host, osd,
+                      fake_key, fake_click)
+from global_store import mainwin, clipboard
 
 from os.path import expanduser
 from pprint import PrettyPrinter
@@ -118,7 +118,7 @@ class WebView(QWebView):
             """ notify and save to clipboard """
             message = request.url().toString() + "\n" + notify
             osd(message)
-            copy_to_clipboard(request)
+            clipboard(request)
 
         self.page().downloadRequested.connect(partial(
             process_clipboard, "Download Requested"))
@@ -198,7 +198,7 @@ class WebView(QWebView):
         if isinstance(request, QUrl):
             qurl = request
             if self.save:
-                copy_to_clipboard(qurl)
+                clipboard(qurl)
                 self.save = False
                 return
         elif callable(request):

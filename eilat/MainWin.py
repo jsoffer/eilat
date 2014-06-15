@@ -44,7 +44,8 @@ from WebTab import WebTab
 from InterceptNAM import InterceptNAM
 from DatabaseLog import DatabaseLogLite
 
-from libeilat import fix_url, set_shortcuts, extract_url, clipboard
+from libeilat import fix_url, set_shortcuts, extract_url
+from global_store import clipboard
 
 class MainWin(QMainWindow):
     """ It's a window, stores a TabWidget """
