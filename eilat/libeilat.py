@@ -63,18 +63,20 @@ def start_app():
 
     global APP, CLIPBOARD
 
-    if APP is not None or CLIPBOARD is not None:
+    if APP is None and CLIPBOARD is None:
+        APP = QApplication([])
+        APP.setApplicationName("Eilat")
+        APP.setApplicationVersion("1.4.001")
+
+        CLIPBOARD = APP.clipboard()
+    else:
         raise RuntimeError("Attempting to initialize app twice")
+# pylint: enable=W0603
 
-    APP = QApplication([])
-    APP.setApplicationName("Eilat")
-    APP.setApplicationVersion("1.4.001")
-
-    CLIPBOARD = APP.clipboard()
 
 # intentionally updating (initializing) global constants
 # pylint: disable=W0603
-def init_mainwin(win):
+def export_mainwin(win):
     """ Copy an initialized mainwin so it will be globally accessible
 
     """
