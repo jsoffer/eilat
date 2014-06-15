@@ -68,7 +68,6 @@ def main():
     options = extract_options(site)
 
     # Proxy
-    #if options['use_proxy']:
     proxy = QNetworkProxy()
     proxy.setType(QNetworkProxy.HttpProxy)
     proxy.setHostName('localhost')

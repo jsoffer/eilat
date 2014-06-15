@@ -26,7 +26,6 @@ def extract_options(url):
 
 OPTIONS = {
     'general': {
-        'use_proxy': True,
         'host_whitelist': None,
         'cookie_allow': [
             "github.com"],
@@ -34,7 +33,6 @@ OPTIONS = {
         'prefix': ""},
 
     'reddit': {
-        'use_proxy': False,
         'host_whitelist': [
             "reddit.com/r/programming",
             "reddit.com/r/Python",
@@ -46,7 +44,6 @@ OPTIONS = {
     },
 
     'linkedin': {
-        'use_proxy': False,
         'host_whitelist': [
             "linkedin.com",
             "licdn.com"
@@ -57,7 +54,6 @@ OPTIONS = {
     },
 
     'youtube': {
-        'use_proxy': False,
         'host_whitelist': [
             "youtube.com",
             "ytimg.com"
@@ -68,7 +64,6 @@ OPTIONS = {
     },
 
     'facebook': {
-        'use_proxy': False,
         'host_whitelist': [
             "facebook.com",
             "akamaihd.net",
@@ -79,7 +74,6 @@ OPTIONS = {
     },
 
     'twitter': {
-        'use_proxy': False,
         'host_whitelist': ["twitter.com", "twimg.com"],
         'cookie_allow': ["twitter.com"],
         'cookie_file': "twcookies.cj",
@@ -87,7 +81,6 @@ OPTIONS = {
     },
 
     'google': {
-        'use_proxy': False,
         'host_whitelist': [
             "google.com",
             "google.com.mx",
