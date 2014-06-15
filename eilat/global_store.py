@@ -91,18 +91,18 @@ def clipboard(request=None):
 
     if request is not None:
         if isinstance(request, str):
-            qstring_to_copy = request
+            string_to_copy = request
         elif isinstance(request, QUrl):
-            qstring_to_copy = request.toString()
+            string_to_copy = request.toString()
         elif (isinstance(request, QNetworkRequest) or
               isinstance(request, QNetworkReply)):
-            qstring_to_copy = request.url().toString()
+            string_to_copy = request.url().toString()
         elif callable(request):
-            qstring_to_copy = request()
+            string_to_copy = request()
         else:
             raise RuntimeError("Attempt to store non-text on clipboard")
 
-        CLIPBOARD.setText(qstring_to_copy,
+        CLIPBOARD.setText(string_to_copy,
                           mode=QClipboard.Selection)
     else:
         return CLIPBOARD.text(mode=QClipboard.Selection).strip()
