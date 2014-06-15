@@ -112,7 +112,6 @@ class WebView(QWebView):
 
             self.settings().setUserStyleSheetUrl(
                 QUrl(css_encoded))
-            #self.parent().address_bar.setText(qurl.toString())
 
         self.urlChanged.connect(url_changed)
 
@@ -333,11 +332,12 @@ class WebView(QWebView):
                 self.in_focus = min(localnav, key=lambda node:
                                     node.geometry().top())
 
-        # We're done, we have a node to focus; focus it, bind to status bar
-        self.parent().statusbar.showMessage(
-            str(self.in_focus.geometry()) + " " +
-            self.in_focus.attribute("href")
-        )
+        # We're done, we have a node to focus; focus it,
+        # send a signal that will be bound to the status bar
+        self.page().linkHovered.emit(str(self.in_focus.geometry()) + " " +
+                                     self.in_focus.attribute("href"),
+                                     None, None)
+
 
         self.in_focus.setFocus()
 
