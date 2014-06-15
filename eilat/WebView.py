@@ -54,7 +54,7 @@ class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
     """
-    def __init__(self, window, parent=None):
+    def __init__(self, window=None, parent=None):
         super(WebView, self).__init__(parent)
 
         self.window = window
@@ -89,7 +89,7 @@ class WebView(QWebView):
 
             """
             if self.paste:
-                self.window.add_tab(qurl)
+                window.add_tab(qurl)
                 self.paste = False
             else:
                 self.navigate(qurl)

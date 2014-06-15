@@ -47,19 +47,18 @@ from libeilat import set_shortcuts, copy_to_clipboard, osd
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
-    def __init__(self, window, parent=None):
+    def __init__(self, window=None, parent=None):
         super(WebTab, self).__init__(parent)
 
         self.current_title = "[EMPTY]"
 
-        # the window, as a window
         self.window = window
 
         # address bar
         self.address_bar = AddressBar(model=window.log.model, parent=self)
 
         # webkit (the actual "web engine")
-        self.webkit = WebView(window, parent=self)
+        self.webkit = WebView(window=window, parent=self)
 
         def update_address(qurl):
             """ Just because the 'connect' gives a QUrl and setText receives

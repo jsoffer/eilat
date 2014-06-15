@@ -63,7 +63,7 @@ def start_app():
     global APP, CLIPBOARD
 
     if APP is not None or CLIPBOARD is not None:
-        raise RuntimeError("Attempting to initialize twice")
+        raise RuntimeError("Attempting to initialize app twice")
 
     APP = QApplication([])
     APP.setApplicationName("Eilat")

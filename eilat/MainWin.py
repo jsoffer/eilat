@@ -46,7 +46,6 @@ from DatabaseLog import DatabaseLogLite
 
 from libeilat import fix_url, set_shortcuts, extract_url, clipboard
 
-
 class MainWin(QMainWindow):
     """ It's a window, stores a TabWidget """
 
