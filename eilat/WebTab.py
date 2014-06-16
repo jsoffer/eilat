@@ -287,6 +287,7 @@ class AddressBar(QLineEdit):
 
         set_shortcuts([
             ("Ctrl+H", self, self.backspace),
+            ("Ctrl+Q", self, lambda: None)
             ])
 
     def set_color(self, rgb=(255, 255, 255)):
