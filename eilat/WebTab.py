@@ -43,8 +43,9 @@ from functools import partial
 
 # local
 from WebView import WebView
+from DatabaseLog import DatabaseLogLite
 from libeilat import set_shortcuts, osd
-from global_store import mainwin, clipboard, database
+from global_store import mainwin, clipboard
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
@@ -52,13 +53,14 @@ class WebTab(QWidget):
         super(WebTab, self).__init__(parent)
 
         self.current_title = "[EMPTY]"
-        self.prefix = None
 
         # address bar
         self.address_bar = AddressBar(parent=self)
 
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
+
+        self.address_bar.editingFinished.connect(self.webkit.setFocus)
 
         self.webkit.prefix_set.connect(partial(setattr, self, 'prefix'))
         self.webkit.prefix_set.connect(self.address_bar.set_model)
@@ -194,7 +196,6 @@ class WebTab(QWidget):
         """ Callback for connection """
 
         self.search_frame.setVisible(False)
-        self.address_bar.completer().popup().close()
 
         self.pbar.setValue(0)
         self.pbar.setVisible(True)
@@ -284,15 +285,18 @@ class AddressBar(QLineEdit):
     def __init__(self, parent=None):
         super(AddressBar, self).__init__(parent)
 
-        self.set_color()
-
+        self.database = DatabaseLogLite()
+        self.__completer = None
         self.set_model(None)
 
-        set_shortcuts([
-            ("Ctrl+H", self, self.backspace)
-            ])
+        self.set_color()
 
-        self.__completer = None
+        set_shortcuts([
+            ("Ctrl+H", self, self.backspace),
+            # do not create a new tab when on the address bar;
+            # popup related trouble
+            ("Ctrl+T", self, lambda: None)
+        ])
 
     def set_model(self, prefix):
         """ Update the completion model when the prefix is known. Has to
@@ -300,20 +304,10 @@ class AddressBar(QLineEdit):
         complete the line edit otherwise)
 
         """
-        self.__completer = QCompleter(database().model(prefix), self)
+        self.__completer = QCompleter(self.database.model(prefix), self)
         self.setCompleter(self.__completer)
 
     def set_color(self, rgb=(255, 255, 255)):
         """ Sets the background color of the address bar """
         self.setStyleSheet(
             "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)
-
-    def focus_out_event(self, event):
-        """ Close completion if it's open while the tab is changed """
-        self.completer().popup().close()
-        super(AddressBar, self).focusOutEvent(event)
-
-    # Clean reimplement for Qt
-    # pylint: disable=C0103
-    focusOutEvent = focus_out_event
-    # pylint: enable=C0103

@@ -43,13 +43,12 @@ class DatabaseLogLite(object):
     To store bookmarks, configuration, etc.
 
     """
-    def __init__(self, prefix):
+    def __init__(self):
 
+        super(DatabaseLogLite, self).__init__()
         self.litedb = QSqlDatabase("QSQLITE")
         self.litedb.setDatabaseName(expanduser("~/.eilat/eilat.db"))
         self.litedb.open()
-
-        self.prefix = prefix
 
         # it seems to be unable to do completion if 'model' creates and
         # returns a locally scoped variable... why?

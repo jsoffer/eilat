@@ -38,7 +38,6 @@ from PyQt4.QtCore import QUrl
 from PyQt4.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt4.Qt import QClipboard
 
-
 CLIPBOARD = None
 MAINWIN = None
 DATABASE = None

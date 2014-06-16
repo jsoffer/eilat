@@ -249,8 +249,8 @@ class WebView(QWebView):
 
         self.navlist = []
 
-        self.load(qurl)
         self.setFocus()
+        self.load(qurl)
 
     def unembed_frames(self):
         """ Replaces the content of iframes with a link to their source

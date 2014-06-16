@@ -74,7 +74,7 @@ def main():
 
     options = extract_options(site)
 
-    export_database(DatabaseLogLite(options['prefix']))
+    export_database(DatabaseLogLite())
 
     # Proxy
     proxy = QNetworkProxy()
