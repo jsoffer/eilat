@@ -52,12 +52,16 @@ class WebTab(QWidget):
         super(WebTab, self).__init__(parent)
 
         self.current_title = "[EMPTY]"
+        self.prefix = None
 
         # address bar
-        self.address_bar = AddressBar(database().model(), parent=self)
+        self.address_bar = AddressBar(parent=self)
 
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
+
+        self.webkit.prefix_set.connect(partial(setattr, self, 'prefix'))
+        self.webkit.prefix_set.connect(self.address_bar.set_model)
 
         def update_address(qurl):
             """ Just because the 'connect' gives a QUrl and setText receives
@@ -277,17 +281,27 @@ class AddressBar(QLineEdit):
 
     """
 
-    def __init__(self, model=None, parent=None):
+    def __init__(self, parent=None):
         super(AddressBar, self).__init__(parent)
 
         self.set_color()
 
-        if model is not None:
-            self.setCompleter(QCompleter(model, self))
+        self.set_model(None)
 
         set_shortcuts([
             ("Ctrl+H", self, self.backspace)
             ])
+
+        self.__completer = None
+
+    def set_model(self, prefix):
+        """ Update the completion model when the prefix is known. Has to
+        be done through an instance variable because of a bug (will not
+        complete the line edit otherwise)
+
+        """
+        self.__completer = QCompleter(database().model(prefix), self)
+        self.setCompleter(self.__completer)
 
     def set_color(self, rgb=(255, 255, 255)):
         """ Sets the background color of the address bar """

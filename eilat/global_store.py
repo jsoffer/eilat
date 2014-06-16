@@ -42,6 +42,32 @@ from PyQt4.Qt import QClipboard
 CLIPBOARD = None
 MAINWIN = None
 DATABASE = None
+MANAGERS = {}
+
+def has_manager(prefix):
+    """ Is a network manager registered for this web instance?
+
+    """
+    return prefix in MANAGERS.keys()
+
+# intentionally updating (initializing) global constants
+# pylint: disable=W0603
+def register_manager(prefix, manager):
+    """ Make a web instance specific network access manager globally
+    accessible
+
+    """
+    #global MANAGERS
+
+    if not prefix in MANAGERS.keys():
+        MANAGERS[prefix] = manager
+# pylint: enable=W0603
+
+def get_manager(prefix):
+    """ Retrieve the network access manager for 'prefix' web instance
+
+    """
+    return MANAGERS[prefix]
 
 # intentionally updating (initializing) global constants
 # pylint: disable=W0603

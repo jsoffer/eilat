@@ -55,17 +55,23 @@ class DatabaseLogLite(object):
         # returns a locally scoped variable... why?
         self.__model = None
 
-    def model(self):
+    def model(self, prefix=None):
         """ recreate the model each call; opening a new window will not
         be needed to use the recent completions
 
         """
 
-        query_nav = QSqlQuery(
-            "select host || path from navigation " +
-            "where prefix = '%s' " % (self.prefix) +
-            "order by count desc",
-            self.litedb)
+        if prefix is None:
+            query_nav = QSqlQuery(
+                "select host || path from navigation " +
+                "order by count desc",
+                self.litedb)
+        else:
+            query_nav = QSqlQuery(
+                "select host || path from navigation " +
+                "where prefix = '%s' " % (prefix) +
+                "order by count desc",
+                self.litedb)
 
         self.__model = QSqlQueryModel()
         self.__model.setQuery(query_nav)
@@ -73,7 +79,7 @@ class DatabaseLogLite(object):
 
         #return completion_model
 
-    def store_navigation(self, host, path):
+    def store_navigation(self, host, path, prefix):
         """ save host, path and increase its count """
 
         host = host.replace("'", "%27")
@@ -81,7 +87,7 @@ class DatabaseLogLite(object):
 
         insert_or_ignore = (
             "insert or ignore into navigation (host, path, prefix) " +
-            "values ('%s', '%s', '%s')" % (host, path, self.prefix))
+            "values ('%s', '%s', '%s')" % (host, path, prefix))
 
         update = (
             "update navigation set count = count + 1 where " +

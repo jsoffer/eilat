@@ -40,11 +40,13 @@ from PyQt4.QtCore import Qt, QUrl, pyqtSignal
 from functools import partial
 
 #from WebPage import WebPage
+from InterceptNAM import InterceptNAM
 from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
                       encode_css, real_host, osd,
                       fake_key, fake_click)
-from global_store import mainwin, clipboard, database
+from global_store import (mainwin, clipboard, database,
+                          has_manager, register_manager, get_manager)
 from options import extract_options
 
 from os.path import expanduser
@@ -134,10 +136,6 @@ class WebView(QWebView):
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
         #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
 
-        # replace the Network Access Manager (log connections)
-        if mainwin().netmanager is not None:
-            self.page().setNetworkAccessManager(mainwin().netmanager)
-
         def dump_dom():
             """ saves the content of the current web page """
             data = self.page().currentFrame().documentElement().toInnerXml()
@@ -214,9 +212,23 @@ class WebView(QWebView):
             raise RuntimeError("Navigating to non-navigable")
 
         if self.prefix is None:
-            self.prefix = extract_options(qurl.toString())['prefix']
+            options = extract_options(qurl.toString())
+            self.prefix = options['prefix']
             self.prefix_set.emit(self.prefix)
             print("SET PREFIX: ", self.prefix)
+            # this is the first navigation on this tab/webkit; replace
+            # the Network Access Manager
+            if not has_manager(self.prefix):
+                register_manager(self.prefix, InterceptNAM(options, self))
+            if not has_manager(self.prefix):
+                raise RuntimeError("prefix manager not registered...")
+
+            self.page().setNetworkAccessManager(get_manager(self.prefix))
+
+
+        if self.prefix is None:
+            raise RuntimeError(
+                "prefix failed to be set... 'options' is broken")
 
         ### LOG NAVIGATION
         host = sub("^www.", "", qurl.host())
@@ -230,7 +242,7 @@ class WebView(QWebView):
                 (host not in do_not_store) and
                 (not qurl.hasQuery()) and
                 len(path.split('/')) < 4):
-            database().store_navigation(host, path)
+            database().store_navigation(host, path, self.prefix)
 
         print(">>>\t\t" + datetime.datetime.now().isoformat())
         print(">>> NAVIGATE " + qurl.toString())
