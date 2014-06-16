@@ -54,7 +54,7 @@ class WebTab(QWidget):
         self.current_title = "[EMPTY]"
 
         # address bar
-        self.address_bar = AddressBar(mainwin().log.model, parent=self)
+        self.address_bar = AddressBar(mainwin().log.model(), parent=self)
 
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)

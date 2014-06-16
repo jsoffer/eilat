@@ -51,19 +51,27 @@ class DatabaseLogLite(object):
 
         self.prefix = prefix
 
-        if prefix != '':
-            self.table = 'navigation_' + prefix.lower()
-        else:
-            self.table = 'navigation'
+        # it seems to be unable to do completion if 'model' creates and
+        # returns a locally scoped variable... why?
+        self.__model = None
+
+    def model(self):
+        """ recreate the model each call; opening a new window will not
+        be needed to use the recent completions
+
+        """
 
         query_nav = QSqlQuery(
             "select host || path from navigation " +
-            "where prefix = '%s' " % (prefix) +
+            "where prefix = '%s' " % (self.prefix) +
             "order by count desc",
             self.litedb)
 
-        self.model = QSqlQueryModel()
-        self.model.setQuery(query_nav)
+        self.__model = QSqlQueryModel()
+        self.__model.setQuery(query_nav)
+        return self.__model
+
+        #return completion_model
 
     def store_navigation(self, host, path):
         """ save host, path and increase its count """
@@ -76,7 +84,7 @@ class DatabaseLogLite(object):
             "values ('%s', '%s', '%s')" % (host, path, self.prefix))
 
         update = (
-            "update %s set count = count + 1 where " % (self.table) +
+            "update navigation set count = count + 1 where " +
             "host = '%s' and path = '%s'" % (host, path))
 
         self.litedb.exec_(insert_or_ignore)
