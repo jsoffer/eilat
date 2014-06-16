@@ -219,7 +219,7 @@ class WebView(QWebView):
             # this is the first navigation on this tab/webkit; replace
             # the Network Access Manager
             if not has_manager(self.prefix):
-                register_manager(self.prefix, InterceptNAM(options, self))
+                register_manager(self.prefix, InterceptNAM(options, None))
             if not has_manager(self.prefix):
                 raise RuntimeError("prefix manager not registered...")
 
