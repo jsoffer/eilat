@@ -35,7 +35,7 @@
 """
 
 from PyQt4.QtWebKit import QWebPage, QWebSettings, QWebView, QWebElement
-from PyQt4.QtCore import Qt, QUrl
+from PyQt4.QtCore import Qt, QUrl, pyqtSignal
 
 from functools import partial
 
@@ -45,6 +45,7 @@ from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       encode_css, real_host, osd,
                       fake_key, fake_click)
 from global_store import mainwin, clipboard, database
+from options import extract_options
 
 from os.path import expanduser
 from pprint import PrettyPrinter
@@ -55,8 +56,13 @@ class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
     """
+
+    prefix_set = pyqtSignal(str)
+
     def __init__(self, parent=None):
         super(WebView, self).__init__(parent)
+
+        self.prefix = None
 
         self.css_path = expanduser("~/.eilat/css/")
 
@@ -206,6 +212,11 @@ class WebView(QWebView):
             qurl = fix_url(url)
         else:
             raise RuntimeError("Navigating to non-navigable")
+
+        if self.prefix is None:
+            self.prefix = extract_options(qurl.toString())['prefix']
+            self.prefix_set.emit(self.prefix)
+            print("SET PREFIX: ", self.prefix)
 
         ### LOG NAVIGATION
         host = sub("^www.", "", qurl.host())
