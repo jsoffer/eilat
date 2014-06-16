@@ -286,8 +286,7 @@ class AddressBar(QLineEdit):
             self.setCompleter(QCompleter(model, self))
 
         set_shortcuts([
-            ("Ctrl+H", self, self.backspace),
-            ("Ctrl+Q", self, lambda: None)
+            ("Ctrl+H", self, self.backspace)
             ])
 
     def set_color(self, rgb=(255, 255, 255)):

@@ -114,7 +114,7 @@ class MainWin(QMainWindow):
             # destroy/undestroy
             ("U", self, restore_last_closed),
             ("Ctrl+W", self, self.del_tab),
-            ("Ctrl+Q", self, self.close)
+            ("Ctrl+Q", self, self.finalize)
             ])
 
     #def new_tab_from_clipboard(self, scripting=False, extract=False):
@@ -161,6 +161,18 @@ class MainWin(QMainWindow):
             idx = 0
         self.tab_widget.setCurrentIndex(idx)
         self.tab_widget.currentWidget().webkit.setFocus()
+
+    def finalize(self):
+        """ Just doing self.close() doesn't clean up; for example, closing
+        when the address bar popup is visible doesn't close the popup, and
+        leaves the window hidden and unclosable (except e.g. for KILL 15)
+
+        """
+
+        idx = self.tab_widget.currentIndex()
+        self.tab_widget.widget(idx).deleteLater()
+        self.tab_widget.removeTab(idx)
+        self.close()
 
     # action y connect en llamada en constructor
     def del_tab(self, idx=None):
