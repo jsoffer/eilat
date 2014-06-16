@@ -58,7 +58,7 @@ from global_store import export_mainwin, export_clipboard, export_database
 
 APP = QApplication([])
 APP.setApplicationName("Eilat")
-APP.setApplicationVersion("1.4.002")
+APP.setApplicationVersion("1.5.001")
 export_clipboard(APP.clipboard())
 
 def main():
