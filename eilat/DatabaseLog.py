@@ -49,13 +49,16 @@ class DatabaseLogLite(object):
         self.litedb.setDatabaseName(expanduser("~/.eilat/eilat.db"))
         self.litedb.open()
 
+        self.prefix = prefix
+
         if prefix != '':
             self.table = 'navigation_' + prefix.lower()
         else:
             self.table = 'navigation'
 
         query_nav = QSqlQuery(
-            "select host || path from %s " % (self.table) +
+            "select host || path from navigation " +
+            "where prefix = '%s' " % (prefix) +
             "order by count desc",
             self.litedb)
 
@@ -69,8 +72,8 @@ class DatabaseLogLite(object):
         path = path.replace("'", "%27")
 
         insert_or_ignore = (
-            "insert or ignore into %s (host, path) " % (self.table) +
-            "values ('%s', '%s')" % (host, path))
+            "insert or ignore into navigation (host, path, prefix) " +
+            "values ('%s', '%s', '%s')" % (host, path, self.prefix))
 
         update = (
             "update %s set count = count + 1 where " % (self.table) +
