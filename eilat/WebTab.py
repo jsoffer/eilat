@@ -60,8 +60,6 @@ class WebTab(QWidget):
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
 
-        self.address_bar.editingFinished.connect(self.webkit.setFocus)
-
         self.webkit.prefix_set.connect(partial(setattr, self, 'prefix'))
         self.webkit.prefix_set.connect(self.address_bar.set_model)
 
@@ -195,6 +193,7 @@ class WebTab(QWidget):
     def show_progress_bar(self):
         """ Callback for connection """
 
+        self.address_bar.completer().popup().close()
         self.search_frame.setVisible(False)
 
         self.pbar.setValue(0)
