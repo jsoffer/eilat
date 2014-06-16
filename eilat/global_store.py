@@ -38,11 +38,33 @@ from PyQt4.QtCore import QUrl
 from PyQt4.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt4.Qt import QClipboard
 
+
 CLIPBOARD = None
 MAINWIN = None
+DATABASE = None
 
 # intentionally updating (initializing) global constants
 # pylint: disable=W0603
+def export_database(datab):
+    """ Initialize the application; give global access to the clipboard """
+
+    global DATABASE
+
+    if DATABASE is None:
+        DATABASE = datab
+    else:
+        raise RuntimeError("Attempting to initialize database twice")
+# pylint: enable=W0603
+
+def database():
+    """ global access """
+    return DATABASE
+
+# intentionally updating (initializing) global constants
+# pylint: disable=W0603
+
+
+
 def export_clipboard(clipb):
     """ Initialize the application; give global access to the clipboard """
 

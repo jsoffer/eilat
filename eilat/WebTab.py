@@ -44,7 +44,7 @@ from functools import partial
 # local
 from WebView import WebView
 from libeilat import set_shortcuts, osd
-from global_store import mainwin, clipboard
+from global_store import mainwin, clipboard, database
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
@@ -54,7 +54,7 @@ class WebTab(QWidget):
         self.current_title = "[EMPTY]"
 
         # address bar
-        self.address_bar = AddressBar(mainwin().log.model(), parent=self)
+        self.address_bar = AddressBar(database().model(), parent=self)
 
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)

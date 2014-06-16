@@ -44,7 +44,7 @@ from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
                       encode_css, real_host, osd,
                       fake_key, fake_click)
-from global_store import mainwin, clipboard
+from global_store import mainwin, clipboard, database
 
 from os.path import expanduser
 from pprint import PrettyPrinter
@@ -219,7 +219,7 @@ class WebView(QWebView):
                 (host not in do_not_store) and
                 (not qurl.hasQuery()) and
                 len(path.split('/')) < 4):
-            mainwin().log.store_navigation(host, path)
+            database().store_navigation(host, path)
 
         print(">>>\t\t" + datetime.datetime.now().isoformat())
         print(">>> NAVIGATE " + qurl.toString())

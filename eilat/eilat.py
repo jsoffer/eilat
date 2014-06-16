@@ -48,12 +48,13 @@ from PyQt4.QtNetwork import QNetworkProxy
 
 # local
 from MainWin import MainWin
+from DatabaseLog import DatabaseLogLite
 
 from options import extract_options
 
 from sys import argv
 
-from global_store import export_mainwin, export_clipboard
+from global_store import export_mainwin, export_clipboard, export_database
 
 APP = QApplication([])
 APP.setApplicationName("Eilat")
@@ -72,6 +73,8 @@ def main():
         site = None
 
     options = extract_options(site)
+
+    export_database(DatabaseLogLite(options['prefix']))
 
     # Proxy
     proxy = QNetworkProxy()

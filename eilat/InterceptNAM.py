@@ -47,6 +47,7 @@ from CookieJar import CookieJar
 from libeilat import (is_local, non_whitelisted,
                       is_font, is_numerical,
                       encode_blocked)
+from global_store import database
 
 from pprint import PrettyPrinter
 import tldextract
@@ -74,8 +75,6 @@ class InterceptNAM(QNetworkAccessManager):
 
         self.cookie_jar = CookieJar(self, options)
         self.setCookieJar(self.cookie_jar)
-
-        self.log = parent.log
 
         def reply_complete(reply):
             """ Prints when a request completes, handles the filter that
@@ -175,9 +174,10 @@ class InterceptNAM(QNetworkAccessManager):
                                                                  domain,
                                                                  suffix)),
                 # found the requested URL in the blacklist
-                (self.whitelist is None and self.log.is_blacklisted(domain,
-                                                                    suffix,
-                                                                    subdomain),
+                (self.whitelist is None and
+                 database().is_blacklisted(domain,
+                                           suffix,
+                                           subdomain),
                  "******* filter: %s || %s || %s " % (subdomain,
                                                       domain,
                                                       suffix))

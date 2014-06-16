@@ -42,7 +42,6 @@ from functools import partial
 # local
 from WebTab import WebTab
 from InterceptNAM import InterceptNAM
-from DatabaseLog import DatabaseLogLite
 
 from libeilat import fix_url, set_shortcuts, extract_url
 from global_store import clipboard
@@ -56,7 +55,6 @@ class MainWin(QMainWindow):
 
         self.last_closed = None
 
-        self.log = DatabaseLogLite(options['prefix'])
         self.netmanager = InterceptNAM(options, self)
 
         self.tab_widget = QTabWidget(self)
