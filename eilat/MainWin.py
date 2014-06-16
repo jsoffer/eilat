@@ -211,7 +211,7 @@ class MainWin(QMainWindow):
         """
         tab = WebTab(parent=self.tab_widget)
 
-        self.tab_widget.addTab(tab, "New tab")
+        self.tab_widget.addTab(tab, tab.current_title)
 
         self.tab_widget.setCurrentWidget(tab)
         tab_idx = self.tab_widget.indexOf(tab)
