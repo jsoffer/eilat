@@ -51,6 +51,8 @@ from subprocess import Popen, PIPE
 
 from threading import Thread
 
+from global_store import clipboard
+
 def fix_url(url):
     """ Converts an url string to a QUrl object; checks if turning to
     search query is necessary
@@ -272,4 +274,11 @@ def fake_click(widget):
         Qt.KeyboardModifiers())
 
     QApplication.sendEvent(widget, exit_event)
+
+
+def store_and_notify(notify, request):
+    """ notify and save to clipboard """
+    message = request.url().toString() + "\n" + notify
+    osd(message)
+    clipboard(request)
 

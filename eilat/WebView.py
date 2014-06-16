@@ -43,14 +43,13 @@ from functools import partial
 from InterceptNAM import InterceptNAM
 from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
-                      encode_css, real_host, osd,
+                      encode_css, real_host, store_and_notify,
                       fake_key, fake_click)
 from global_store import (mainwin, clipboard, database,
                           has_manager, register_manager, get_manager)
 from options import extract_options
 
 from os.path import expanduser
-from pprint import PrettyPrinter
 from re import sub
 import datetime
 
@@ -70,11 +69,10 @@ class WebView(QWebView):
 
         self.paste = False
         self.save = False
+        self.open_scripted = False
 
         self.navlist = []
         self.in_focus = None
-
-        self.printer = PrettyPrinter(indent=4).pprint
 
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
 
@@ -96,10 +94,11 @@ class WebView(QWebView):
 
             """
             if self.paste:
-                mainwin().add_tab(qurl)
+                mainwin().add_tab(qurl, scripting=self.open_scripted)
                 self.paste = False
             else:
                 self.navigate(qurl)
+            self.open_scripted = False
 
         self.linkClicked.connect(on_link_click)
 
@@ -122,16 +121,10 @@ class WebView(QWebView):
 
         self.urlChanged.connect(url_changed)
 
-        def process_clipboard(notify, request):
-            """ notify and save to clipboard """
-            message = request.url().toString() + "\n" + notify
-            osd(message)
-            clipboard(request)
-
         self.page().downloadRequested.connect(partial(
-            process_clipboard, "Download Requested"))
+            store_and_notify, "Download Requested"))
         self.page().unsupportedContent.connect(partial(
-            process_clipboard, "Unsupported Content"))
+            store_and_notify, "Unsupported Content"))
 
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
         #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
@@ -182,6 +175,7 @@ class WebView(QWebView):
             ("Shift+L", self, partial(self.spatialnav, RIGHT)),
             # clipboard related behavior
             ("I", self, partial(setattr, self, 'paste', True)),
+            ("O", self, partial(setattr, self, 'open_scripted', True)),
             ("S", self, partial(setattr, self, 'save', True)),
             ])
 
