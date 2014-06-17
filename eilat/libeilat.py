@@ -51,7 +51,7 @@ from subprocess import Popen, PIPE
 
 from threading import Thread
 
-from global_store import clipboard
+from global_store import clipboard, get_manager
 
 def fix_url(url):
     """ Converts an url string to a QUrl object; checks if turning to
@@ -282,3 +282,23 @@ def store_and_notify(notify, request):
     osd(message)
     clipboard(request)
 
+def toggle_show_logs(prefix, detail=False):
+    """ Inverts a value, toggling between printing responses
+    that were accepted by the webkit or (some of) those that
+    were filtered at some point.
+
+    """
+
+    netmanager = get_manager(prefix())
+    if detail:
+        netmanager.show_detail ^= True
+        if netmanager.show_detail:
+            print("---- SHOWING DETAILS ----")
+        else:
+            print("---- HIDING DETAILS ----")
+    else:
+        netmanager.show_log ^= True
+        if netmanager.show_log:
+            print("---- SHOWING LOG ----")
+        else:
+            print("---- HIDING LOG ----")

@@ -44,6 +44,7 @@ from InterceptNAM import InterceptNAM
 from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
                       encode_css, real_host, store_and_notify,
+                      toggle_show_logs,
                       fake_key, fake_click)
 from global_store import (mainwin, clipboard, database,
                           has_manager, register_manager, get_manager)
@@ -173,6 +174,13 @@ class WebView(QWebView):
             ("Shift+J", self, partial(self.spatialnav, DOWN)),
             ("Shift+K", self, partial(self.spatialnav, UP)),
             ("Shift+L", self, partial(self.spatialnav, RIGHT)),
+            # toggles
+            # right now self.prefix is None; lambda allows to retrieve the
+            # value it will have when toggle_show_logs is called
+            ("Z", self, partial(
+                toggle_show_logs, lambda: self.prefix, detail=True)),
+            ("Shift+Z", self, partial(
+                toggle_show_logs, lambda: self.prefix)),
             # clipboard related behavior
             ("I", self, partial(setattr, self, 'paste', True)),
             ("O", self, partial(setattr, self, 'open_scripted', True)),
@@ -212,17 +220,16 @@ class WebView(QWebView):
             print("SET PREFIX: ", self.prefix)
             # this is the first navigation on this tab/webkit; replace
             # the Network Access Manager
+            if self.prefix is None:
+                raise RuntimeError(
+                    "prefix failed to be set... 'options' is broken")
+
             if not has_manager(self.prefix):
                 register_manager(self.prefix, InterceptNAM(options, None))
             if not has_manager(self.prefix):
                 raise RuntimeError("prefix manager not registered...")
 
-            self.page().setNetworkAccessManager(get_manager(self.prefix))
-
-
-        if self.prefix is None:
-            raise RuntimeError(
-                "prefix failed to be set... 'options' is broken")
+        self.page().setNetworkAccessManager(get_manager(self.prefix))
 
         ### LOG NAVIGATION
         host = sub("^www.", "", qurl.host())
