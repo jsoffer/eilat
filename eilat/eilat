@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.4dm
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -38,10 +38,6 @@ davydm@gmail.com
    THE POSSIBILITY OF SUCH DAMAGE.
 
 """
-
-# to keep some support of python2
-import sip
-sip.setapi('QString', 2)
 
 from PyQt4.Qt import QApplication
 from PyQt4.QtNetwork import QNetworkProxy
