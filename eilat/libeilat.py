@@ -34,7 +34,7 @@
 
 """
 
-from PyQt4.QtGui import QShortcut, QMouseEvent, QKeyEvent, QCursor
+from PyQt4.QtGui import QShortcut, QMouseEvent, QKeyEvent, QCursor, QToolTip
 from PyQt4.QtCore import QUrl, QEvent, Qt
 from PyQt4.Qt import QApplication
 
@@ -43,11 +43,8 @@ from urllib.parse import parse_qsl, urlparse
 import tldextract
 
 from base64 import encodestring
-from subprocess import Popen, PIPE
 
-from threading import Thread
-
-from global_store import clipboard, get_manager
+from global_store import mainwin, clipboard, get_manager
 
 def fix_url(url):
     """ Converts an url string to a QUrl object; checks if turning to
@@ -172,31 +169,14 @@ def encode_blocked(message, url):
     return (header + encoded).decode()
 
 def osd(message, corner=False):
-    """ Call the external program osd_cat from a non-blocking thread """
-
-    params_color = ['-cblack', '-uwhite', '-O3']
-    params_font = ['-f-*-*-*-*-*-*-20-*-*-*-*-*-*-*']
-    params_time = ['-d8000']
+    """ Use a tooltip to substitute OSD transient messaging """
 
     if corner:
-        params_position = ['-ptop', '-Aright']
+        position = mainwin().tab_widget.tabBar().geometry().bottomLeft()
     else:
-        params_position = ['-pmiddle', '-Acenter']
+        position = mainwin().tab_widget.tabBar().geometry().bottomRight()
 
-    def call_osd():
-        """ As a lambda it would be too long """
-        try:
-            Popen(['osd_cat', '-l2'] +
-                  params_position +
-                  params_color +
-                  params_font +
-                  params_time,
-                  stdin=PIPE).communicate(input=message.encode())
-        except FileNotFoundError:
-            print("OSD not available - install osd_cat from xosd")
-            print("OSD Message was: " + message)
-
-    Thread(target=call_osd).start()
+    QToolTip.showText(position, message)
 
 def extract_url(url):
     """ From string to string.
