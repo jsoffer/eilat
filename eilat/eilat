@@ -46,8 +46,6 @@ from PyQt4.QtNetwork import QNetworkProxy
 from MainWin import MainWin
 from DatabaseLog import DatabaseLogLite
 
-from options import extract_options
-
 from sys import argv
 
 from global_store import export_mainwin, export_clipboard, export_database
@@ -67,8 +65,6 @@ def main():
         site = argv[1]
     else:
         site = None
-
-    options = extract_options(site)
 
     export_database(DatabaseLogLite())
 
