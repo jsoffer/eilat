@@ -106,16 +106,6 @@ class MainWin(QMainWindow):
         if url is not None:
             self.add_tab(url)
 
-    def close_event(self, event):
-        """ Intercept the imminent end of the run; save cookies
-
-        An alternative is QCoreApplication.aboutToQuit
-
-        """
-
-        close_managers()
-        event.accept()
-
     # aux. action (en register_actions)
     def inc_tab(self, incby=1):
         """ Takes the current tab index, modifies wrapping around,
@@ -145,19 +135,22 @@ class MainWin(QMainWindow):
         idx = self.tab_widget.currentIndex()
         self.tab_widget.widget(idx).deleteLater()
         self.tab_widget.removeTab(idx)
+        close_managers()
         self.close()
 
     # action y connect en llamada en constructor
     def del_tab(self, idx=None):
         """ Closes a tab. If 'idx' is set, it was called by a
-        tabCloseRequested signal. If not, it was called by a keyboard
-        action and closes the currently active tab.
+        tabCloseRequested signal (maybe mid click). If not,
+        it was called by a keyboard action and closes the
+        currently active tab.
 
         Afterwards the active tab has focus on its webkit area.
 
         It closes the window when deleting the last active tab.
 
         """
+
         if idx is None:
             idx = self.tab_widget.currentIndex()
         self.tab_widget.widget(idx).webkit.stop()
@@ -167,6 +160,7 @@ class MainWin(QMainWindow):
         self.tab_widget.widget(idx).deleteLater()
         self.tab_widget.removeTab(idx)
         if len(self.tab_widget) == 0:
+            close_managers()
             self.close()
         else:
             self.tab_widget.currentWidget().webkit.setFocus()
@@ -199,11 +193,6 @@ class MainWin(QMainWindow):
             tab.webkit.navigate(qurl)
         else:
             tab.address_bar.setFocus()
-
-    # Clean reimplement for Qt
-    # pylint: disable=C0103
-    closeEvent = close_event
-    # pylint: enable=C0103
 
 class MidClickTabBar(QTabBar):
     """ Overloads middle click to close the clicked tab """
