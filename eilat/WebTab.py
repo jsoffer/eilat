@@ -57,6 +57,10 @@ class WebTab(QWidget):
         # address bar
         self.address_bar = AddressBar(parent=self)
 
+        # notifier
+
+        self.notifier = QLabel("")
+
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
 
@@ -106,10 +110,11 @@ class WebTab(QWidget):
         grid.setVerticalSpacing(0)
         grid.setContentsMargins(0, 0, 0, 0)
 
-        grid.addWidget(self.webkit, 1, 0)
+        grid.addWidget(self.webkit, 1, 0, 1, 2)
         grid.setRowStretch(1, 1)
         grid.addWidget(self.search_frame, 2, 0)
         grid.addWidget(self.address_bar, 0, 0)
+        grid.addWidget(self.notifier, 0, 1, 1, 1)
         grid.addWidget(self.pbar, 3, 0)
         grid.addWidget(self.statusbar, 4, 0)
 
