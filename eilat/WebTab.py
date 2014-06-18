@@ -84,6 +84,20 @@ class WebTab(QWidget):
         self.webkit.titleChanged.connect(self.save_title)
         self.webkit.loadProgress.connect(self.load_progress)
 
+        def fill_notifier(message, _):
+            """ sends a message to be displayed by the notifier, and starts a
+            timer to hide it after eight seconds
+
+            """
+            self.notifier.setText(message)
+            self.notifier.show()
+            QTimer.singleShot(8000, self.notifier.hide)
+
+        self.webkit.page().downloadRequested.connect(
+            partial(fill_notifier, "download"))
+        self.webkit.page().unsupportedContent.connect(
+            partial(fill_notifier, "unsupported"))
+
         # progress bar
         self.pbar = QProgressBar(self)
 
@@ -218,7 +232,7 @@ class WebTab(QWidget):
             self.webkit.setFocus()
 
         if not success:
-            self.notifier.setText("loadFinished: failed")
+            self.notifier.setText("[F]")
             self.notifier.show()
             QTimer.singleShot(8000, self.notifier.hide)
             print("loadFinished: failed")

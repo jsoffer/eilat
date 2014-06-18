@@ -34,7 +34,7 @@
 
 """
 
-from PyQt4.QtGui import QShortcut, QMouseEvent, QKeyEvent, QCursor, QToolTip
+from PyQt4.QtGui import QShortcut, QMouseEvent, QKeyEvent, QCursor
 from PyQt4.QtCore import QUrl, QEvent, Qt
 from PyQt4.Qt import QApplication
 
@@ -44,7 +44,7 @@ import tldextract
 
 from base64 import encodestring
 
-from global_store import mainwin, clipboard, get_manager
+from global_store import get_manager
 
 def fix_url(url):
     """ Converts an url string to a QUrl object; checks if turning to
@@ -168,16 +168,6 @@ def encode_blocked(message, url):
     encoded = encodestring(content.encode())
     return (header + encoded).decode()
 
-def osd(message, corner=False):
-    """ Use a tooltip to substitute OSD transient messaging """
-
-    if corner:
-        position = mainwin().tab_widget.tabBar().geometry().bottomLeft()
-    else:
-        position = mainwin().tab_widget.tabBar().geometry().bottomRight()
-
-    QToolTip.showText(position, message)
-
 def extract_url(url):
     """ From string to string.
 
@@ -252,13 +242,6 @@ def fake_click(widget):
         Qt.KeyboardModifiers())
 
     QApplication.sendEvent(widget, exit_event)
-
-
-def store_and_notify(notify, request):
-    """ notify and save to clipboard """
-    message = request.url().toString() + "\n" + notify
-    osd(message)
-    clipboard(request)
 
 def toggle_show_logs(prefix, detail=False):
     """ Inverts a value, toggling between printing responses

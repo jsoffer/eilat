@@ -43,8 +43,7 @@ from functools import partial
 from InterceptNAM import InterceptNAM
 from libeilat import (fix_url, set_shortcuts, node_neighborhood,
                       UP, DOWN, LEFT, RIGHT,
-                      encode_css, real_host, store_and_notify,
-                      toggle_show_logs,
+                      encode_css, real_host, toggle_show_logs,
                       fake_key, fake_click)
 from global_store import (mainwin, clipboard, database,
                           has_manager, register_manager, get_manager)
@@ -122,10 +121,8 @@ class WebView(QWebView):
 
         self.urlChanged.connect(url_changed)
 
-        self.page().downloadRequested.connect(partial(
-            store_and_notify, "Download Requested"))
-        self.page().unsupportedContent.connect(partial(
-            store_and_notify, "Unsupported Content"))
+        self.page().downloadRequested.connect(partial(clipboard))
+        self.page().unsupportedContent.connect(partial(clipboard))
 
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
         #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
