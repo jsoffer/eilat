@@ -37,14 +37,14 @@
 from PyQt4.QtGui import (QWidget, QProgressBar, QStatusBar, QGridLayout,
                          QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent)
 from PyQt4.QtWebKit import QWebPage, QWebSettings
-from PyQt4.QtCore import Qt, QEvent
+from PyQt4.QtCore import Qt, QEvent, QTimer
 
 from functools import partial
 
 # local
 from WebView import WebView
 from DatabaseLog import DatabaseLogLite
-from libeilat import set_shortcuts, osd
+from libeilat import set_shortcuts
 from global_store import mainwin, clipboard
 
 class WebTab(QWidget):
@@ -60,6 +60,7 @@ class WebTab(QWidget):
         # notifier
 
         self.notifier = QLabel("")
+        self.notifier.hide()
 
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
@@ -217,7 +218,9 @@ class WebTab(QWidget):
             self.webkit.setFocus()
 
         if not success:
-            osd("loadFinished: failed", corner=True)
+            self.notifier.setText("loadFinished: failed")
+            self.notifier.show()
+            QTimer.singleShot(8000, self.notifier.hide)
             print("loadFinished: failed")
 
 
