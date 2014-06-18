@@ -41,21 +41,18 @@ from functools import partial
 
 # local
 from WebTab import WebTab
-from InterceptNAM import InterceptNAM
 
 from libeilat import fix_url, set_shortcuts, extract_url
-from global_store import clipboard
+from global_store import clipboard, close_managers
 
 class MainWin(QMainWindow):
     """ It's a window, stores a TabWidget """
 
-    def __init__(self, options, parent=None):
+    def __init__(self, parent=None):
         super(MainWin, self).__init__(parent)
         self.setWindowTitle("Eilat Browser")
 
         self.last_closed = None
-
-        self.netmanager = InterceptNAM(options, self)
 
         self.tab_widget = QTabWidget(self)
         self.tab_widget.setTabBar(MidClickTabBar())
@@ -116,6 +113,7 @@ class MainWin(QMainWindow):
 
         """
 
+        close_managers()
         self.netmanager.cookie_jar.store_cookies()
         event.accept()
 

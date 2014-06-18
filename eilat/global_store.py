@@ -68,6 +68,12 @@ def get_manager(prefix):
     """
     return MANAGERS[prefix]
 
+def close_managers():
+    """ Do cleanup on all the cookie jars """
+
+    for prefix in MANAGERS:
+        MANAGERS[prefix].cookie_jar.store_cookies()
+
 # intentionally updating (initializing) global constants
 # pylint: disable=W0603
 def export_database(datab):
