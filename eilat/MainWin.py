@@ -114,7 +114,6 @@ class MainWin(QMainWindow):
         """
 
         close_managers()
-        self.netmanager.cookie_jar.store_cookies()
         event.accept()
 
     # aux. action (en register_actions)
