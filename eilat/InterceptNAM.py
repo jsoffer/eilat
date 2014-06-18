@@ -34,11 +34,7 @@
 
 """
 
-# to keep some support of python2
-try:
-    from urllib.parse import parse_qsl
-except ImportError:
-    from urlparse import parse_qsl
+from urllib.parse import parse_qsl
 
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.QtCore import QUrl
@@ -79,6 +75,9 @@ class InterceptNAM(QNetworkAccessManager):
         def reply_complete(reply):
             """ Prints when a request completes, handles the filter that
             chooses between successful and filtered requests
+
+            Replies only - if the request is cached and doesn't have to go
+            through the network, it will not be reported here
 
             """
 
@@ -122,6 +121,8 @@ class InterceptNAM(QNetworkAccessManager):
                 post_str = data.peek(4096).data().decode()
                 print("_-_-_-_")
                 print(url)
+                # parse_qsl is imported on a python3-only way;
+                # fixable (or maskable) for python2; worth it?
                 self.printer(parse_qsl(post_str, keep_blank_values=True))
                 print("-_-_-_-")
         except UnicodeDecodeError:
@@ -191,6 +192,10 @@ class InterceptNAM(QNetworkAccessManager):
                     QNetworkAccessManager.GetOperation,
                     QNetworkRequest(QUrl(encode_blocked(description, url))),
                     None)
+
+        #if self.show_log:
+        #    print("%s%s%s %s%s" % (Fore.MAGENTA
+        #                           something something something Fore.RESET)
 
         return QNetworkAccessManager.createRequest(self, operation,
                                                    request, data)

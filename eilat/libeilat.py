@@ -38,11 +38,7 @@ from PyQt4.QtGui import QShortcut, QMouseEvent, QKeyEvent, QCursor
 from PyQt4.QtCore import QUrl, QEvent, Qt
 from PyQt4.Qt import QApplication
 
-# to keep some support of python2
-try:
-    from urllib.parse import parse_qsl, urlparse
-except ImportError:
-    from urlparse import parse_qsl, urlparse
+from urllib.parse import parse_qsl, urlparse
 
 import tldextract
 
@@ -207,6 +203,8 @@ def extract_url(url):
 
     Takes a "facebook.com/something/q?u=http://something.com/&etc..." form
     Returns the http://something.com
+
+    python3-only, because of urlparse, parse_qsl; fixable, is it worth it?
 
     """
     if url is None:
