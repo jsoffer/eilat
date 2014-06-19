@@ -41,6 +41,8 @@ from PyQt4.QtCore import Qt, QEvent, QTimer
 
 from functools import partial
 
+from collections import deque
+
 # local
 from WebView import WebView
 from DatabaseLog import DatabaseLogLite
@@ -59,8 +61,7 @@ class WebTab(QWidget):
 
         # notifier
 
-        self.notifier = QLabel("")
-        self.notifier.hide()
+        self.notifier = NotifyLabel(parent=self)
 
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
@@ -84,14 +85,12 @@ class WebTab(QWidget):
         self.webkit.titleChanged.connect(self.save_title)
         self.webkit.loadProgress.connect(self.load_progress)
 
-        def fill_notifier(message, _):
+        def fill_notifier(message, request):
             """ sends a message to be displayed by the notifier, and starts a
             timer to hide it after eight seconds
 
             """
-            self.notifier.setText(message)
-            self.notifier.show()
-            QTimer.singleShot(8000, self.notifier.hide)
+            self.notifier.push_text(message + " " + request.url().toString())
 
         self.webkit.page().downloadRequested.connect(
             partial(fill_notifier, "download"))
@@ -232,9 +231,7 @@ class WebTab(QWidget):
             self.webkit.setFocus()
 
         if not success:
-            self.notifier.setText("[F]")
-            self.notifier.show()
-            QTimer.singleShot(8000, self.notifier.hide)
+            self.notifier.push_text("[F]")
             print("loadFinished: failed")
 
 
@@ -332,3 +329,35 @@ class AddressBar(QLineEdit):
         """ Sets the background color of the address bar """
         self.setStyleSheet(
             "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)
+
+class NotifyLabel(QLabel):
+    """ A "poor man's" tooltip, that can stack notifications """
+
+    def __init__(self, parent=None):
+        super(NotifyLabel, self).__init__(parent)
+        self.hide()
+        self.content = deque(maxlen=4)
+
+    def push_text(self, string):
+        """ Add an entry to the notification. It will, by itself, be
+        removed after eight seconds.
+
+        """
+
+        self.content.append(string)
+        self.setText(" " + " | ".join(self.content) + " ")
+        self.show()
+        QTimer.singleShot(8000, self.pop_text)
+
+    def pop_text(self):
+        """ Some entry's timeout has triggered; let's remove the oldest one.
+        If there's no entry (because the queue spilled before having a chance
+        to pop) do nothing. Afterwards, if the queue is empty, hide it.
+
+        """
+
+        if len(self.content) > 0:
+            self.content.popleft()
+            self.setText(" " + " | ".join(self.content) + " ")
+        if len(self.content) == 0:
+            self.hide()
