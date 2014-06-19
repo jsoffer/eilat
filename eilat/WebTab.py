@@ -174,7 +174,7 @@ class WebTab(QWidget):
             ("Ctrl+L", self.webkit, self.address_bar.setFocus),
             ("Escape", self.address_bar, self.webkit.setFocus),
             ("Ctrl+I", self.address_bar, navigate_completion),
-            ("Ctrl+O", self.address_bar, partial(
+            ("Ctrl+P", self.address_bar, partial(
                 navigate_completion, Qt.Key_Up)),
             # toggle
             ("Ctrl+Space", self.webkit, toggle_status),
