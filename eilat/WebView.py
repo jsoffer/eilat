@@ -80,8 +80,8 @@ class WebView(QWebView):
             QWebSettings.PluginsEnabled, False)
         self.settings().setAttribute(
             QWebSettings.JavascriptEnabled, False)
-        self.settings().setAttribute(
-            QWebSettings.SpatialNavigationEnabled, True)
+        #self.settings().setAttribute(
+        #    QWebSettings.SpatialNavigationEnabled, True)
         self.settings().setAttribute(
             QWebSettings.FrameFlatteningEnabled, True)
 
