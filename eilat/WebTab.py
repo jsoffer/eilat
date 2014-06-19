@@ -313,7 +313,8 @@ class AddressBar(QLineEdit):
             ("Ctrl+H", self, self.backspace),
             # do not create a new tab when on the address bar;
             # popup related trouble
-            ("Ctrl+T", self, lambda: None)
+            ("Ctrl+T", self, lambda: None),
+            ("Ctrl+Shift+T", self, lambda: None)
         ])
 
     def set_model(self, prefix):
