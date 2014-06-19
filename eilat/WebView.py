@@ -354,8 +354,7 @@ class WebView(QWebView):
 
         # We're done, we have a node to focus; focus it,
         # send a signal that will be bound to the status bar
-        self.page().linkHovered.emit(str(self.in_focus.geometry()) + " " +
-                                     self.in_focus.attribute("href"),
+        self.page().linkHovered.emit(self.in_focus.attribute("href"),
                                      None, None)
 
 
