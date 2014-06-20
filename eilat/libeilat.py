@@ -44,7 +44,7 @@ import tldextract
 
 from base64 import encodestring
 
-from global_store import get_manager
+from eilat.global_store import get_manager
 
 def fix_url(url):
     """ Converts an url string to a QUrl object; checks if turning to

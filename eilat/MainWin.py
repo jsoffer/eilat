@@ -40,10 +40,10 @@ from PyQt4.QtCore import Qt
 from functools import partial
 
 # local
-from WebTab import WebTab
+from eilat.WebTab import WebTab
 
-from libeilat import fix_url, set_shortcuts, extract_url
-from global_store import clipboard, close_managers
+from eilat.libeilat import fix_url, set_shortcuts, extract_url
+from eilat.global_store import clipboard, close_managers
 
 class MainWin(QMainWindow):
     """ It's a window, stores a TabWidget """

@@ -39,11 +39,11 @@ from urllib.parse import parse_qsl
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt4.QtCore import QUrl
 
-from CookieJar import CookieJar
-from libeilat import (is_local, non_whitelisted,
-                      is_font, is_numerical,
-                      encode_blocked)
-from global_store import database
+from eilat.CookieJar import CookieJar
+from eilat.libeilat import (is_local, non_whitelisted,
+                            is_font, is_numerical,
+                            encode_blocked)
+from eilat.global_store import database
 
 from pprint import PrettyPrinter
 import tldextract

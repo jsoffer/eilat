@@ -40,14 +40,14 @@ from PyQt4.QtCore import Qt, QUrl, pyqtSignal
 from functools import partial
 
 #from WebPage import WebPage
-from InterceptNAM import InterceptNAM
-from libeilat import (fix_url, set_shortcuts, node_neighborhood,
-                      UP, DOWN, LEFT, RIGHT,
-                      encode_css, real_host, toggle_show_logs,
-                      fake_key, fake_click)
-from global_store import (mainwin, clipboard, database,
-                          has_manager, register_manager, get_manager)
-from options import extract_options
+from eilat.InterceptNAM import InterceptNAM
+from eilat.libeilat import (fix_url, set_shortcuts, node_neighborhood,
+                            UP, DOWN, LEFT, RIGHT,
+                            encode_css, real_host, toggle_show_logs,
+                            fake_key, fake_click)
+from eilat.global_store import (mainwin, clipboard, database,
+                                has_manager, register_manager, get_manager)
+from eilat.options import extract_options
 
 from os.path import expanduser
 from re import sub
@@ -272,7 +272,7 @@ class WebView(QWebView):
         """ Removes all '??? {position: fixed}' nodes """
 
         frame = self.page().mainFrame()
-        fixables = "div, header, footer, nav"
+        fixables = "div, header, header > a, footer, nav"
         nodes = [node for node in frame.findAllElements(fixables)
                  if node.styleProperty("position",
                                        QWebElement.ComputedStyle) == 'fixed']

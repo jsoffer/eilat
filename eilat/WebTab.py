@@ -44,10 +44,10 @@ from functools import partial
 from collections import deque
 
 # local
-from WebView import WebView
-from DatabaseLog import DatabaseLogLite
-from libeilat import set_shortcuts
-from global_store import mainwin, clipboard
+from eilat.WebView import WebView
+from eilat.DatabaseLog import DatabaseLogLite
+from eilat.libeilat import set_shortcuts
+from eilat.global_store import mainwin, clipboard
 
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
