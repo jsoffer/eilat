@@ -223,8 +223,12 @@ class WebView(QWebView):
 
             if not has_manager(self.prefix):
                 register_manager(self.prefix, InterceptNAM(options, None))
-            if not has_manager(self.prefix):
-                raise RuntimeError("prefix manager not registered...")
+
+        if self.prefix is None:
+            raise RuntimeError(
+                "prefix failed to be set... 'options' is broken")
+        if not has_manager(self.prefix):
+            raise RuntimeError("prefix manager not registered...")
 
         self.page().setNetworkAccessManager(get_manager(self.prefix))
 
