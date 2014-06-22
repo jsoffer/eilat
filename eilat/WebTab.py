@@ -63,11 +63,24 @@ class WebTab(QWidget):
 
         self.notifier = NotifyLabel(parent=self)
 
+        prefix_label = QLabel(parent=self)
+        prefix_label.hide()
+
+        def update_prefix_label(string):
+            """ if on a non-global web instance, show the instance's prefix
+            next to the address bar
+
+            """
+            if string:
+                prefix_label.setText(string)
+                prefix_label.show()
+
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
 
         self.webkit.prefix_set.connect(partial(setattr, self, 'prefix'))
         self.webkit.prefix_set.connect(self.address_bar.set_model)
+        self.webkit.prefix_set.connect(update_prefix_label)
 
         def update_address(qurl):
             """ Just because the 'connect' gives a QUrl and setText receives
@@ -123,14 +136,16 @@ class WebTab(QWidget):
         grid.setSpacing(0)
         grid.setVerticalSpacing(0)
         grid.setContentsMargins(0, 0, 0, 0)
-
-        grid.addWidget(self.webkit, 1, 0, 1, 2)
         grid.setRowStretch(1, 1)
-        grid.addWidget(self.search_frame, 2, 0)
-        grid.addWidget(self.address_bar, 0, 0)
-        grid.addWidget(self.notifier, 0, 1, 1, 1)
-        grid.addWidget(self.pbar, 3, 0)
-        grid.addWidget(self.statusbar, 4, 0)
+
+        grid.addWidget(prefix_label, 0, 0, 1, 1)
+        grid.addWidget(self.address_bar, 0, 1, 1, 1)
+        grid.addWidget(self.notifier, 0, 2, 1, 1)
+
+        grid.addWidget(self.webkit, 1, 0, 1, 3)
+        grid.addWidget(self.search_frame, 2, 0, 1, 3)
+        grid.addWidget(self.pbar, 3, 0, 1, 3)
+        grid.addWidget(self.statusbar, 4, 0, 1, 3)
 
         def toggle_status():
             """ One-time callback for QShortcut """
@@ -346,7 +361,7 @@ class NotifyLabel(QLabel):
         """
 
         self.content.append(string)
-        self.setText(" " + " | ".join(self.content) + " ")
+        self.setText(" " + "|".join(self.content) + " ")
         self.show()
         QTimer.singleShot(8000, self.pop_text)
 
