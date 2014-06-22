@@ -39,11 +39,13 @@ davydm@gmail.com
 
 """
 
+from eilat.SanityChecks import check_libraries
+check_libraries()
+
 from PyQt4.Qt import QApplication
 from PyQt4.QtNetwork import QNetworkProxy
 
 # local
-from eilat.SanityChecks import check_libraries
 from eilat.MainWin import MainWin
 from eilat.DatabaseLog import DatabaseLogLite
 from eilat.global_store import (export_mainwin,
@@ -51,8 +53,6 @@ from eilat.global_store import (export_mainwin,
                                 export_database)
 
 from sys import argv
-
-check_libraries()
 
 APP = QApplication([])
 APP.setApplicationName("Eilat")
