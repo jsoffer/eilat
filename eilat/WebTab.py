@@ -361,7 +361,7 @@ class NotifyLabel(QLabel):
         """
 
         self.content.append(string)
-        self.setText(" " + "|".join(self.content) + " ")
+        self.setText((" " + "|".join(self.content) + " ")[:80])
         self.show()
         QTimer.singleShot(8000, self.pop_text)
 
