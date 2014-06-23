@@ -45,10 +45,34 @@ class DatabaseLogLite(object):
     """
     def __init__(self):
 
+        ####### STARTUP
+
         super(DatabaseLogLite, self).__init__()
         self.litedb = QSqlDatabase("QSQLITE")
         self.litedb.setDatabaseName(expanduser("~/.eilat/eilat.db"))
         self.litedb.open()
+
+        ####### VALIDATION
+
+        tables = self.litedb.tables()
+        expected_tables = ['navigation', 'blacklist']
+        tables_ok = [k in tables for k in expected_tables]
+        if not all(tables_ok):
+            raise RuntimeError("tables missing from database")
+
+        fields_navigation = ['host', 'path', 'count', 'prefix']
+        fnav_ok = [self.litedb.record('navigation').contains(k)
+                   for k in fields_navigation]
+
+        if not all(fnav_ok):
+            raise RuntimeError("bad structure for 'navigation' table")
+
+        fields_blacklist = ['subdomain', 'domain', 'tld']
+        fbl_ok = [self.litedb.record('blacklist').contains(k)
+                  for k in fields_blacklist]
+
+        if not all(fbl_ok):
+            raise RuntimeError("bad structure for 'blacklist' table")
 
         # it seems to be unable to do completion if 'model' creates and
         # returns a locally scoped variable... why?
