@@ -39,8 +39,23 @@ davydm@gmail.com
 
 """
 
-from eilat.SanityChecks import check_libraries
+from eilat.SanityChecks import (check_libraries,
+                                check_proxy,
+                                check_python_3,
+                                check_dotfile)
+
+check_python_3()
 check_libraries()
+
+if not check_dotfile():
+    print("""
+        ----
+        Dotfiles not found. Please uncompress dot_eilat.tar.bz2 from
+        https://github.com/jsoffer/eilat/tree/master/eilat at your home
+        directory and rename the directory 'dot_eilat' to '.eilat'
+        ----
+    """)
+    raise RuntimeError("Bad dotfile structure")
 
 from PyQt4.Qt import QApplication
 from PyQt4.QtNetwork import QNetworkProxy
@@ -73,6 +88,9 @@ def main():
     export_database(DatabaseLogLite())
 
     # Proxy
+    if not check_proxy('localhost', 3128):
+        raise RuntimeError("No proxy detected?")
+
     proxy = QNetworkProxy()
     proxy.setType(QNetworkProxy.HttpProxy)
     proxy.setHostName('localhost')

@@ -1,7 +1,7 @@
 from setuptools import setup
 
 from sys import version_info
-if version_info < (3,0):
+if version_info < (3, 0):
     raise RuntimeError("""
         Using python 2.x? 3.x required (modify setup.py to disable the
         exception if the code has been ported)

@@ -1,9 +1,17 @@
 """ Checks to be performed before the application starts """
 
+from os.path import isdir, isfile, expanduser
+
 # do not warn about unused variables (nothing is going to be used,
 # just looked at
-# pylint: disable=W0612
 
+def check_python_3():
+    """ Using Python 3? """
+    from sys import version_info
+    if version_info < (3, 0):
+        raise RuntimeError("Using python 2.x? 3.x required")
+
+# pylint: disable=W0612
 def check_libraries():
     """ Are all required modules available? """
 
@@ -54,15 +62,33 @@ def check_libraries():
 
         raise
 
-def check_dotfile():
-    """ Is the dotfile structure usable enough? """
-    pass
+# pylint: enable=W0612
 
-def check_proxy():
+def check_dotfile():
+    """ Is the dotfile structure usable enough?
+
+    pending: is the .db structure the right one?
+
+    """
+
+    path = expanduser("~/.eilat")
+    return(isdir(path) and
+           isdir(path + '/cookies') and
+           isdir(path + '/css') and
+           isfile(path + '/eilat.db'))
+
+def check_proxy(host, port):
     """ Is there even an appearance of something resembling a proxy on the set
     up port?
 
     """
-    pass
-
-# pylint: enable=W0612
+    try:
+        import socket
+        proxy = socket.socket()
+        proxy.connect((host, port))
+        return True
+    except ConnectionRefusedError:
+        print("No proxy on %s:%s?" % (host, str(port)))
+        return False
+    finally:
+        proxy.close()
