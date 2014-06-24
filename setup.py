@@ -8,6 +8,17 @@ if version_info < (3, 0):
 
         """)
 
+try:
+    import PyQt4
+except ImportError:
+    print("""
+
+    PyQt4 is not available and setuptools is unable to install it from Pypi.
+    Please install PyQt4 from distribution package or from source and try again.
+
+    """)
+    raise
+
 setup(
     name='eilat-web-browser',
     version='1.5.2',
@@ -37,6 +48,6 @@ setup(
     packages=['eilat'],
     scripts=['bin/eilat'],
     #install_requires=['PyQt4', 'tldextract', 'colorama'],
-    install_requires=['tldextract', 'colorama'],
+    install_requires=['tldextract', 'colorama', 'PyYAML'],
     include_package_data=True
 )
