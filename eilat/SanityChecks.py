@@ -67,7 +67,8 @@ def check_libraries():
 def check_dotfile():
     """ Is the dotfile structure usable enough?
 
-    pending: is the .db structure the right one?
+    Is the .db structure the right one? That's verified directly on the
+    constructor of DatabaseLog
 
     """
 

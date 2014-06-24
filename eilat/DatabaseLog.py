@@ -53,6 +53,7 @@ class DatabaseLogLite(object):
         self.litedb.open()
 
         ####### VALIDATION
+        # verifies structure, not datatypes
 
         tables = self.litedb.tables()
         expected_tables = ['navigation', 'blacklist']
