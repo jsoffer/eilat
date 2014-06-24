@@ -44,6 +44,8 @@ from eilat.SanityChecks import (check_libraries,
                                 check_python_3,
                                 check_dotfile)
 
+from eilat.options import proxy_options
+
 check_python_3()
 check_libraries()
 
@@ -88,14 +90,21 @@ def main():
     export_database(DatabaseLogLite())
 
     # Proxy
-    if not check_proxy('localhost', 3128):
-        raise RuntimeError("No proxy detected?")
+    (proxy_host, proxy_port) = proxy_options()
 
-    proxy = QNetworkProxy()
-    proxy.setType(QNetworkProxy.HttpProxy)
-    proxy.setHostName('localhost')
-    proxy.setPort(3128)
-    QNetworkProxy.setApplicationProxy(proxy)
+    if check_proxy(proxy_host, proxy_port):
+        proxy = QNetworkProxy()
+        proxy.setType(QNetworkProxy.HttpProxy)
+        proxy.setHostName(proxy_host)
+        proxy.setPort(proxy_port)
+        QNetworkProxy.setApplicationProxy(proxy)
+    else:
+        print("""
+        Browsing without proxy - either it was disabled by leaving blank
+        the host or the port in the options.yaml file, or no open port was
+        found at host:port
+
+        """)
 
     mainwin = MainWin()
     export_mainwin(mainwin)

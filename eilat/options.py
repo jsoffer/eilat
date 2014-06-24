@@ -8,6 +8,16 @@ import tldextract
 import yaml
 from os.path import expanduser
 
+def proxy_options():
+    """ Extracts the proxy information from YAML user settings. If any is
+    empty, proxy will be disabled. If the fields do not exist (not checked)
+    the app will fail hard.
+
+    """
+    with open(expanduser("~/.eilat/options.yaml")) as yaml_file:
+        options = yaml.safe_load(yaml_file)['proxy']
+
+    return (options['host'], options['port'])
 
 def extract_options(url):
     """ Given a site, decide if cookies are allowed, if only some sites

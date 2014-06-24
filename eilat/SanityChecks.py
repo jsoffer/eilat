@@ -76,6 +76,7 @@ def check_dotfile():
     return(isdir(path) and
            isdir(path + '/cookies') and
            isdir(path + '/css') and
+           isfile(path + '/options.yaml') and
            isfile(path + '/eilat.db'))
 
 def check_proxy(host, port):
@@ -83,6 +84,10 @@ def check_proxy(host, port):
     up port?
 
     """
+
+    if host is None or port is None:
+        return False
+
     try:
         import socket
         proxy = socket.socket()
