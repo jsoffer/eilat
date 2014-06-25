@@ -1,5 +1,6 @@
 """ Checks to be performed before the application starts """
 
+from os import mkdir
 from os.path import isdir, isfile, expanduser
 
 # do not warn about unused variables (nothing is going to be used,
@@ -73,10 +74,19 @@ def check_dotfile():
     """
 
     path = expanduser("~/.eilat")
-    return(isdir(path) and
-           isdir(path + '/cookies') and
-           isdir(path + '/css') and
-           isfile(path + '/options.yaml'))
+
+    if not isdir(path):
+        mkdir(path)
+        mkdir(path + '/cookies')
+        mkdir(path + '/css')
+
+        with open(path + '/options.yaml', 'w') as yaml_file:
+            yaml_file.write(OPTIONS_YAML)
+
+    if (
+            isdir(path) and isdir(path + '/cookies') and isdir(path + '/css')
+            and isfile(path + '/options.yaml')):
+        return True
 
 def check_proxy(host, port):
     """ Is there even an appearance of something resembling a proxy on the set
@@ -97,3 +107,52 @@ def check_proxy(host, port):
         return False
     finally:
         proxy.close()
+
+OPTIONS_YAML = """# default options.yaml, written from SanityChecks.py
+proxy:
+    host:
+    port:
+
+sites:
+    general:
+        host_whitelist:
+        cookie_allow: [
+            github.com ]
+        cookie_file:
+        prefix: ''
+
+    facebook:
+        host_whitelist: [
+            facebook.com,
+            akamaihd.net,
+            fbcdn.net ]
+        cookie_allow: [
+            facebook.com
+            ]
+        cookie_file: fbcookies.cj
+        prefix: FB
+
+    twitter:
+        host_whitelist: [
+            twitter.com,
+            twimg.com
+            ]
+        cookie_allow: [
+            twitter.com
+            ]
+        cookie_file: twcookies.cj
+        prefix: TW
+
+    google:
+        host_whitelist: [
+            google.com,
+            google.com.mx,
+            googleusercontent.com,
+            gstatic.com,
+            googleapis.com
+            ]
+        cookie_allow: [
+            google.com ]
+        cookie_file: gcookies.cj
+        prefix: G
+"""
