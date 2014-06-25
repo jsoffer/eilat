@@ -52,7 +52,8 @@ check_libraries()
 if not check_dotfile():
     print("""
         ----
-        Dotfiles not found. Please uncompress dot_eilat.tar.bz2 from
+        Dotfiles not found, despite an attempt to create defaults.
+        Please uncompress dot_eilat.tar.bz2 from
         https://github.com/jsoffer/eilat/tree/master/eilat at your home
         directory and rename the directory 'dot_eilat' to '.eilat'
         ----
