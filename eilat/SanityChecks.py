@@ -76,8 +76,7 @@ def check_dotfile():
     return(isdir(path) and
            isdir(path + '/cookies') and
            isdir(path + '/css') and
-           isfile(path + '/options.yaml') and
-           isfile(path + '/eilat.db'))
+           isfile(path + '/options.yaml'))
 
 def check_proxy(host, port):
     """ Is there even an appearance of something resembling a proxy on the set

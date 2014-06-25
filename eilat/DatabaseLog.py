@@ -34,7 +34,7 @@
 
 """
 
-from os.path import expanduser
+from os.path import expanduser, isfile
 
 from PyQt4.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
 
@@ -49,8 +49,24 @@ class DatabaseLogLite(object):
 
         super(DatabaseLogLite, self).__init__()
         self.litedb = QSqlDatabase("QSQLITE")
-        self.litedb.setDatabaseName(expanduser("~/.eilat/eilat.db"))
+        db_file = expanduser("~/.eilat/eilat.db")
+        rebuild = not isfile(db_file)
+
+        self.litedb.setDatabaseName(db_file)
         self.litedb.open()
+
+        if rebuild:
+            query_mknav = (
+                "CREATE TABLE navigation (host TEXT NOT NULL," +
+                " path TEXT, count INTEGER default 0, prefix char(2)," +
+                " PRIMARY KEY (host, path))")
+
+            query_mkblacklist = (
+                "CREATE TABLE blacklist (subdomain text," +
+                " domain text, tld text, primary key(domain, tld, subdomain))")
+
+            self.litedb.exec_(query_mknav)
+            self.litedb.exec_(query_mkblacklist)
 
         ####### VALIDATION
         # verifies structure, not datatypes
