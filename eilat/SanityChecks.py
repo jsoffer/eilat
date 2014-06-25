@@ -95,6 +95,7 @@ def check_proxy(host, port):
     """
 
     if host is None or port is None:
+        print("No proxy set up at options.yaml")
         return False
 
     try:
