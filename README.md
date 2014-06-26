@@ -149,7 +149,9 @@ Press `Ctrl+t`. A new tab will appear. Select this: http://sidigital.co/
 from wherever you're reading. Go back to the browser, press `Escape` (to
 ensure the web area is active) and press `y`. This will navigate
 to the address stored on the primary clipboard. The animation will not run yet:
-javascript is disabled. Press `j` to scroll the page down, `k` to scroll up.
+javascript is disabled. Press `j` to scroll the page down, `k` to scroll up. Press
+`F2` to hide the fixed header. `Shift+F2` will instead freeze the header in place
+and prevent it from following the scroll.
 
 Press `q`. The address bar should have turned blue: javascript is enabled now,
 for this tab only. Press `r` or `F5` to reload. The animation starts since 
