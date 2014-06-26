@@ -181,13 +181,15 @@ the `FB`, `TW` or `G` prefix next to the address bar. That tab will only be able
 to open URLs from that source. The procedure to follow a link from e.g. facebook
 to a non-fb site is a bit convoluted due to facebook creating a redirect.
 
-First, either save (yes... save) the link with `right click menu + save`; that
-will produce a transient message and the link will be saved to the clipboard. But
-that will not be the real link - it will be a redirector.
+First, either save (yes... save) the link with `right click menu + save` (that
+will produce a transient message) or transient-navigate with `Shift+hjlk` and press
+`s` then `^j` (or `Return` - just navigate after pressing `s`), and the link
+will be saved to the clipboard. But that will not be the real link - it will be
+a redirector.
 
 To navigate to a new tab (therefore without an active instance yet) using that
-redirector stored on the clipboard, press `Ctrl+y`. That will extract the real
-URL without navigating to facebook first, and then navigate directly.
+redirector stored on the clipboard, press `Ctrl+y` instead of `y`. That will
+extract the real URL without navigating to facebook first, and then navigate directly.
 
 ----
 
