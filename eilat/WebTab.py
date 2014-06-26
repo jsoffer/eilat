@@ -93,7 +93,7 @@ class WebTab(QWidget):
             self.address_bar.setText(qurl.toString())
 
         self.webkit.urlChanged.connect(update_address)
-        self.webkit.loadStarted.connect(self.show_progress_bar)
+        self.webkit.loadStarted.connect(self.load_started)
         self.webkit.loadFinished.connect(self.load_finished)
         self.webkit.titleChanged.connect(self.save_title)
         self.webkit.loadProgress.connect(self.load_progress)
@@ -224,7 +224,7 @@ class WebTab(QWidget):
             self.set_title(str(val) + "% " + self.current_title)
 
     # connect (en constructor)
-    def show_progress_bar(self):
+    def load_started(self):
         """ Callback for connection """
 
         self.address_bar.completer().popup().close()
