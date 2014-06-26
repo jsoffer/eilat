@@ -37,6 +37,8 @@
 from PyQt4.QtNetwork import QNetworkCookieJar, QNetworkCookie
 from os.path import expanduser
 
+from tldextract import extract
+
 def format_cookie(url, cookies):
     """ Constructs a log message from a list of cookies and the host
     where they're set
@@ -97,9 +99,14 @@ class CookieJar(QNetworkCookieJar):
         if not from whitelisted domains.
 
         """
-        if ".".join(url.host().split('.')[-2:]) not in self.allowed:
+        (subdomain, domain, suffix) = extract(url.host())
+        site = domain + '.' + suffix
+
+        if site not in self.allowed:
+            print("COOKIE FROM %s not set" % (url.toString()))
             ret = []
         else:
+            print("SET COOKIE FROM %s" % (url.toString()))
             ret = cookies
 
         return QNetworkCookieJar.setCookiesFromUrl(self, ret, url)

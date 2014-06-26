@@ -128,8 +128,7 @@ sites:
             akamaihd.net,
             fbcdn.net ]
         cookie_allow: [
-            facebook.com
-            ]
+            facebook.com ]
         cookie_file: fbcookies.cj
         prefix: FB
 
@@ -139,8 +138,7 @@ sites:
             twimg.com
             ]
         cookie_allow: [
-            twitter.com
-            ]
+            twitter.com ]
         cookie_file: twcookies.cj
         prefix: TW
 
@@ -150,8 +148,7 @@ sites:
             google.com.mx,
             googleusercontent.com,
             gstatic.com,
-            googleapis.com
-            ]
+            googleapis.com ]
         cookie_allow: [
             google.com ]
         cookie_file: gcookies.cj
