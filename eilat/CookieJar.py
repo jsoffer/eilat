@@ -99,7 +99,7 @@ class CookieJar(QNetworkCookieJar):
         if not from whitelisted domains.
 
         """
-        (subdomain, domain, suffix) = extract(url.host())
+        (_, domain, suffix) = extract(url.host())
         site = domain + '.' + suffix
 
         if site not in self.allowed:
