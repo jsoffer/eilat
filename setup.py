@@ -40,7 +40,7 @@ setup(
     Install:
 
     First install PyQt4 for Python 3 by whatever means result more appropiate;
-    recommended inside a pyvenv. Then do `pip install eilat-web-browser`. Pip
+    using a pyvenv is recommended. Then do `pip install eilat-web-browser`. Pip
     will not install PyQt, but will install all the other dependences.
 
     Quick usage notes:
@@ -75,7 +75,5 @@ setup(
     keywords='TODO keywords',
     packages=['eilat'],
     scripts=['bin/eilat'],
-    #install_requires=['PyQt4', 'tldextract', 'colorama'],
-    install_requires=['tldextract', 'colorama', 'PyYAML'],
-    include_package_data=True
+    install_requires=['tldextract', 'colorama', 'PyYAML']
 )
