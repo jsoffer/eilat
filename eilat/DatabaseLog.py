@@ -65,8 +65,24 @@ class DatabaseLogLite(object):
                 "CREATE TABLE blacklist (subdomain text," +
                 " domain text, tld text, primary key(domain, tld, subdomain))")
 
+            inserts = [
+                ('google', 'com'),
+                ('googleusercontent', 'com'),
+                ('gstatic', 'com'),
+                ('googleapis', 'com'),
+                ('facebook', 'com'),
+                ('fbcdn', 'net'),
+                ('twitter', 'com'),
+                ('twimg', 'com')]
+
+            query_insertbl = (
+                "INSERT INTO blacklist values (NULL, '%s', '%s')")
+
             self.litedb.exec_(query_mknav)
             self.litedb.exec_(query_mkblacklist)
+
+            for site in inserts:
+                self.litedb.exec_(query_insertbl % site)
 
         ####### VALIDATION
         # verifies structure, not datatypes
