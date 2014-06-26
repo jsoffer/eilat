@@ -25,9 +25,37 @@ setup(
     description='QTWebkit based web browser',
     long_description="""
 
+    Keyboard driven, security and privacy focused web browser build in PyQt4's
+    webkit engine.
 
-                TODO: write long description (¿importar DESCRIPTION.rst?)
+    Features:
 
+    * simple source code, focused on promoting auditing
+    * Isolation of instances for facebook, google, twitter; configurable
+      for more sites
+    * Console logging of resources actually retrieved and cookies set or
+      attempted
+    * hjkl, ^j, ^h, etc. keyboard navigation
+
+    Install:
+
+    First install PyQt4 for Python 3 by whatever means result more appropiate;
+    recommended inside a pyvenv. Then do `pip install eilat-web-browser`. Pip
+    will not install PyQt, but will install all the other dependences.
+
+    Quick usage notes:
+
+    * facebook, twitter, google will be blacklisted unless they are the first
+      URL visited on a tab (and then the tab will hold to that site only)
+    * `^t` creates a new tab
+    * `Ctrl+Space` toggles the status bar
+    * `g` starts an in-page search; `escape` in the search frame closes it
+    * javascript is off by default; to enable one-tab-only, press `q` and reload
+      with F5 or `r`
+
+    Read `README.md` and the wiki (https://github.com/jsoffer/eilat/wiki) for
+    lots of details - there's a lot of non obvious functionality that requires
+    a bit of reading, e.g. modal keys or navigating through isolated tabs
 
     """,
     url='http://github.com/jsoffer/eilat',

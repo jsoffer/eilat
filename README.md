@@ -36,7 +36,7 @@ Features
 Non-features
 ------------
 
-* Has no cache. Will not have. Depends on a proxy.
+* No persistent disk cache, yet; external proxy works very well
 * Does not have a fully featured bookmarks management.
 * Has no means to make downloads. Copies the download URL to clipboard and
 leaves the actual download to external means.
@@ -167,7 +167,30 @@ disabled there.
 Go back to xkcd. Press `g`. A text entry should appear just over the address bar.
 Write `p`, `e`, `r` letter by letter to find the string "Permanent".
 
+Instance isolation
+------------------
+
+Once a tab has opened its first URL it has a set instance, marked by a prefix
+that can be seen next to the address bar. If there's no prefix, the tab is a
+'general' tab, that will respect the `blacklist` sqlite table contents, by
+default containing references to facebook, twitter and google. This means, a
+'general' tab can't open any resources coming from any of those sites.
+
+On the other side, a tab that first opened facebook, twitter or google URLS has
+the `FB`, `TW` or `G` prefix next to the address bar. That tab will only be able
+to open URLs from that source. The procedure to follow a link from e.g. facebook
+to a non-fb site is a bit convoluted due to facebook creating a redirect.
+
+First, either save (yes... save) the link with `right click menu + save`; that
+will produce a transient message and the link will be saved to the clipboard. But
+that will not be the real link - it will be a redirector.
+
+To navigate to a new tab (therefore without an active instance yet) using that
+redirector stored on the clipboard, press `Ctrl+y`. That will extract the real
+URL without navigating to facebook first, and then navigate directly.
+
 ----
 
 If using vim, edit source code with https://github.com/hynek/vim-python-pep8-indent/
+
 Use pylint on all source `.py` files aiming for 100%; a reference `pylintrc` is provided.
