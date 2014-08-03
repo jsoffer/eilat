@@ -112,7 +112,7 @@ def is_font(qurl):
     Is requesting for a web font? Include icons, too
 
     """
-    return ((qurl.path().endswith(('.ttf', '.ico', '.woff')) or
+    return ((qurl.path().endswith(('.ttf', '.ico', '.woff', '.otf')) or
              (qurl.scheme() == 'data' and qurl.path().split(';')[0] in [
                  'font/opentype',
                  'application/x-font-ttf',
