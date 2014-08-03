@@ -53,6 +53,9 @@ from os.path import expanduser
 from re import sub
 import datetime
 
+from threading import Thread
+from subprocess import Popen
+
 class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
@@ -67,9 +70,12 @@ class WebView(QWebView):
 
         self.css_path = expanduser("~/.eilat/css/")
 
-        self.paste = False
-        self.save = False
-        self.open_scripted = False
+        self.attributes = set()
+
+        #self.paste = False
+        #self.save = False
+        #self.play = False
+        #self.open_scripted = False
 
         self.navlist = []
         self.in_focus = None
@@ -93,12 +99,14 @@ class WebView(QWebView):
             to know if a middle click requested to open on a new tab.
 
             """
-            if self.paste:
-                mainwin().add_tab(qurl, scripting=self.open_scripted)
-                self.paste = False
+            if 'paste' in self.attributes:
+                mainwin().add_tab(qurl,
+                                  scripting=(
+                                      'open_scripted' in self.attributes))
+                self.attributes.discard('paste')
             else:
                 self.navigate(qurl)
-            self.open_scripted = False
+            self.attributes.discard('open_scripted')
 
         self.linkClicked.connect(on_link_click)
 
@@ -179,9 +187,14 @@ class WebView(QWebView):
             ("Shift+Z", self, partial(
                 toggle_show_logs, lambda: self.prefix)),
             # clipboard related behavior
-            ("I", self, partial(setattr, self, 'paste', True)),
-            ("O", self, partial(setattr, self, 'open_scripted', True)),
-            ("S", self, partial(setattr, self, 'save', True)),
+            ("I", self, partial(self.attributes.add, 'paste')),
+            ("O", self, partial(self.attributes.add, 'open_scripted')),
+            ("S", self, partial(self.attributes.add, 'save')),
+            ("V", self, partial(self.attributes.add, 'play'))
+            #("I", self, partial(setattr, self, 'paste', True)),
+            #("O", self, partial(setattr, self, 'open_scripted', True)),
+            #("S", self, partial(setattr, self, 'save', True)),
+            #("V", self, partial(setattr, self, 'play', True)),
             ])
 
     # action (en register_actions)
@@ -200,10 +213,19 @@ class WebView(QWebView):
 
         if isinstance(request, QUrl):
             qurl = request
-            if self.save:
+
+            if 'play' in self.attributes:
+                print("PLAYING")
                 clipboard(qurl)
-                self.save = False
+                Thread(target=partial(Popen, "ytv")).start()
+                self.attributes.discard('play')
                 return
+
+            if 'save' in self.attributes:
+                clipboard(qurl)
+                self.attributes.discard('save')
+                return
+
         elif callable(request):
             url = request()
             qurl = fix_url(url)
@@ -272,7 +294,7 @@ class WebView(QWebView):
         """ Removes all '??? {position: fixed}' nodes """
 
         frame = self.page().mainFrame()
-        fixables = "div, header, header > a, footer, nav"
+        fixables = "div, header, header > a, footer, nav, section, ul"
         nodes = [node for node in frame.findAllElements(fixables)
                  if node.styleProperty("position",
                                        QWebElement.ComputedStyle) == 'fixed']
@@ -464,7 +486,10 @@ class WebView(QWebView):
         and sets self.paste
 
         """
-        self.paste = (event.buttons() & Qt.MiddleButton)
+        if event.buttons() & Qt.MiddleButton:
+            self.attributes.add('paste')
+        else:
+            self.attributes.discard('paste')
         return QWebView.mousePressEvent(self, event)
 
     # Clean reimplement for Qt
