@@ -1,0 +1,10 @@
+#!/bin/sh
+
+CLIPBOARD=$(xsel -p)
+
+if [ $1 ]
+then
+    mpv $CLIPBOARD --start $1
+else
+    mpv $CLIPBOARD
+fi
