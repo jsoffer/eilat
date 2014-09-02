@@ -56,6 +56,22 @@ import datetime
 from threading import Thread
 from subprocess import Popen
 
+from colorama import Fore
+
+def play_mpv(qurl):
+    """ Will try to open an 'mpv' instance running the video pointed at
+    in 'qurl'. Warns if 'mpv' is not installed or available.
+
+    To be executed in a separate thread. That way, 'wait' will not block.
+
+    """
+
+    try:
+        process = Popen(['mpv', qurl.toString()])
+        process.wait() # wait, or mpv will be <defunct> after exiting!
+    except FileNotFoundError:
+        print("'mpv' video player not available")
+
 class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
@@ -71,11 +87,6 @@ class WebView(QWebView):
         self.css_path = expanduser("~/.eilat/css/")
 
         self.attributes = set()
-
-        #self.paste = False
-        #self.save = False
-        #self.play = False
-        #self.open_scripted = False
 
         self.navlist = []
         self.in_focus = None
@@ -165,7 +176,9 @@ class WebView(QWebView):
             ("R", self, self.reload),
             # view interaction
             ("J", self, partial(scroll, delta_y=40)),
+            ("Z", self, partial(scroll, delta_y=40)),
             ("K", self, partial(scroll, delta_y=-40)),
+            ("X", self, partial(scroll, delta_y=-40)),
             ("H", self, partial(scroll, delta_x=-40)),
             ("L", self, partial(scroll, delta_x=40)),
             ("Ctrl+Up", self, partial(zoom, 1)),
@@ -182,19 +195,15 @@ class WebView(QWebView):
             # toggles
             # right now self.prefix is None; lambda allows to retrieve the
             # value it will have when toggle_show_logs is called
-            ("Z", self, partial(
+            ("F11", self, partial(
                 toggle_show_logs, lambda: self.prefix, detail=True)),
-            ("Shift+Z", self, partial(
+            ("Shift+F11", self, partial(
                 toggle_show_logs, lambda: self.prefix)),
             # clipboard related behavior
             ("I", self, partial(self.attributes.add, 'paste')),
             ("O", self, partial(self.attributes.add, 'open_scripted')),
             ("S", self, partial(self.attributes.add, 'save')),
             ("V", self, partial(self.attributes.add, 'play'))
-            #("I", self, partial(setattr, self, 'paste', True)),
-            #("O", self, partial(setattr, self, 'open_scripted', True)),
-            #("S", self, partial(setattr, self, 'save', True)),
-            #("V", self, partial(setattr, self, 'play', True)),
             ])
 
     # action (en register_actions)
@@ -216,9 +225,11 @@ class WebView(QWebView):
 
             if 'play' in self.attributes:
                 print("PLAYING")
-                clipboard(qurl)
-                Thread(target=partial(Popen, "ytv")).start()
+
+                Thread(target=partial(play_mpv, qurl)).start()
+
                 self.attributes.discard('play')
+
                 return
 
             if 'save' in self.attributes:
@@ -268,8 +279,11 @@ class WebView(QWebView):
                 len(path.split('/')) < 4):
             database().store_navigation(host, path, self.prefix)
 
-        print(">>>\t\t" + datetime.datetime.now().isoformat())
-        print(">>> NAVIGATE " + qurl.toString())
+        print("%s>>>\t\t%s\n>>> NAVIGATE %s%s" % (
+            Fore.CYAN,
+            datetime.datetime.now().isoformat(),
+            qurl.toString(),
+            Fore.RESET))
 
         self.navlist = []
 
