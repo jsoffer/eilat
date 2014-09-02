@@ -48,7 +48,60 @@ from eilat.global_store import database
 from pprint import PrettyPrinter
 import tldextract
 
-from colorama import Fore
+from colorama import Fore, Style
+
+def highlight(qurl, full=False):
+    """ Colorizes the address stored in 'qurl'; if 'full' is false,
+    it will print only the filename in the end of the path (if any)
+    instead of the full path.
+
+    """
+
+    url = qurl.host()
+    path = qurl.path()
+
+    if path and not full and qurl.scheme() != 'data':
+        path = path.split('/')[-1]
+
+    if path and qurl.scheme() == 'data':
+        path = path.split(';')[0]
+        return "[data] %s" % (path)
+
+    (subdomain, domain, suffix) = tldextract.extract(url)
+
+    host = "%s.%s%s.%s" % (subdomain,
+                           Style.BRIGHT, domain, suffix)
+    host = host.strip('.')
+
+    port = ":%s" % (qurl.port()) if qurl.port() >= 0 else ''
+    if port:
+        host += port
+
+    if qurl.scheme() != 'http':
+        host = "[%s] %s" %  (qurl.scheme(), host)
+
+    return "%s%s%s %s" % (
+        Style.NORMAL, host, Style.NORMAL,
+        path)
+
+def show_labeled(label, url, detail='', color=Fore.RESET, full=False):
+    """ Creates a colorized ' LABEL: url path   '
+                            '         > details '
+        string to display as log output
+
+    """
+
+    result = "%s%s: %s%s" % (Fore.RESET,
+                             label,
+                             color,
+                             highlight(url, full=full))
+
+    if detail:
+        result += "\n\t> %s" % (detail)
+
+    result += "%s" % (Fore.RESET)
+
+    print(result)
 
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
@@ -87,7 +140,7 @@ class InterceptNAM(QNetworkAccessManager):
             fil = status is not None and status >= 400
             local = is_local(reply.url())
 
-            colour = Fore.RED if fil else Fore.BLUE
+            color = Fore.RED if fil else Fore.BLUE
 
             if status is not None and not local:
                 if reply.hasRawHeader('X-Cache'):
@@ -97,12 +150,30 @@ class InterceptNAM(QNetworkAccessManager):
                 else:
                     cache_header = ''
                 if self.show_log:
-                    print("%s%s%s %s%s" % (colour,
-                                           cache_header, str(status),
-                                           reply.url().toString(),
-                                           Fore.RESET))
+                    show_labeled(str(status), reply.url(),
+                                 color=color,
+                                 detail=cache_header)
 
         self.finished.connect(reply_complete)
+
+        def handle_ssl_error(reply, errors):
+            """ Callback to connect when a SSL error happens
+
+            This ignores the error before reporting it; that means all
+            "issuer certificate could not be found" and similar will be
+            accepted but reported. Until a better way to handle is
+            implemented, keep an eye on the console when counting on SSL.
+            This can and will create security issues.
+
+            """
+
+            reply.ignoreSslErrors()
+            show_labeled("SSL",
+                         reply.url(),
+                         detail="/".join([k.errorString() for k in errors]),
+                         color=Fore.RED)
+
+        self.sslErrors.connect(handle_ssl_error)
 
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests
@@ -132,9 +203,7 @@ class InterceptNAM(QNetworkAccessManager):
         # requiring further scrutiny
         if is_local(qurl) and not is_font(qurl):
             if self.show_detail:
-                print("%sLOCAL %s%s" % (Fore.GREEN,
-                                        url[:80],
-                                        Fore.RESET))
+                show_labeled("LOCAL", qurl, color=Fore.GREEN)
             return QNetworkAccessManager.createRequest(
                 self, operation, request, data)
 
@@ -143,16 +212,16 @@ class InterceptNAM(QNetworkAccessManager):
 
         for (stop_case, description) in [
                 # may still be local
-                (is_font(qurl), "******* TRIM WEBFONT: %s" % (url[:255])),
+                (is_font(qurl), "******* TRIM WEBFONT"),
                 # it may be an un-dns'ed request; careful here
-                (is_numerical(qurl.host()), "******* NUMERICAL: %s" % (url)),
+                (is_numerical(qurl.host()), "******* NUMERICAL"),
                 # whitelist exists, and the requested URL is not in it
                 (non_whitelisted(self.whitelist, qurl),
-                 "******* NON WHITELISTED: %s" % (url))
+                 "******* NON WHITELISTED")
         ]:
             if stop_case:
                 if self.show_detail:
-                    print(description)
+                    show_labeled(description, qurl)
 
                 return QNetworkAccessManager.createRequest(
                     self,
@@ -166,36 +235,32 @@ class InterceptNAM(QNetworkAccessManager):
         (subdomain, domain, suffix) = tldextract.extract(url)
         subdomain = subdomain if subdomain != '' else None
 
-        for (stop_case, description) in [
+        for (stop_case, description, detail) in [
                 # if 'domain' or 'suffix' are not valid, stop;
                 # should never happen (even though it does - some providers
                 # don't have a proper 'domain' according to tldextract
                 (domain == '' or suffix == '',
-                 "******* SHOULD NOT HAPPEN: %s || %s || %s " % (subdomain,
-                                                                 domain,
-                                                                 suffix)),
+                 "******* SHOULD NOT HAPPEN", " %s|%s|%s " % (subdomain,
+                                                              domain,
+                                                              suffix)),
                 # found the requested URL in the blacklist
                 (self.whitelist is None and
                  database().is_blacklisted(domain,
                                            suffix,
                                            subdomain),
-                 "******* filter: %s || %s || %s " % (subdomain,
-                                                      domain,
-                                                      suffix))
+                 "******* filter", "%s || %s || %s " % (subdomain,
+                                                        domain,
+                                                        suffix))
         ]:
             if stop_case:
                 if self.show_detail:
-                    print(description)
+                    show_labeled(description, qurl, detail=detail)
 
                 return QNetworkAccessManager.createRequest(
                     self,
                     QNetworkAccessManager.GetOperation,
                     QNetworkRequest(QUrl(encode_blocked(description, url))),
                     None)
-
-        #if self.show_log:
-        #    print("%s%s%s %s%s" % (Fore.MAGENTA
-        #                           something something something Fore.RESET)
 
         return QNetworkAccessManager.createRequest(self, operation,
                                                    request, data)
