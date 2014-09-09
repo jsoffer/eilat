@@ -34,8 +34,9 @@
 
 """
 
-from PyQt4.QtGui import QMainWindow, QTabWidget, QTabBar
-from PyQt4.QtCore import Qt
+from PyQt4.QtGui import (QMainWindow, QTabWidget, QTabBar, QLabel,
+                         QToolTip, QColor, QPalette, QFrame)
+from PyQt4.QtCore import Qt, QTimer
 
 from functools import partial
 
@@ -47,6 +48,8 @@ from eilat.global_store import clipboard, close_managers
 
 import gc
 import sys
+
+from collections import deque
 
 class MainWin(QMainWindow):
     """ It's a window, stores a TabWidget """
@@ -66,6 +69,8 @@ class MainWin(QMainWindow):
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
         self.setCentralWidget(self.tab_widget)
+
+        self.tooltip = NotifyLabel(parent=self)
 
         def restore_last_closed():
             """ One-use callback for QShortcut.
@@ -220,3 +225,47 @@ class MidClickTabBar(QTabBar):
     # pylint: disable=C0103
     mouseReleaseEvent = mouse_release_event
     # pylint: enable=C0103
+
+class NotifyLabel(QLabel):
+    """ A tooltip that can stack notifications """
+
+    def __init__(self, parent=None):
+        super(NotifyLabel, self).__init__(parent)
+
+        palette = QToolTip.palette()
+        color = QColor(Qt.blue)
+        color = color.lighter(170)
+        #color.setAlpha(112)
+        palette.setColor(QPalette.Window, color)
+
+        self.setPalette(palette)
+        self.setAutoFillBackground(True)
+        self.setFrameStyle(QFrame.Box | QFrame.Plain)
+
+        self.hide()
+
+        self.content = deque(maxlen=4)
+
+    def push_text(self, string):
+        """ Add an entry to the notification. It will, by itself, be
+        removed after eight seconds.
+
+        """
+
+        self.content.append(string)
+        self.setText((" " + "|".join(self.content) + " ")[:80])
+        self.show()
+        QTimer.singleShot(8000, self.pop_text)
+
+    def pop_text(self):
+        """ Some entry's timeout has triggered; let's remove the oldest one.
+        If there's no entry (because the queue spilled before having a chance
+        to pop) do nothing. Afterwards, if the queue is empty, hide it.
+
+        """
+
+        if len(self.content) > 0:
+            self.content.popleft()
+            self.setText(" " + " | ".join(self.content) + " ")
+        if len(self.content) == 0:
+            self.hide()

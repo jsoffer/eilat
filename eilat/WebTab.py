@@ -37,16 +37,14 @@
 from PyQt4.QtGui import (QWidget, QProgressBar, QStatusBar, QGridLayout,
                          QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent)
 from PyQt4.QtWebKit import QWebPage, QWebSettings
-from PyQt4.QtCore import Qt, QEvent, QTimer
+from PyQt4.QtCore import Qt, QEvent
 
 from functools import partial
-
-from collections import deque
 
 # local
 from eilat.WebView import WebView
 from eilat.DatabaseLog import DatabaseLogLite
-from eilat.libeilat import set_shortcuts
+from eilat.libeilat import set_shortcuts, notify
 from eilat.global_store import mainwin, clipboard
 
 class WebTab(QWidget):
@@ -58,10 +56,6 @@ class WebTab(QWidget):
 
         # address bar
         self.address_bar = AddressBar(parent=self)
-
-        # notifier
-
-        self.notifier = NotifyLabel(parent=self)
 
         def update_prefix_label(string):
             """ if on a non-global web instance, show the instance's prefix
@@ -100,7 +94,7 @@ class WebTab(QWidget):
             timer to hide it after eight seconds
 
             """
-            self.notifier.push_text(message + " " + request.url().toString())
+            notify(message + " " + request.url().toString())
 
         self.webkit.page().downloadRequested.connect(
             partial(fill_notifier, "download"))
@@ -145,14 +139,13 @@ class WebTab(QWidget):
 
         grid.addWidget(prefix_label, 0, 0, 1, 1)
         grid.addWidget(self.address_bar, 0, 1, 1, 1)
-        grid.addWidget(self.notifier, 0, 2, 1, 1)
-        grid.addWidget(self.nav_bar, 0, 3, 1, 1)
+        grid.addWidget(self.nav_bar, 0, 2, 1, 1)
 
-        grid.addWidget(self.webkit, 1, 0, 1, 4)
+        grid.addWidget(self.webkit, 1, 0, 1, 3)
 
-        grid.addWidget(self.search_frame, 2, 0, 1, 4)
-        grid.addWidget(self.pbar, 3, 0, 1, 4)
-        grid.addWidget(self.statusbar, 4, 0, 1, 4)
+        grid.addWidget(self.search_frame, 2, 0, 1, 3)
+        grid.addWidget(self.pbar, 3, 0, 1, 3)
+        grid.addWidget(self.statusbar, 4, 0, 1, 3)
 
         def toggle_status():
             """ One-time callback for QShortcut """
@@ -266,7 +259,7 @@ class WebTab(QWidget):
             self.webkit.setFocus()
 
         if not success:
-            self.notifier.push_text("[F]")
+            notify("[F]")
             print("loadFinished: failed")
 
 
@@ -365,38 +358,6 @@ class AddressBar(QLineEdit):
         """ Sets the background color of the address bar """
         self.setStyleSheet(
             "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)
-
-class NotifyLabel(QLabel):
-    """ A "poor man's" tooltip, that can stack notifications """
-
-    def __init__(self, parent=None):
-        super(NotifyLabel, self).__init__(parent)
-        self.hide()
-        self.content = deque(maxlen=4)
-
-    def push_text(self, string):
-        """ Add an entry to the notification. It will, by itself, be
-        removed after eight seconds.
-
-        """
-
-        self.content.append(string)
-        self.setText((" " + "|".join(self.content) + " ")[:80])
-        self.show()
-        QTimer.singleShot(8000, self.pop_text)
-
-    def pop_text(self):
-        """ Some entry's timeout has triggered; let's remove the oldest one.
-        If there's no entry (because the queue spilled before having a chance
-        to pop) do nothing. Afterwards, if the queue is empty, hide it.
-
-        """
-
-        if len(self.content) > 0:
-            self.content.popleft()
-            self.setText(" " + " | ".join(self.content) + " ")
-        if len(self.content) == 0:
-            self.hide()
 
 class NavigateInput(QLineEdit):
     """ When access-key navigation starts, jump to a line edit, where it's

@@ -44,7 +44,7 @@ import tldextract
 
 from base64 import encodestring
 
-from eilat.global_store import get_manager
+from eilat.global_store import get_manager, mainwin
 
 def fix_url(url):
     """ Converts an url string to a QUrl object; checks if turning to
@@ -263,3 +263,14 @@ def toggle_show_logs(prefix, detail=False):
             print("---- SHOWING LOG ----")
         else:
             print("---- HIDING LOG ----")
+
+def notify(text):
+    """ Pushes a notification to the main window's notifier label
+
+    """
+    label = mainwin().tooltip
+    label.push_text(text)
+    label.adjustSize()
+    label.move(mainwin().width() - (label.width() + 10),
+               mainwin().height() - (label.height() + 10))
+    label.show()
