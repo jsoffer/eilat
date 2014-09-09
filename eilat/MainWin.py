@@ -45,12 +45,16 @@ from eilat.WebTab import WebTab
 from eilat.libeilat import fix_url, set_shortcuts, extract_url
 from eilat.global_store import clipboard, close_managers
 
+import gc
+import sys
+
 class MainWin(QMainWindow):
     """ It's a window, stores a TabWidget """
 
     def __init__(self, parent=None):
         super(MainWin, self).__init__(parent)
         self.setWindowTitle("Eilat Browser")
+        #gc.set_debug(gc.DEBUG_LEAK)
 
         self.last_closed = None
 
@@ -72,7 +76,17 @@ class MainWin(QMainWindow):
                 self.add_tab(url)
                 self.last_closed = None
 
+        def dump_gc():
+            """ prints sizes for large memory collectable objects """
+            objs = gc.get_objects()
+            pairs = [(str(k)[:80], type(k).__name__, sys.getsizeof(k))
+                     for k in objs if sys.getsizeof(k) > 1024*4*5]
+
+            for pair in pairs:
+                print(pair)
+
         set_shortcuts([
+            ("F9", self, dump_gc),
             # new tabs
             ("Ctrl+T", self, self.add_tab),
             ("Ctrl+Shift+T", self, partial(self.add_tab, scripting=True)),
