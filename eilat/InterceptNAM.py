@@ -212,16 +212,16 @@ class InterceptNAM(QNetworkAccessManager):
 
         for (stop_case, description) in [
                 # may still be local
-                (is_font(qurl), "******* TRIM WEBFONT"),
+                (is_font(qurl), "TRIM WEBFONT"),
                 # it may be an un-dns'ed request; careful here
-                (is_numerical(qurl.host()), "******* NUMERICAL"),
+                (is_numerical(qurl.host()), "NUMERICAL"),
                 # whitelist exists, and the requested URL is not in it
                 (non_whitelisted(self.whitelist, qurl),
-                 "******* NON WHITELISTED")
+                 "NON WHITELISTED")
         ]:
             if stop_case:
                 if self.show_detail:
-                    show_labeled(description, qurl)
+                    show_labeled(description, qurl, color=Fore.RED)
 
                 return QNetworkAccessManager.createRequest(
                     self,
@@ -240,21 +240,22 @@ class InterceptNAM(QNetworkAccessManager):
                 # should never happen (even though it does - some providers
                 # don't have a proper 'domain' according to tldextract
                 (domain == '' or suffix == '',
-                 "******* SHOULD NOT HAPPEN", " %s|%s|%s " % (subdomain,
-                                                              domain,
-                                                              suffix)),
+                 "SHOULD NOT HAPPEN", " %s|%s|%s " % (subdomain,
+                                                      domain,
+                                                      suffix)),
                 # found the requested URL in the blacklist
                 (self.whitelist is None and
                  database().is_blacklisted(domain,
                                            suffix,
                                            subdomain),
-                 "******* filter", "%s || %s || %s " % (subdomain,
-                                                        domain,
-                                                        suffix))
+                 "FILTER", "%s || %s || %s " % (subdomain,
+                                                domain,
+                                                suffix))
         ]:
             if stop_case:
                 if self.show_detail:
-                    show_labeled(description, qurl, detail=detail)
+                    show_labeled(description, qurl,
+                                 detail=detail, color=Fore.RED)
 
                 return QNetworkAccessManager.createRequest(
                     self,
