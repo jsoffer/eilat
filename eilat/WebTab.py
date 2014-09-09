@@ -63,9 +63,6 @@ class WebTab(QWidget):
 
         self.notifier = NotifyLabel(parent=self)
 
-        prefix_label = QLabel(parent=self)
-        prefix_label.hide()
-
         def update_prefix_label(string):
             """ if on a non-global web instance, show the instance's prefix
             next to the address bar
@@ -110,6 +107,14 @@ class WebTab(QWidget):
         self.webkit.page().unsupportedContent.connect(
             partial(fill_notifier, "unsupported"))
 
+        # input area for access-key navigation
+
+        self.nav_bar = NavigateInput(parent=self)
+        self.nav_bar.editingFinished.connect(self.webkit.clear_labels)
+
+        prefix_label = QLabel(parent=self)
+        prefix_label.hide()
+
         # progress bar
         self.pbar = QProgressBar(self)
 
@@ -141,11 +146,13 @@ class WebTab(QWidget):
         grid.addWidget(prefix_label, 0, 0, 1, 1)
         grid.addWidget(self.address_bar, 0, 1, 1, 1)
         grid.addWidget(self.notifier, 0, 2, 1, 1)
+        grid.addWidget(self.nav_bar, 0, 3, 1, 1)
 
-        grid.addWidget(self.webkit, 1, 0, 1, 3)
-        grid.addWidget(self.search_frame, 2, 0, 1, 3)
-        grid.addWidget(self.pbar, 3, 0, 1, 3)
-        grid.addWidget(self.statusbar, 4, 0, 1, 3)
+        grid.addWidget(self.webkit, 1, 0, 1, 4)
+
+        grid.addWidget(self.search_frame, 2, 0, 1, 4)
+        grid.addWidget(self.pbar, 3, 0, 1, 4)
+        grid.addWidget(self.statusbar, 4, 0, 1, 4)
 
         def toggle_status():
             """ One-time callback for QShortcut """
@@ -191,12 +198,25 @@ class WebTab(QWidget):
             ("Ctrl+I", self.address_bar, navigate_completion),
             ("Ctrl+P", self.address_bar, partial(
                 navigate_completion, Qt.Key_Up)),
+            # navigation
+            ("Ñ", self, self.enter_nav),
             # toggle
             ("Ctrl+Space", self.webkit, toggle_status),
             ("Q", self.webkit, self.toggle_script),
             # clipboard
             ("E", self, partial(clipboard, self.address_bar.text))
             ])
+
+    def enter_nav(self):
+        """ A request for access-key navigation was received; display
+        link labels and go to the input area
+
+        """
+
+        print("creating labels...")
+        self.webkit.make_labels()
+        self.nav_bar.show()
+        self.nav_bar.setFocus()
 
     def toggle_script(self):
         """ Activa o desactiva javascript, y notifica cambiando el color
@@ -377,3 +397,42 @@ class NotifyLabel(QLabel):
             self.setText(" " + " | ".join(self.content) + " ")
         if len(self.content) == 0:
             self.hide()
+
+class NavigateInput(QLineEdit):
+    """ When access-key navigation starts, jump to a line edit, where it's
+    easier to input the label name than intercepting keystrokes inside
+    the web view
+
+    """
+
+    def __init__(self, parent=None):
+        super(NavigateInput, self).__init__(parent)
+
+        set_shortcuts([
+            ("Ctrl+H", self, self.backspace),
+            ("Escape", self, self.exit)
+        ])
+
+        self.hide()
+
+    def exit(self):
+        """ We are (no matter how) done with the input area; clear and hide """
+
+        self.clear()
+        self.hide()
+
+    def focus_out_event(self, _):
+        """ If the line edit loses focus (either by regular means, or because
+        it has been hidden by 'exit'), notify the webkit
+
+        """
+
+        # it's ok to call twice if the event was result of calling 'exit', the
+        # line edit is hidden now and will not send another event
+        self.exit()
+        self.editingFinished.emit()
+
+    # Clean reimplement for Qt
+    # pylint: disable=C0103
+    focusOutEvent = focus_out_event
+    # pylint: enable=C0103

@@ -35,7 +35,9 @@
 """
 
 from PyQt4.QtWebKit import QWebPage, QWebSettings, QWebView, QWebElement
-from PyQt4.QtCore import Qt, QUrl, pyqtSignal
+from PyQt4.QtCore import Qt, QUrl, pyqtSignal, QPoint
+
+from PyQt4.QtGui import QLabel, QColor, QToolTip, QPalette, QFrame
 
 from functools import partial
 
@@ -57,6 +59,8 @@ from threading import Thread
 from subprocess import Popen
 
 from colorama import Fore
+
+from random import randint
 
 def play_mpv(qurl):
     """ Will try to open an 'mpv' instance running the video pointed at
@@ -88,8 +92,11 @@ class WebView(QWebView):
 
         self.attributes = set()
 
+        self.nav_locked = False
         self.navlist = []
         self.in_focus = None
+
+        self.labels = []
 
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
 
@@ -142,6 +149,19 @@ class WebView(QWebView):
 
         self.page().downloadRequested.connect(partial(clipboard))
         self.page().unsupportedContent.connect(partial(clipboard))
+
+        def clear_labels():
+            """ clear the access-key navigation labels """
+
+            if self.labels:
+                for label in self.labels:
+                    label.hide()
+                    label.deleteLater()
+                self.labels = []
+                self.update()
+
+        self.page().scrollRequested.connect(clear_labels)
+        self.page().loadStarted.connect(clear_labels)
 
         #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
         #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
@@ -325,6 +345,10 @@ class WebView(QWebView):
 
         If it already exists and has content, do nothing; the list has to
         be cleared when navigating or reloading a page
+
+        Ideally it could be populated once per page load. It is not, partially
+        because javascript creating/deleting anchors would require a refresh.
+
         """
 
         if not self.navlist:
@@ -343,9 +367,19 @@ class WebView(QWebView):
         if not self.navlist:
             print("No anchors in this page, at all?")
 
-    def spatialnav(self, direction):
-        """ find web link nodes, move through them;
-        initial testing to replace webkit's spatial navigation
+    def clear_labels(self):
+        """ clear the access-key navigation labels """
+
+        print("hiding labels...")
+        for label in self.labels:
+            label.hide()
+            label.deleteLater()
+
+        self.labels = []
+        self.setFocus()
+
+    def find_visible_navigables(self):
+        """ Find the elements on the navigation list that are visible right now
 
         """
 
@@ -354,12 +388,50 @@ class WebView(QWebView):
         view_geom = self.page().mainFrame().geometry()
         view_geom.translate(self.page().mainFrame().scrollPosition())
 
+        # pending: do it only if needed
         self.populate_navlist()
 
-        # just for this time; which nodes from the entire page are, in any way,
-        # visible right now?
-        localnav = [node for node in self.navlist
-                    if view_geom.intersects(node.geometry())]
+        # just for this time; which nodes from the entire page are, in
+        # any way, visible right now?
+        return [node for node in self.navlist
+                if view_geom.intersects(node.geometry())]
+
+    def make_labels(self, source=None):
+        """ Create labels for the web nodes in 'source'; if not defined,
+        find all visible anchor nodes first
+
+        """
+
+        if source is None:
+            source = self.find_visible_navigables()
+
+        for node in source:
+            label = QLabel(chr(randint(65, 90)), parent=self)
+            self.labels.append(label)
+
+            palette = QToolTip.palette()
+            color = QColor(Qt.yellow)
+            color = color.lighter(150)
+            color.setAlpha(112)
+            palette.setColor(QPalette.Window, color)
+
+            label.setPalette(palette)
+            label.setAutoFillBackground(True)
+            label.setFrameStyle(QFrame.Box | QFrame.Plain)
+
+            point = QPoint(node.geometry().left(), node.geometry().center().y())
+            point -= self.page().mainFrame().scrollPosition()
+            label.move(point)
+            label.show()
+            label.move(label.x(), label.y() + label.height() // 4)
+
+    def spatialnav(self, direction):
+        """ find web link nodes, move through them;
+        initial testing to replace webkit's spatial navigation
+
+        """
+
+        localnav = self.find_visible_navigables()
 
         if not self.navlist or not localnav:
             print("No anchors in current view?")
@@ -396,7 +468,6 @@ class WebView(QWebView):
         # send a signal that will be bound to the status bar
         self.page().linkHovered.emit(self.in_focus.attribute("href"),
                                      None, None)
-
 
         self.in_focus.setFocus()
 
