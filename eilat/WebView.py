@@ -60,7 +60,13 @@ from subprocess import Popen
 
 from colorama import Fore
 
-from random import randint
+import string
+import itertools
+
+ALL_TAGS = [p + q for (p, q) in
+            itertools.product(['', 'G', 'H', 'F', 'J'],
+                              [k for k in
+                               string.ascii_uppercase + string.digits])]
 
 def play_mpv(qurl):
     """ Will try to open an 'mpv' instance running the video pointed at
@@ -92,11 +98,11 @@ class WebView(QWebView):
 
         self.attributes = set()
 
-        self.nav_locked = False
         self.navlist = []
         self.in_focus = None
 
         self.labels = []
+        self.map_tags = {}
 
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
 
@@ -394,6 +400,7 @@ class WebView(QWebView):
             label.deleteLater()
 
         self.labels = []
+        self.map_tags = {}
         self.setFocus()
 
     def make_labels(self, source=None):
@@ -405,8 +412,10 @@ class WebView(QWebView):
         if source is None:
             source = self.__find_visible_navigables()
 
-        for node in source:
-            label = QLabel(chr(randint(65, 90)), parent=self)
+        self.map_tags = dict(zip(ALL_TAGS, source))
+
+        for tag, node in self.map_tags.items():
+            label = QLabel(tag, parent=self)
             self.labels.append(label)
 
             palette = QToolTip.palette()
