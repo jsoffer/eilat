@@ -106,6 +106,10 @@ class WebTab(QWidget):
         self.nav_bar = NavigateInput(parent=self)
         self.nav_bar.editingFinished.connect(self.webkit.clear_labels)
 
+        self.nav_bar.textEdited.connect(self.webkit.akeynav)
+
+        # small label identifying the instance of this tab
+
         prefix_label = QLabel(parent=self)
         prefix_label.hide()
 

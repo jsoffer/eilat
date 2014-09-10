@@ -68,6 +68,15 @@ ALL_TAGS = [p + q for (p, q) in
                               [k for k in
                                string.ascii_uppercase + string.digits])]
 
+# make the prefix keys special, so it's possible to one-key most links
+# on a low-population page; can be improved (as can the distribution too) by
+# making ALL_TAGS a function depending on the number of links in the page
+
+ALL_TAGS.remove('G')
+ALL_TAGS.remove('H')
+ALL_TAGS.remove('F')
+ALL_TAGS.remove('J')
+
 def play_mpv(qurl):
     """ Will try to open an 'mpv' instance running the video pointed at
     in 'qurl'. Warns if 'mpv' is not installed or available.
@@ -433,6 +442,20 @@ class WebView(QWebView):
             label.move(point)
             label.show()
             label.move(label.x(), label.y() + label.height() // 4)
+
+    def akeynav(self, candidate):
+        """ find and set focus on the node with the given label (if any) """
+
+        candidate = candidate.upper()
+        if candidate in self.map_tags.keys():
+            found = self.map_tags[candidate]
+            found.setFocus()
+            self.page().linkHovered.emit(found.attribute("href"),
+                                         None, None)
+            self.setFocus()
+            print("FOUND")
+        else:
+            print("not found yet...")
 
     def __spatialnav(self, direction):
         """ find web link nodes, move through them;
