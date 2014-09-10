@@ -186,9 +186,9 @@ class WebView(QWebView):
         set_shortcuts([
             # DOM actions
             ("Ctrl+M", self, dump_dom),
-            ("F", self, self.unembed_frames),
-            ("F2", self, self.delete_fixed),
-            ("Shift+F2", self, partial(self.delete_fixed, delete=False)),
+            ("F", self, self.__unembed_frames),
+            ("F2", self, self.__delete_fixed),
+            ("Shift+F2", self, partial(self.__delete_fixed, delete=False)),
             # webkit interaction
             ("Alt+Left", self, self.back),
             ("Alt+Right", self, self.forward),
@@ -208,10 +208,10 @@ class WebView(QWebView):
             ("C", self, partial(fake_click, self)),
             # spatial navigation
             ("Shift+I", self, partial(setattr, self, 'in_focus', None)),
-            ("Shift+H", self, partial(self.spatialnav, LEFT)),
-            ("Shift+J", self, partial(self.spatialnav, DOWN)),
-            ("Shift+K", self, partial(self.spatialnav, UP)),
-            ("Shift+L", self, partial(self.spatialnav, RIGHT)),
+            ("Shift+H", self, partial(self.__spatialnav, LEFT)),
+            ("Shift+J", self, partial(self.__spatialnav, DOWN)),
+            ("Shift+K", self, partial(self.__spatialnav, UP)),
+            ("Shift+L", self, partial(self.__spatialnav, RIGHT)),
             # toggles
             # right now self.prefix is None; lambda allows to retrieve the
             # value it will have when toggle_show_logs is called
@@ -310,7 +310,7 @@ class WebView(QWebView):
         self.setFocus()
         self.load(qurl)
 
-    def unembed_frames(self):
+    def __unembed_frames(self):
         """ Replaces the content of iframes with a link to their source
 
         """
@@ -324,7 +324,7 @@ class WebView(QWebView):
         # We've added a[href] nodes to the page... rebuild the navigation list
         self.navlist = []
 
-    def delete_fixed(self, delete=True):
+    def __delete_fixed(self, delete=True):
         """ Removes all '??? {position: fixed}' nodes """
 
         frame = self.page().mainFrame()
@@ -339,7 +339,7 @@ class WebView(QWebView):
             else:
                 node.setStyleProperty('position', 'absolute')
 
-    def populate_navlist(self):
+    def __populate_navlist(self):
         """ Fill the spatial navigation list with the current mainFrame
         anchor links
 
@@ -367,6 +367,24 @@ class WebView(QWebView):
         if not self.navlist:
             print("No anchors in this page, at all?")
 
+    def __find_visible_navigables(self):
+        """ Find the elements on the navigation list that are visible right now
+
+        """
+
+        # updating every time; not needed unless scroll or resize
+        # but maybe tracking scroll/resize is more expensive...
+        view_geom = self.page().mainFrame().geometry()
+        view_geom.translate(self.page().mainFrame().scrollPosition())
+
+        # pending: do it only if needed
+        self.__populate_navlist()
+
+        # just for this time; which nodes from the entire page are, in
+        # any way, visible right now?
+        return [node for node in self.navlist
+                if view_geom.intersects(node.geometry())]
+
     def clear_labels(self):
         """ clear the access-key navigation labels """
 
@@ -378,24 +396,6 @@ class WebView(QWebView):
         self.labels = []
         self.setFocus()
 
-    def find_visible_navigables(self):
-        """ Find the elements on the navigation list that are visible right now
-
-        """
-
-        # updating every time; not needed unless scroll or resize
-        # but maybe tracking scroll/resize is more expensive...
-        view_geom = self.page().mainFrame().geometry()
-        view_geom.translate(self.page().mainFrame().scrollPosition())
-
-        # pending: do it only if needed
-        self.populate_navlist()
-
-        # just for this time; which nodes from the entire page are, in
-        # any way, visible right now?
-        return [node for node in self.navlist
-                if view_geom.intersects(node.geometry())]
-
     def make_labels(self, source=None):
         """ Create labels for the web nodes in 'source'; if not defined,
         find all visible anchor nodes first
@@ -403,7 +403,7 @@ class WebView(QWebView):
         """
 
         if source is None:
-            source = self.find_visible_navigables()
+            source = self.__find_visible_navigables()
 
         for node in source:
             label = QLabel(chr(randint(65, 90)), parent=self)
@@ -425,13 +425,13 @@ class WebView(QWebView):
             label.show()
             label.move(label.x(), label.y() + label.height() // 4)
 
-    def spatialnav(self, direction):
+    def __spatialnav(self, direction):
         """ find web link nodes, move through them;
         initial testing to replace webkit's spatial navigation
 
         """
 
-        localnav = self.find_visible_navigables()
+        localnav = self.__find_visible_navigables()
 
         if not self.navlist or not localnav:
             print("No anchors in current view?")
@@ -455,7 +455,7 @@ class WebView(QWebView):
             #      str(self.in_focus.geometry()), str(neighborhood))
 
         if self.in_focus in localnav:
-            self.next_node(localnav, mininav, direction)
+            self.__next_node(localnav, mininav, direction)
         else:
             if direction == UP or direction == LEFT:
                 self.in_focus = max(localnav, key=lambda node:
@@ -471,7 +471,7 @@ class WebView(QWebView):
 
         self.in_focus.setFocus()
 
-    def next_node(self, localnav, mininav, direction):
+    def __next_node(self, localnav, mininav, direction):
         """ Finds and sets a next node appropiate to the chosen direction,
         first on a neighborhood and then using modified manhattan distance
 
@@ -491,7 +491,7 @@ class WebView(QWebView):
                           if node.geometry().left() > geom.right()]
 
                 self.in_focus = self.in_focus if not region else (
-                    min(region, key=partial(self.node_manhattan,
+                    min(region, key=partial(self.__node_manhattan,
                                             xfactor=manhattan_x,
                                             yfactor=manhattan_y)))
 
@@ -504,7 +504,7 @@ class WebView(QWebView):
                           if node.geometry().right() < geom.left()]
 
                 self.in_focus = self.in_focus if not region else (
-                    min(region, key=partial(self.node_manhattan,
+                    min(region, key=partial(self.__node_manhattan,
                                             xfactor=manhattan_x,
                                             yfactor=manhattan_y)))
 
@@ -517,7 +517,7 @@ class WebView(QWebView):
                           if node.geometry().top() > geom.top() and
                           not node.geometry().contains(geom) and
                           abs(geom.bottom() - node.geometry().bottom()) > 8]
-                region.sort(key=partial(self.node_manhattan,
+                region.sort(key=partial(self.__node_manhattan,
                                         xfactor=manhattan_x,
                                         yfactor=manhattan_y))
                 self.in_focus = self.in_focus if not region else region[0]
@@ -533,12 +533,12 @@ class WebView(QWebView):
                           if node.geometry().bottom() < geom.bottom() and
                           not node.geometry().contains(geom) and
                           abs(geom.bottom() - node.geometry().bottom()) > 8]
-                region.sort(key=partial(self.node_manhattan,
+                region.sort(key=partial(self.__node_manhattan,
                                         xfactor=manhattan_x,
                                         yfactor=manhattan_y))
                 self.in_focus = self.in_focus if not region else region[0]
 
-    def node_manhattan(self, node, xfactor=1, yfactor=1):
+    def __node_manhattan(self, node, xfactor=1, yfactor=1):
         """ Calculates the least possible L1 distance between the focused node
         and another one
 
@@ -566,7 +566,7 @@ class WebView(QWebView):
                 abs(left - f_right),
                 abs(right - f_left)) * yfactor)
 
-    def mouse_press_event(self, event):
+    def __mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks
         and sets self.paste
 
@@ -579,5 +579,5 @@ class WebView(QWebView):
 
     # Clean reimplement for Qt
     # pylint: disable=C0103
-    mousePressEvent = mouse_press_event
+    mousePressEvent = __mouse_press_event
     # pylint: enable=C0103
