@@ -449,6 +449,7 @@ class WebView(QWebView):
         candidate = candidate.upper()
         if candidate in self.map_tags.keys():
             found = self.map_tags[candidate]
+            self.in_focus = found
             found.setFocus()
             self.page().linkHovered.emit(found.attribute("href"),
                                          None, None)
