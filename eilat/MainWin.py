@@ -35,7 +35,7 @@
 """
 
 from PyQt4.QtGui import (QMainWindow, QTabWidget, QTabBar, QLabel,
-                         QToolTip, QColor, QPalette, QFrame)
+                         QToolTip, QColor, QPalette, QFrame, QFont)
 from PyQt4.QtCore import Qt, QTimer
 
 from functools import partial
@@ -241,6 +241,8 @@ class NotifyLabel(QLabel):
         self.setPalette(palette)
         self.setAutoFillBackground(True)
         self.setFrameStyle(QFrame.Box | QFrame.Plain)
+
+        self.setFont(QFont(None, 20, QFont.Bold))
 
         self.hide()
 
