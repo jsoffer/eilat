@@ -21,7 +21,7 @@ except ImportError:
 
 setup(
     name='eilat-web-browser',
-    version='1.5.2',
+    version='1.5.5',
     platforms='Qt', # Pure python? Portability issues: path, clipboard
     description='QTWebkit based web browser',
     long_description="""
@@ -37,6 +37,12 @@ setup(
     * Console logging of resources actually retrieved and cookies set or
       attempted
     * hjkl, ^j, ^h, etc. keyboard navigation
+
+    New in 1.5.5:
+
+    * hooks for playing videos on 'mpv'
+    * redone the log system for message clarity
+    * access-key navigation ('ñ' or ';', then one or two-letters link tag)
 
     Install:
 
