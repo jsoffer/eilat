@@ -74,7 +74,7 @@ from sys import argv
 
 APP = QApplication([])
 APP.setApplicationName("Eilat")
-APP.setApplicationVersion("1.5.002")
+APP.setApplicationVersion("1.5.005")
 export_clipboard(APP.clipboard())
 
 def main():
