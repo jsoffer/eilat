@@ -197,6 +197,7 @@ class WebTab(QWidget):
                 navigate_completion, Qt.Key_Up)),
             # navigation
             ("Ñ", self, self.enter_nav),
+            (";", self, self.enter_nav),
             # toggle
             ("Ctrl+Space", self.webkit, toggle_status),
             ("Q", self.webkit, self.toggle_script),
