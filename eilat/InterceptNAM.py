@@ -289,8 +289,21 @@ class InterceptNAM(QNetworkAccessManager):
     # pylint: enable=C0103
 
 class DiskCache(QNetworkDiskCache):
+    """ Disk cache; in the future, will implement caching algorithms in
+    the 'expire' method.
+
+    """
+
     def __init__(self, options, parent=None):
         super(DiskCache, self).__init__(parent)
         self.setCacheDirectory(
             expanduser("~/.eilat/caches/cache{prefix}".format_map(options)))
         self.setMaximumCacheSize(1024 * 1024 * 256)
+
+    def expire(self):
+        """ The default caching algorithm is FIFO; can be reimplemented here
+
+        """
+
+        QNetworkDiskCache.expire(self)
+
