@@ -305,5 +305,5 @@ class DiskCache(QNetworkDiskCache):
 
         """
 
-        QNetworkDiskCache.expire(self)
+        return QNetworkDiskCache.expire(self)
 
