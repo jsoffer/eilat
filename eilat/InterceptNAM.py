@@ -36,7 +36,8 @@
 
 from urllib.parse import parse_qsl
 
-from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
+from PyQt4.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
+                             QNetworkDiskCache)
 from PyQt4.QtCore import QUrl
 
 from eilat.CookieJar import CookieJar
@@ -49,6 +50,8 @@ from pprint import PrettyPrinter
 import tldextract
 
 from colorama import Fore, Style
+
+from os.path import expanduser
 
 def highlight(qurl, full=False):
     """ Colorizes the address stored in 'qurl'; if 'full' is false,
@@ -125,6 +128,10 @@ class InterceptNAM(QNetworkAccessManager):
         self.cookie_jar = CookieJar(self, options)
         self.setCookieJar(self.cookie_jar)
 
+        cache = QNetworkDiskCache(self)
+        cache.setCacheDirectory(expanduser("~/.eilat/cookies/cache"))
+        self.setCache(cache)
+
         def reply_complete(reply):
             """ Prints when a request completes, handles the filter that
             chooses between successful and filtered requests
@@ -136,6 +143,14 @@ class InterceptNAM(QNetworkAccessManager):
 
             status = reply.attribute(
                 QNetworkRequest.HttpStatusCodeAttribute)
+
+            from_cache = reply.attribute(
+                QNetworkRequest.SourceIsFromCacheAttribute)
+
+            if from_cache:
+                template_status = Fore.GREEN + "%s" + Fore.RESET
+            else:
+                template_status = Fore.RED + "%s" + Fore.RESET
 
             fil = status is not None and status >= 400
             local = is_local(reply.url())
@@ -150,7 +165,7 @@ class InterceptNAM(QNetworkAccessManager):
                 else:
                     cache_header = ''
                 if self.show_log:
-                    show_labeled(str(status), reply.url(),
+                    show_labeled(template_status % status, reply.url(),
                                  color=color,
                                  detail=cache_header)
 
@@ -182,6 +197,9 @@ class InterceptNAM(QNetworkAccessManager):
 
         request.setAttribute(
             QNetworkRequest.HttpPipeliningAllowedAttribute, True)
+
+        request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
+                             QNetworkRequest.PreferCache)
 
         qurl = request.url()
         url = qurl.toString()
