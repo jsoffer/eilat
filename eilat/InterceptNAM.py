@@ -129,7 +129,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.setCookieJar(self.cookie_jar)
 
         cache = QNetworkDiskCache(self)
-        cache.setCacheDirectory(expanduser("~/.eilat/cookies/cache"))
+        cache.setCacheDirectory(expanduser("~/.eilat/cache"))
         self.setCache(cache)
 
         def reply_complete(reply):
