@@ -128,8 +128,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.cookie_jar = CookieJar(self, options)
         self.setCookieJar(self.cookie_jar)
 
-        cache = QNetworkDiskCache(self)
-        cache.setCacheDirectory(expanduser("~/.eilat/cache"))
+        cache = DiskCache(options, parent=self)
         self.setCache(cache)
 
         def reply_complete(reply):
@@ -288,3 +287,10 @@ class InterceptNAM(QNetworkAccessManager):
     # pylint: disable=C0103
     createRequest = create_request
     # pylint: enable=C0103
+
+class DiskCache(QNetworkDiskCache):
+    def __init__(self, options, parent=None):
+        super(DiskCache, self).__init__(parent)
+        self.setCacheDirectory(
+            expanduser("~/.eilat/caches/cache{prefix}".format_map(options)))
+        self.setMaximumCacheSize(1024 * 1024 * 256)
