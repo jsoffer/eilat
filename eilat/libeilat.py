@@ -78,7 +78,7 @@ def fix_url(url):
 
     if search:
         return QUrl(
-            "http://duckduckgo.com/html/?q=%s" % (url.replace(" ", "+")))
+            "http://duckduckgo.com/html/?q={}".format(url.replace(" ", "+")))
     else:
         return QUrl.fromUserInput(url)
 
@@ -163,8 +163,8 @@ def encode_css(style):
 def encode_blocked(message, url):
     """ Generates a 'data:' string to use as reply when blocking an URL """
     header = b"data:text/html;base64,"
-    content = """<html><head></head><body><div class="eilat_blocked"> %s
-    <a href=%s>%s</a></div></body>""" % (message, url, url)
+    content = """<html><head></head><body><div class="eilat_blocked"> {}
+    <a href={}>{}</a></div></body>""".format(message, url, url)
     encoded = encodestring(content.encode())
     return (header + encoded).decode()
 

@@ -68,22 +68,22 @@ def highlight(qurl, full=False):
 
     if path and qurl.scheme() == 'data':
         path = path.split(';')[0]
-        return "[data] %s" % (path)
+        return "[data] {}".format(path)
 
     (subdomain, domain, suffix) = tldextract.extract(url)
 
-    host = "%s.%s%s.%s" % (subdomain,
-                           Style.BRIGHT, domain, suffix)
+    host = "{}.{}{}.{}".format(subdomain,
+                               Style.BRIGHT, domain, suffix)
     host = host.strip('.')
 
-    port = ":%s" % (qurl.port()) if qurl.port() >= 0 else ''
+    port = ":{}".format(qurl.port()) if qurl.port() >= 0 else ''
     if port:
         host += port
 
     if qurl.scheme() != 'http':
-        host = "[%s] %s" %  (qurl.scheme(), host)
+        host = "[{}] {}".format(qurl.scheme(), host)
 
-    return "%s%s%s %s" % (
+    return "{}{}{} {}".format(
         Style.NORMAL, host, Style.NORMAL,
         path)
 
@@ -94,15 +94,15 @@ def show_labeled(label, url, detail='', color=Fore.RESET, full=False):
 
     """
 
-    result = "%s%s: %s%s" % (Fore.RESET,
-                             label,
-                             color,
-                             highlight(url, full=full))
+    result = "{}{}: {}{}".format(Fore.RESET,
+                                 label,
+                                 color,
+                                 highlight(url, full=full))
 
     if detail:
-        result += "\n\t> %s" % (detail)
+        result += "\n\t> {}".format(detail)
 
-    result += "%s" % (Fore.RESET)
+    result += Fore.RESET
 
     print(result)
 
@@ -147,9 +147,9 @@ class InterceptNAM(QNetworkAccessManager):
                 QNetworkRequest.SourceIsFromCacheAttribute)
 
             if from_cache:
-                template_status = Fore.GREEN + "%s" + Fore.RESET
+                color_status = Fore.GREEN
             else:
-                template_status = Fore.RED + "%s" + Fore.RESET
+                color_status = Fore.RED
 
             fil = status is not None and status >= 400
             local = is_local(reply.url())
@@ -164,7 +164,10 @@ class InterceptNAM(QNetworkAccessManager):
                 else:
                     cache_header = ''
                 if self.show_log:
-                    show_labeled(template_status % status, reply.url(),
+                    show_labeled("{}{}{}".format(color_status,
+                                                 status,
+                                                 Fore.RESET),
+                                 reply.url(),
                                  color=color,
                                  detail=cache_header)
 
@@ -257,17 +260,17 @@ class InterceptNAM(QNetworkAccessManager):
                 # should never happen (even though it does - some providers
                 # don't have a proper 'domain' according to tldextract
                 (domain == '' or suffix == '',
-                 "SHOULD NOT HAPPEN", " %s|%s|%s " % (subdomain,
-                                                      domain,
-                                                      suffix)),
+                 "SHOULD NOT HAPPEN", " {}|{}|{} ".format(subdomain,
+                                                          domain,
+                                                          suffix)),
                 # found the requested URL in the blacklist
                 (self.whitelist is None and
                  database().is_blacklisted(domain,
                                            suffix,
                                            subdomain),
-                 "FILTER", "%s || %s || %s " % (subdomain,
-                                                domain,
-                                                suffix))
+                 "FILTER", "{} || {} || {} ".format(subdomain,
+                                                    domain,
+                                                    suffix))
         ]:
             if stop_case:
                 if self.show_detail:

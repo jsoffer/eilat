@@ -312,7 +312,7 @@ class WebView(QWebView):
                 len(path.split('/')) < 4):
             database().store_navigation(host, path, self.prefix)
 
-        print("%s>>>\t\t%s\n>>> NAVIGATE %s%s" % (
+        print("{}>>>\t\t{}\n>>> NAVIGATE {}{}".format(
             Fore.CYAN,
             datetime.datetime.now().isoformat(),
             qurl.toString(),
@@ -332,7 +332,7 @@ class WebView(QWebView):
         nodes = [node for node in frame.findAllElements("iframe[src]")]
         for node in nodes:
             url = node.attribute('src')
-            node.setOuterXml("""<a href="%s">%s</a>""" % (url, url))
+            node.setOuterXml("""<a href="{}">{}</a>""".format(url, url))
 
         # We've added a[href] nodes to the page... rebuild the navigation list
         self.navlist = []

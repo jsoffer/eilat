@@ -239,7 +239,7 @@ class WebTab(QWidget):
         """ Callback for connection """
         if self.pbar.isVisible():
             self.pbar.setValue(val)
-            self.set_title(str(val) + "% " + self.current_title)
+            self.set_title("{}% {}".format(val, self.current_title))
 
     # connect (en constructor)
     def load_started(self):
