@@ -46,7 +46,8 @@ from eilat.InterceptNAM import InterceptNAM
 from eilat.libeilat import (fix_url, set_shortcuts, node_neighborhood,
                             UP, DOWN, LEFT, RIGHT,
                             encode_css, real_host, toggle_show_logs,
-                            fake_key, fake_click)
+                            fake_key, fake_click,
+                            notify)
 from eilat.global_store import (mainwin, clipboard, database,
                                 has_manager, register_manager, get_manager)
 from eilat.options import extract_options
@@ -75,20 +76,6 @@ ALL_TAGS = [p + q for (p, q) in
 ALL_TAGS.remove('J')
 ALL_TAGS.remove('F')
 ALL_TAGS.remove('H')
-
-def play_mpv(qurl):
-    """ Will try to open an 'mpv' instance running the video pointed at
-    in 'qurl'. Warns if 'mpv' is not installed or available.
-
-    To be executed in a separate thread. That way, 'wait' will not block.
-
-    """
-
-    try:
-        process = Popen(['mpv', qurl.toString()])
-        process.wait() # wait, or mpv will be <defunct> after exiting!
-    except FileNotFoundError:
-        print("'mpv' video player not available")
 
 class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
@@ -160,6 +147,8 @@ class WebView(QWebView):
                 QUrl(css_encoded))
 
         self.urlChanged.connect(url_changed)
+
+        self.statusBarMessage.connect(partial(notify))
 
         self.page().downloadRequested.connect(partial(clipboard))
         self.page().unsupportedContent.connect(partial(clipboard))
@@ -240,6 +229,23 @@ class WebView(QWebView):
             ("V", self, partial(self.attributes.add, 'play'))
             ])
 
+    def play_mpv(self, qurl):
+        """ Will try to open an 'mpv' instance running the video pointed at
+        in 'qurl'. Warns if 'mpv' is not installed or available.
+
+        To be executed in a separate thread. That way, 'wait' will not block.
+
+        """
+
+        try:
+            process = Popen(['mpv', qurl.toString()])
+            process.wait() # wait, or mpv will be <defunct> after exiting!
+            if process.returncode != 0:
+                self.statusBarMessage.emit("mpv can't play: status {}".format(
+                    process.returncode))
+        except FileNotFoundError:
+            print("'mpv' video player not available")
+
     # action (en register_actions)
     def navigate(self, request=None):
         """ Open the url on this tab. If 'url' is already a QUrl
@@ -260,7 +266,7 @@ class WebView(QWebView):
             if 'play' in self.attributes:
                 print("PLAYING")
 
-                Thread(target=partial(play_mpv, qurl)).start()
+                Thread(target=partial(self.play_mpv, qurl)).start()
 
                 self.attributes.discard('play')
 

@@ -269,6 +269,9 @@ def notify(text, corner=False):
 
     """
 
+    if not text:
+        return
+
     label = mainwin().tooltip
     label.push_text(text)
     label.adjustSize()
