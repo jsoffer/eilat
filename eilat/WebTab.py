@@ -35,7 +35,8 @@
 """
 
 from PyQt4.QtGui import (QWidget, QProgressBar, QStatusBar, QGridLayout,
-                         QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent)
+                         QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent,
+                         QPalette, QColor)
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import Qt, QEvent
 
@@ -361,8 +362,10 @@ class AddressBar(QLineEdit):
 
     def set_color(self, rgb=(255, 255, 255)):
         """ Sets the background color of the address bar """
-        self.setStyleSheet(
-            "QLineEdit { background-color: rgb(%s, %s, %s)}" % rgb)
+        palette = self.palette()
+        (red, green, blue) = rgb
+        palette.setColor(QPalette.Base, QColor(red, green, blue))
+        self.setPalette(palette)
 
 class NavigateInput(QLineEdit):
     """ When access-key navigation starts, jump to a line edit, where it's
