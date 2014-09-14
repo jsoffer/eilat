@@ -64,7 +64,7 @@ import string
 import itertools
 
 ALL_TAGS = [p + q for (p, q) in
-            itertools.product(['', 'J', 'F'],
+            itertools.product(['', 'J', 'F', 'H'],
                               [k for k in
                                string.ascii_uppercase + string.digits])]
 
@@ -74,6 +74,7 @@ ALL_TAGS = [p + q for (p, q) in
 
 ALL_TAGS.remove('J')
 ALL_TAGS.remove('F')
+ALL_TAGS.remove('H')
 
 def play_mpv(qurl):
     """ Will try to open an 'mpv' instance running the video pointed at
