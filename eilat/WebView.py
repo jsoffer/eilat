@@ -64,7 +64,7 @@ import string
 import itertools
 
 ALL_TAGS = [p + q for (p, q) in
-            itertools.product(['', 'G', 'H', 'F', 'J'],
+            itertools.product(['', 'J', 'F'],
                               [k for k in
                                string.ascii_uppercase + string.digits])]
 
@@ -72,10 +72,8 @@ ALL_TAGS = [p + q for (p, q) in
 # on a low-population page; can be improved (as can the distribution too) by
 # making ALL_TAGS a function depending on the number of links in the page
 
-ALL_TAGS.remove('G')
-ALL_TAGS.remove('H')
-ALL_TAGS.remove('F')
 ALL_TAGS.remove('J')
+ALL_TAGS.remove('F')
 
 def play_mpv(qurl):
     """ Will try to open an 'mpv' instance running the video pointed at
@@ -428,14 +426,18 @@ class WebView(QWebView):
             self.labels.append(label)
 
             palette = QToolTip.palette()
+
             color = QColor(Qt.yellow)
-            color = color.lighter(150)
-            color.setAlpha(112)
+
+            color = color.lighter(160) # 150
+            color.setAlpha(196) # 112
             palette.setColor(QPalette.Window, color)
 
             label.setPalette(palette)
             label.setAutoFillBackground(True)
             label.setFrameStyle(QFrame.Box | QFrame.Plain)
+
+            #label.setFont(QFont(None, 8))
 
             point = QPoint(node.geometry().left(), node.geometry().center().y())
             point -= self.page().mainFrame().scrollPosition()
