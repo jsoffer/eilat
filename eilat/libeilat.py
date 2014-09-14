@@ -264,13 +264,20 @@ def toggle_show_logs(prefix, detail=False):
         else:
             print("---- HIDING LOG ----")
 
-def notify(text):
+def notify(text, corner=False):
     """ Pushes a notification to the main window's notifier label
 
     """
+
     label = mainwin().tooltip
     label.push_text(text)
     label.adjustSize()
-    label.move(mainwin().width() - (label.width() + 10),
-               mainwin().height() - (label.height() + 10))
+
+    if corner:
+        label.move(mainwin().width() - (label.width() + 10),
+                   mainwin().height() - (label.height() + 10))
+    else:
+        label.move(mainwin().width() // 2 - label.width() // 2,
+                   mainwin().height() // 2 - label.height() // 2)
+
     label.show()

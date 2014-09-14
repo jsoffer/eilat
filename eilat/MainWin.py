@@ -235,7 +235,7 @@ class NotifyLabel(QLabel):
         palette = QToolTip.palette()
         color = QColor(Qt.blue)
         color = color.lighter(170)
-        #color.setAlpha(112)
+        color.setAlpha(128)
         palette.setColor(QPalette.Window, color)
 
         self.setPalette(palette)
