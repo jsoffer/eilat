@@ -104,7 +104,7 @@ def check_proxy(host, port):
         proxy.connect((host, port))
         return True
     except ConnectionRefusedError:
-        print("No proxy on %s:%s?" % (host, str(port)))
+        print("No proxy on {}:{}?".format(host, str(port)))
         return False
     finally:
         proxy.close()

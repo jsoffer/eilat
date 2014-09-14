@@ -49,6 +49,7 @@ class DatabaseLogLite(object):
 
         super(DatabaseLogLite, self).__init__()
         self.litedb = QSqlDatabase("QSQLITE")
+
         db_file = expanduser("~/.eilat/eilat.db")
         rebuild = not isfile(db_file)
 
@@ -76,33 +77,30 @@ class DatabaseLogLite(object):
                 ('twimg', 'com')]
 
             query_insertbl = (
-                "INSERT INTO blacklist values (NULL, '%s', '%s')")
+                "INSERT INTO blacklist values (NULL, '{}', '{}')")
 
             self.litedb.exec_(query_mknav)
             self.litedb.exec_(query_mkblacklist)
 
-            for site in inserts:
-                self.litedb.exec_(query_insertbl % site)
+            for host, tld in inserts:
+                self.litedb.exec_(query_insertbl.format(host, tld))
 
         ####### VALIDATION
-        # verifies structure, not datatypes
+        # verifies database structure, not datatypes
 
         tables = self.litedb.tables()
-        expected_tables = ['navigation', 'blacklist']
-        tables_ok = [k in tables for k in expected_tables]
+        tables_ok = [k in tables for k in ['navigation', 'blacklist']]
         if not all(tables_ok):
             raise RuntimeError("tables missing from database")
 
-        fields_navigation = ['host', 'path', 'count', 'prefix']
         fnav_ok = [self.litedb.record('navigation').contains(k)
-                   for k in fields_navigation]
+                   for k in ['host', 'path', 'count', 'prefix']]
 
         if not all(fnav_ok):
             raise RuntimeError("bad structure for 'navigation' table")
 
-        fields_blacklist = ['subdomain', 'domain', 'tld']
         fbl_ok = [self.litedb.record('blacklist').contains(k)
-                  for k in fields_blacklist]
+                  for k in ['subdomain', 'domain', 'tld']]
 
         if not all(fbl_ok):
             raise RuntimeError("bad structure for 'blacklist' table")
@@ -125,7 +123,7 @@ class DatabaseLogLite(object):
         else:
             query_nav = QSqlQuery(
                 "select host || path from navigation " +
-                "where prefix = '%s' " % (prefix) +
+                "where prefix = '{}' ".format(prefix) +
                 "order by count desc",
                 self.litedb)
 
@@ -143,11 +141,11 @@ class DatabaseLogLite(object):
 
         insert_or_ignore = (
             "insert or ignore into navigation (host, path, prefix) " +
-            "values ('%s', '%s', '%s')" % (host, path, prefix))
+            "values ('{}', '{}', '{}')".format(host, path, prefix))
 
         update = (
             "update navigation set count = count + 1 where " +
-            "host = '%s' and path = '%s'" % (host, path))
+            "host = '{}' and path = '{}'".format(host, path))
 
         self.litedb.exec_(insert_or_ignore)
         self.litedb.exec_(update)
@@ -170,13 +168,13 @@ class DatabaseLogLite(object):
 
         if not run_query(
                 "select count(*) from blacklist where " +
-                "domain = '%s' and tld = '%s'" % (domain, suffix)):
+                "domain = '{}' and tld = '{}'".format(domain, suffix)):
             return False
 
         # first, if there's a no-subdomain entry, it covers everything
         if run_query(
                 "select count(*) from blacklist where " +
-                "domain = '%s' and tld = '%s' " % (domain, suffix) +
+                "domain = '{}' and tld = '{}' ".format(domain, suffix) +
                 "and subdomain is null"):
             return True
 
@@ -188,5 +186,5 @@ class DatabaseLogLite(object):
 
         return run_query(
             "select count(*) from blacklist where " +
-            "domain = '%s' and tld = '%s' " % (domain, suffix) +
-            "and subdomain = '%s'" % (subdomain))
+            "domain = '{}' and tld = '{}' ".format(domain, suffix) +
+            "and subdomain = '{}'".format(subdomain))

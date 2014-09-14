@@ -44,12 +44,11 @@ def format_cookie(url, cookies):
     where they're set
 
     """
-    prefix = "\n< COOKIES (%s%s) " % (url.host(), url.path())
-    suffix = ", ".join(["[[%s%s] %s => %s]" %
-                        (cookie.domain(),
-                         cookie.path(),
-                         cookie.name(),
-                         cookie.value())
+    prefix = "\n< COOKIES ({}{}) ".format(url.host(), url.path())
+    suffix = ", ".join(["[[{}{}] {} => {}]".format(cookie.domain(),
+                                                   cookie.path(),
+                                                   cookie.name(),
+                                                   cookie.value())
                         for cookie in cookies])
     return prefix + suffix
 
@@ -103,10 +102,10 @@ class CookieJar(QNetworkCookieJar):
         site = domain + '.' + suffix
 
         if site not in self.allowed:
-            print("COOKIE FROM %s not set" % (url.toString()))
+            print("COOKIE FROM {} not set".format(url.toString()))
             ret = []
         else:
-            print("SET COOKIE FROM %s" % (url.toString()))
+            print("SET COOKIE FROM {}".format(url.toString()))
             ret = cookies
 
         return QNetworkCookieJar.setCookiesFromUrl(self, ret, url)

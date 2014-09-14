@@ -37,6 +37,6 @@ def extract_options(url):
         print("GENERAL")
     else:
         options = options_sites[host]
-        print("INSTANCE: %s" % options['prefix'])
+        print("INSTANCE: {prefix}".format_map(options))
 
     return options
