@@ -43,11 +43,11 @@ from functools import partial
 
 #from WebPage import WebPage
 from eilat.InterceptNAM import InterceptNAM
-from eilat.libeilat import (fix_url, set_shortcuts, node_neighborhood,
-                            UP, DOWN, LEFT, RIGHT,
+from eilat.libeilat import (fix_url, set_shortcuts,
                             encode_css, real_host, toggle_show_logs,
                             fake_key, fake_click,
                             notify)
+
 from eilat.global_store import (mainwin, clipboard, database,
                                 has_manager, register_manager, get_manager)
 from eilat.options import extract_options
@@ -63,6 +63,62 @@ from colorama import Fore
 
 import string
 import itertools
+
+# Poor man's symbols (enum would be better - Python 3.4 and up only)
+UP = 0
+RIGHT = 1
+DOWN = 2
+LEFT = 3
+
+def node_neighborhood(rect, direction):
+    """ Finds a rectangle next to the node, where close by
+    nodes could be
+
+    """
+
+    if direction == UP:
+        rect.moveTop(rect.top() - rect.height())
+        rect.setTop(rect.top() - 100)
+    elif direction == DOWN:
+        rect.moveBottom(rect.bottom() + rect.height())
+        rect.setBottom(rect.bottom() + 100)
+    elif direction == LEFT:
+        rect.moveLeft(rect.left() - rect.width())
+        rect.setLeft(rect.left() - 100)
+    elif direction == RIGHT:
+        rect.moveRight(rect.right() + rect.width())
+        rect.setRight(rect.right() + 100)
+
+    return rect
+
+def next_node(candidates, direction, boundary):
+    """ Given the direction that was travelled to create the
+    candidates, find the best close node
+
+    """
+
+    target = None
+
+    if direction == UP:
+        target = max(candidates, key=lambda node:
+                     node.geometry().bottom())
+    elif direction == LEFT:
+        candidates = [node for node in candidates if
+                      node.geometry().right() <= boundary.right()]
+        if candidates:
+            target = max(candidates, key=lambda node:
+                         node.geometry().right())
+    elif direction == DOWN:
+        target = min(candidates, key=lambda node:
+                     node.geometry().top())
+    elif direction == RIGHT:
+        candidates = [node for node in candidates if
+                      node.geometry().left() >= boundary.left()]
+        if candidates:
+            target = min(candidates, key=lambda node:
+                         node.geometry().left())
+
+    return target
 
 ALL_TAGS = [p + q for (p, q) in
             itertools.product(['', 'J', 'F', 'H'],
@@ -148,7 +204,7 @@ class WebView(QWebView):
 
         self.urlChanged.connect(url_changed)
 
-        self.statusBarMessage.connect(partial(notify))
+        self.statusBarMessage.connect(notify)
 
         self.page().downloadRequested.connect(partial(clipboard))
         self.page().unsupportedContent.connect(partial(clipboard))
@@ -387,18 +443,23 @@ class WebView(QWebView):
         if not self.navlist:
             print("No anchors in this page, at all?")
 
-    def __find_visible_navigables(self):
+    def __find_visible_navigables(self, geometry=None):
         """ Find the elements on the navigation list that are visible right now
+
+        If 'geometry' is set, find the elements on that subregion instead
 
         """
 
-        # updating every time; not needed unless scroll or resize
-        # but maybe tracking scroll/resize is more expensive...
-        view_geom = self.page().mainFrame().geometry()
-        view_geom.translate(self.page().mainFrame().scrollPosition())
-
-        # pending: do it only if needed
+        # pending: populate only if needed
         self.__populate_navlist()
+
+        if geometry is None:
+            # updating every time; not needed unless scroll or resize
+            # but maybe tracking scroll/resize is more expensive...
+            view_geom = self.page().mainFrame().geometry()
+            view_geom.translate(self.page().mainFrame().scrollPosition())
+        else:
+            view_geom = geometry
 
         # just for this time; which nodes from the entire page are, in
         # any way, visible right now?
@@ -408,7 +469,6 @@ class WebView(QWebView):
     def clear_labels(self):
         """ clear the access-key navigation labels """
 
-        print("hiding labels...")
         for label in self.labels:
             label.hide()
             label.deleteLater()
@@ -463,9 +523,6 @@ class WebView(QWebView):
             self.page().linkHovered.emit(found.attribute("href"),
                                          None, None)
             self.setFocus()
-            print("FOUND")
-        else:
-            print("not found yet...")
 
     def __spatialnav(self, direction):
         """ find web link nodes, move through them;
@@ -473,32 +530,13 @@ class WebView(QWebView):
 
         """
 
-        localnav = self.__find_visible_navigables()
+        localnav = self.__find_visible_navigables() # this populates 'navlist'
 
         if not self.navlist or not localnav:
             print("No anchors in current view?")
             return
 
-        # find the best node to move to
-        if self.in_focus in localnav:
-
-            geom = self.in_focus.geometry()
-
-            neighborhood = node_neighborhood(geom, direction)
-
-            # 'mininav' is a list of the nodes close to the focused one,
-            # on the relevant direction
-            mininav = [node for node in localnav
-                       if node != self.in_focus and
-                       not node.geometry().contains(geom) and
-                       neighborhood.intersects(node.geometry())]
-
-            #print("mininav: ", str([node.toPlainText() for node in mininav]),
-            #      str(self.in_focus.geometry()), str(neighborhood))
-
-        if self.in_focus in localnav:
-            self.__next_node(localnav, mininav, direction)
-        else:
+        if not self.in_focus in localnav:
             if direction == UP or direction == LEFT:
                 self.in_focus = max(localnav, key=lambda node:
                                     node.geometry().bottom())
@@ -506,107 +544,28 @@ class WebView(QWebView):
                 self.in_focus = min(localnav, key=lambda node:
                                     node.geometry().top())
 
-        # We're done, we have a node to focus; focus it,
-        # send a signal that will be bound to the status bar
-        self.page().linkHovered.emit(self.in_focus.attribute("href"),
-                                     None, None)
+            self.page().linkHovered.emit(self.in_focus.attribute("href"),
+                                         None, None)
+            self.in_focus.setFocus()
+            return
 
-        self.in_focus.setFocus()
+        # if we're here, we have a visible, previously focused node;
+        # search from it, in the required direction, within the width of
+        # the node.
 
-    def __next_node(self, localnav, mininav, direction):
-        """ Finds and sets a next node appropiate to the chosen direction,
-        first on a neighborhood and then using modified manhattan distance
+        target_rect = node_neighborhood(self.in_focus.geometry(), direction)
 
-        """
+        candidates = [node for node in localnav
+                      if target_rect.intersects(node.geometry())]
 
-        manhattan_x = 95
-        manhattan_y = 15
+        if candidates:
+            target = next_node(candidates, direction, target_rect)
 
-        geom = self.in_focus.geometry()
-
-        if direction == RIGHT:
-            if mininav:
-                self.in_focus = min(
-                    mininav, key=lambda node: node.geometry().left())
-            else:
-                region = [node for node in localnav
-                          if node.geometry().left() > geom.right()]
-
-                self.in_focus = self.in_focus if not region else (
-                    min(region, key=partial(self.__node_manhattan,
-                                            xfactor=manhattan_x,
-                                            yfactor=manhattan_y)))
-
-        elif direction == LEFT:
-            if mininav:
-                self.in_focus = min(
-                    mininav, key=lambda node: node.geometry().right())
-            else:
-                region = [node for node in localnav
-                          if node.geometry().right() < geom.left()]
-
-                self.in_focus = self.in_focus if not region else (
-                    min(region, key=partial(self.__node_manhattan,
-                                            xfactor=manhattan_x,
-                                            yfactor=manhattan_y)))
-
-        elif direction == DOWN:
-            if mininav:
-                self.in_focus = min(
-                    mininav, key=lambda node: node.geometry().top())
-            else:
-                region = [node for node in localnav
-                          if node.geometry().top() > geom.top() and
-                          not node.geometry().contains(geom) and
-                          abs(geom.bottom() - node.geometry().bottom()) > 8]
-                region.sort(key=partial(self.__node_manhattan,
-                                        xfactor=manhattan_x,
-                                        yfactor=manhattan_y))
-                self.in_focus = self.in_focus if not region else region[0]
-
-        # up
-        else:
-            if mininav:
-                mininav.sort(key=lambda node: node.geometry().bottom())
-                self.in_focus = max(
-                    mininav, key=lambda node: node.geometry().bottom())
-            else:
-                region = [node for node in localnav
-                          if node.geometry().bottom() < geom.bottom() and
-                          not node.geometry().contains(geom) and
-                          abs(geom.bottom() - node.geometry().bottom()) > 8]
-                region.sort(key=partial(self.__node_manhattan,
-                                        xfactor=manhattan_x,
-                                        yfactor=manhattan_y))
-                self.in_focus = self.in_focus if not region else region[0]
-
-    def __node_manhattan(self, node, xfactor=1, yfactor=1):
-        """ Calculates the least possible L1 distance between the focused node
-        and another one
-
-        """
-
-        geom = node.geometry()
-        f_geom = self.in_focus.geometry()
-
-        top = geom.top()
-        f_top = f_geom.top()
-        bottom = geom.bottom()
-        f_bottom = f_geom.bottom()
-        left = geom.left()
-        f_left = f_geom.left()
-        right = geom.right()
-        f_right = f_geom.right()
-
-        return (
-            min(abs(top - f_top),
-                abs(bottom - f_bottom),
-                abs(top - f_bottom),
-                abs(bottom - f_top)) * xfactor +
-            min(abs(left - f_left),
-                abs(right - f_right),
-                abs(left - f_right),
-                abs(right - f_left)) * yfactor)
+            if target is not None:
+                self.in_focus = target
+                self.page().linkHovered.emit(self.in_focus.attribute("href"),
+                                             None, None)
+                self.in_focus.setFocus()
 
     def __mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks
