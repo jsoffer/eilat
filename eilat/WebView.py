@@ -109,8 +109,17 @@ def next_node(candidates, direction, boundary):
             target = max(candidates, key=lambda node:
                          node.geometry().right())
     elif direction == DOWN:
+        def surface(node):
+            """ Give the node that has the largest surface inside the
+            boundary. Negative to allow to use 'min' in tuple comparison.
+            Kind of flaky (find better ways; workaround for hackernews
+            title-to-comments instead of to username)
+
+            """
+            intersect = boundary.intersect(node.geometry())
+            return -(intersect.height() * intersect.width())
         target = min(candidates, key=lambda node:
-                     node.geometry().top())
+                     (node.geometry().top(), surface(node)))
     elif direction == RIGHT:
         candidates = [node for node in candidates if
                       node.geometry().left() >= boundary.left()]
