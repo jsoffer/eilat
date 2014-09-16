@@ -539,6 +539,8 @@ class WebView(QWebView):
 
         """
 
+        target = None
+
         localnav = self.__find_visible_navigables() # this populates 'navlist'
 
         if not self.navlist or not localnav:
@@ -547,34 +549,31 @@ class WebView(QWebView):
 
         if not self.in_focus in localnav:
             if direction == UP or direction == LEFT:
-                self.in_focus = max(localnav, key=lambda node:
-                                    node.geometry().bottom())
+                target = max(localnav, key=lambda node:
+                             node.geometry().bottom())
             else:
-                self.in_focus = min(localnav, key=lambda node:
-                                    node.geometry().top())
+                target = min(localnav, key=lambda node:
+                             node.geometry().top())
 
+        else:
+
+            # if we're here, we have a visible, previously focused node;
+            # search from it, in the required direction, within the width of
+            # the node.
+
+            target_rect = node_neighborhood(self.in_focus.geometry(), direction)
+
+            candidates = [node for node in localnav
+                          if target_rect.intersects(node.geometry())]
+
+            if candidates:
+                target = next_node(candidates, direction, target_rect)
+
+        if target is not None:
+            self.in_focus = target
             self.page().linkHovered.emit(self.in_focus.attribute("href"),
                                          None, None)
             self.in_focus.setFocus()
-            return
-
-        # if we're here, we have a visible, previously focused node;
-        # search from it, in the required direction, within the width of
-        # the node.
-
-        target_rect = node_neighborhood(self.in_focus.geometry(), direction)
-
-        candidates = [node for node in localnav
-                      if target_rect.intersects(node.geometry())]
-
-        if candidates:
-            target = next_node(candidates, direction, target_rect)
-
-            if target is not None:
-                self.in_focus = target
-                self.page().linkHovered.emit(self.in_focus.attribute("href"),
-                                             None, None)
-                self.in_focus.setFocus()
 
     def __mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks
