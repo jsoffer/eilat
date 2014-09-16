@@ -212,7 +212,6 @@ class WebTab(QWidget):
 
         """
 
-        print("creating labels...")
         self.webkit.make_labels()
         self.nav_bar.show()
         self.nav_bar.setFocus()
