@@ -106,6 +106,8 @@ def show_labeled(label, url, detail='', color=Fore.RESET, full=False):
 
     print(result)
 
+PRINTER = PrettyPrinter(indent=4).pprint
+
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
     by web pages, besides of the page itself. Has primitive support to allow
@@ -123,8 +125,10 @@ class InterceptNAM(QNetworkAccessManager):
         self.show_detail = self.prefix == ''
         self.show_log = self.prefix == ''
 
-        self.printer = PrettyPrinter(indent=4).pprint
+        self.total_bytes = 0
+        self.cache_bytes = 0
 
+        # reference needed to save in shutdown
         self.cookie_jar = CookieJar(self, options)
         self.setCookieJar(self.cookie_jar)
 
@@ -135,7 +139,7 @@ class InterceptNAM(QNetworkAccessManager):
             """ Prints when a request completes, handles the filter that
             chooses between successful and filtered requests
 
-            Replies only - if the request is cached and doesn't have to go
+            Replies only - if the request doesn't have to go
             through the network, it will not be reported here
 
             """
@@ -156,13 +160,29 @@ class InterceptNAM(QNetworkAccessManager):
 
             color = Fore.RED if fil else Fore.BLUE
 
+            cache_header = ''
+
             if status is not None and not local:
+                if reply.hasRawHeader('Content-Length'):
+                    byte_length = int(reply.rawHeader(
+                        'Content-Length').data().decode())
+                    self.total_bytes += byte_length
+                    cache_header += "{:.2f} Kb\t".format(byte_length / 1024.0)
+                    if from_cache:
+                        self.cache_bytes += byte_length
+                else:
+                    cache_header += 'NO_LENGTH\t'
+
                 if reply.hasRawHeader('X-Cache'):
-                    cache_header = (
+                    cache_header += (
                         reply.rawHeader('X-Cache').data().decode() +
                         '\t')
-                else:
-                    cache_header = ''
+
+                if self.total_bytes > 0:
+                    cache_header += "[{:.2f}% disk cache]".format(
+                        100.0 * float(self.cache_bytes) /
+                        self.total_bytes)
+
                 if self.show_log:
                     show_labeled("{}{}{}".format(color_status,
                                                  status,
@@ -214,7 +234,7 @@ class InterceptNAM(QNetworkAccessManager):
                 print(url)
                 # parse_qsl is imported on a python3-only way;
                 # fixable (or maskable) for python2; worth it?
-                self.printer(parse_qsl(post_str, keep_blank_values=True))
+                PRINTER(parse_qsl(post_str, keep_blank_values=True))
                 print("-_-_-_-")
         except UnicodeDecodeError:
             print("Binary POST upload")
