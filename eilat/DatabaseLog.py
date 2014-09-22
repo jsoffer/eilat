@@ -38,6 +38,58 @@ from os.path import expanduser, isfile
 
 from PyQt4.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
 
+class CacheStorage(object):
+    """ Stores metadata for usage with a QNetworkCacheMetaData instance
+
+    """
+
+    def __init__(self):
+        super(CacheStorage, self).__init__()
+
+        self.litedb = QSqlDatabase("QSQLITE")
+
+        db_file = expanduser("~/.eilat/cache.db")
+        #rebuild = not isfile(db_file)
+
+        self.litedb.setDatabaseName(db_file)
+        self.litedb.open()
+
+        #if rebuild:
+        #    query_mknav = (
+        #        "CREATE TABLE entry (key TEXT NOT NULL PRIMARY KEY," +
+        #        " value BLOB")
+
+    def make_key(self, key):
+        print("CACHE: make_key")
+        query = QSqlQuery(self.litedb)
+        query.prepare("INSERT INTO entry VALUES (:key, NULL)")
+        query.bindValue(":key", key)
+        ret = query.exec_()
+        print(ret)
+        if not ret:
+            print(query.lastError().text())
+
+    def set_value(self, key, value):
+        print("CACHE: set_value")
+        query = QSqlQuery(self.litedb)
+        query.prepare("UPDATE entry SET value = :value where key = :key")
+        query.bindValue(":key", key)
+        query.bindValue(":value", value)
+        ret = query.exec_()
+        if not ret:
+            print(query.lastError().text())
+
+    def delete(self, key):
+        query_delete = "DELETE FROM entry WHERE key = '{}'".format(
+            key)
+        self.litedb.exec_(query_delete)
+
+    def get(self, key):
+        query_get = "SELECT value FROM entry WHERE key = '{}'".format(
+            key)
+        self.litedb.exec_(query_get)
+        return self.litedb.next()[0]
+
 class DatabaseLogLite(object):
     """ Low load only; using SQLite
     To store bookmarks, configuration, etc.
