@@ -148,6 +148,7 @@ class WebView(QWebView):
     """
 
     prefix_set = pyqtSignal(str)
+    link_selected = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super(WebView, self).__init__(parent)
@@ -529,8 +530,7 @@ class WebView(QWebView):
             found = self.map_tags[candidate]
             self.in_focus = found
             found.setFocus()
-            self.page().linkHovered.emit(found.attribute("href"),
-                                         None, None)
+            self.link_selected.emit(found.attribute("href"))
             self.setFocus()
 
     def __spatialnav(self, direction):
@@ -571,8 +571,7 @@ class WebView(QWebView):
 
         if target is not None:
             self.in_focus = target
-            self.page().linkHovered.emit(self.in_focus.attribute("href"),
-                                         None, None)
+            self.link_selected.emit(self.in_focus.attribute("href"))
             self.in_focus.setFocus()
 
     def __mouse_press_event(self, event):

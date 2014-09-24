@@ -34,7 +34,7 @@
 
 """
 
-from PyQt4.QtGui import (QWidget, QProgressBar, QStatusBar, QGridLayout,
+from PyQt4.QtGui import (QWidget, QProgressBar, QGridLayout,
                          QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent,
                          QPalette, QColor)
 from PyQt4.QtWebKit import QWebPage, QWebSettings
@@ -54,6 +54,7 @@ class WebTab(QWidget):
         super(WebTab, self).__init__(parent)
 
         self.current_title = "[EMPTY]"
+        self.current_address = ""
 
         # address bar
         self.address_bar = AddressBar(parent=self)
@@ -82,7 +83,8 @@ class WebTab(QWidget):
             and without updating, the address bar will be left stale
 
             """
-            self.address_bar.setText(qurl.toString())
+            self.current_address = qurl.toString()
+            self.address_bar.setText(self.current_address)
 
         self.webkit.urlChanged.connect(update_address)
         self.webkit.loadStarted.connect(self.load_started)
@@ -125,13 +127,7 @@ class WebTab(QWidget):
         # search in page
         self.search_frame = SearchFrame(parent=self)
 
-        # status bar
-        self.statusbar = QStatusBar(self)
-
-        self.statusbar.setVisible(False)
-        self.statusbar.setMaximumHeight(25)
-
-        self.webkit.page().linkHovered.connect(self.on_link_hovered)
+        self.webkit.link_selected.connect(self.on_link_hovered)
 
         self.search_frame.search_line.textChanged.connect(self.do_search)
 
@@ -150,11 +146,6 @@ class WebTab(QWidget):
 
         grid.addWidget(self.search_frame, 2, 0, 1, 3)
         grid.addWidget(self.pbar, 3, 0, 1, 3)
-        grid.addWidget(self.statusbar, 4, 0, 1, 3)
-
-        def toggle_status():
-            """ One-time callback for QShortcut """
-            self.statusbar.setVisible(not self.statusbar.isVisible())
 
         def show_search():
             """ One-time callback for QShortcut """
@@ -179,6 +170,21 @@ class WebTab(QWidget):
 
             self.address_bar.completer().popup().keyPressEvent(event)
 
+        def reset_export_addressbar():
+            """ Restore the address bar to its original address and color (it
+            could have changed because a hover event).
+
+            Store the original address in the clipboard.
+
+            """
+
+            palette = self.address_bar.palette()
+            palette.setColor(QPalette.Text, QColor(0, 0, 0))
+            self.address_bar.setPalette(palette)
+
+            self.address_bar.setText(self.current_address)
+            clipboard(self.current_address)
+
         set_shortcuts([
             # search
             ("G", self.webkit, show_search),
@@ -200,10 +206,10 @@ class WebTab(QWidget):
             ("Ñ", self, self.enter_nav),
             (";", self, self.enter_nav),
             # toggle
-            ("Ctrl+Space", self.webkit, toggle_status),
             ("Q", self.webkit, self.toggle_script),
             # clipboard
-            ("E", self, partial(clipboard, self.address_bar.text))
+            #("E", self, partial(clipboard, self.address_bar.text))
+            ("E", self, reset_export_addressbar)
             ])
 
     def enter_nav(self):
@@ -269,12 +275,20 @@ class WebTab(QWidget):
 
 
     # connect (en constructor)
-    def on_link_hovered(self, link, unused_title, unused_content):
-        """ The mouse is over an image or link.
-        Display the href (if there's no href, it's '') on the status bar.
+    def on_link_hovered(self, link):
+        """ A link has been selected (no relation with legacy 'link hovered').
+        Display the href (if there's no href, it's '') on the (pseudo) status
+        bar.
 
         """
-        self.statusbar.showMessage(link)
+
+        # change the address bar's color to point out that we're in a
+        # pseudo status bar, not the regular address bar
+        palette = self.address_bar.palette()
+        palette.setColor(QPalette.Text, QColor(127, 127, 255))
+        self.address_bar.setPalette(palette)
+
+        self.address_bar.setText(link)
 
     # connect (en constructor)
 
@@ -350,6 +364,18 @@ class AddressBar(QLineEdit):
             ("Ctrl+Shift+T", self, lambda: None)
         ])
 
+    def focus_in_event(self, event):
+        """ Reset the address bar's color if entering; because the
+        pseudo-status-bar color is not valid anymore
+
+        """
+
+        palette = self.palette()
+        palette.setColor(QPalette.Text, QColor(0, 0, 0))
+        self.setPalette(palette)
+        QLineEdit.focusInEvent(self, event)
+
+
     def set_model(self, prefix):
         """ Update the completion model when the prefix is known. Has to
         be done through an instance variable because of a bug (will not
@@ -365,6 +391,11 @@ class AddressBar(QLineEdit):
         (red, green, blue) = rgb
         palette.setColor(QPalette.Base, QColor(red, green, blue))
         self.setPalette(palette)
+
+    # Clean reimplement for Qt
+    # pylint: disable=C0103
+    focusInEvent = focus_in_event
+    # pylint: enable=C0103
 
 class NavigateInput(QLineEdit):
     """ When access-key navigation starts, jump to a line edit, where it's
