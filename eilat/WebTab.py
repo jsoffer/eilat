@@ -170,11 +170,11 @@ class WebTab(QWidget):
 
             self.address_bar.completer().popup().keyPressEvent(event)
 
-        def reset_export_addressbar():
+        def reset_addressbar(store=False):
             """ Restore the address bar to its original address and color (it
             could have changed because a hover event).
 
-            Store the original address in the clipboard.
+            Optionally, store the original address in the clipboard.
 
             """
 
@@ -183,7 +183,11 @@ class WebTab(QWidget):
             self.address_bar.setPalette(palette)
 
             self.address_bar.setText(self.current_address)
-            clipboard(self.current_address)
+
+            if store:
+                clipboard(self.current_address)
+
+        self.webkit.loadStarted.connect(reset_addressbar)
 
         set_shortcuts([
             # search
@@ -208,8 +212,7 @@ class WebTab(QWidget):
             # toggle
             ("Q", self.webkit, self.toggle_script),
             # clipboard
-            #("E", self, partial(clipboard, self.address_bar.text))
-            ("E", self, reset_export_addressbar)
+            ("E", self, partial(reset_addressbar, store=True))
             ])
 
     def enter_nav(self):
