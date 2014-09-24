@@ -315,7 +315,7 @@ class InterceptNAM(QNetworkAccessManager):
 
 class DiskCacheDir(QNetworkDiskCache):
     def __init__(self, options, parent=None):
-        super(DiskCache, self).__init__(parent)
+        super(DiskCacheDir, self).__init__(parent)
 
         self.setCacheDirectory(
             expanduser("~/.eilat/caches/cache{prefix}".format_map(options)))
@@ -338,6 +338,7 @@ class DiskCache(QAbstractNetworkCache):
             expanduser("~/.eilat/caches/cache{prefix}".format_map(options)))
         self.old_cache.setMaximumCacheSize(1024 * 1024 * 128)
 
+        # TODO: remember to remove already found keys
         self.prepare_map = {}
 
     def cacheSize(self):
@@ -349,14 +350,12 @@ class DiskCache(QAbstractNetworkCache):
         """
 
         print("CALL cacheSize")
-        #return self.old_cache.cacheSize()
         return 0
 
     def clear(self):
         """ remove all keys and values (both) """
 
         print("CALL clear")
-        #return self.old_cache.clear()
         return
 
     def data(self, url):
@@ -368,8 +367,6 @@ class DiskCache(QAbstractNetworkCache):
         """
 
         print("CALL data, {}".format(url.toString()))
-        #return self.old_cache.data(url)
-        #return QBuffer("")
         return None
 
     def insert(self, device):
@@ -388,10 +385,7 @@ class DiskCache(QAbstractNetworkCache):
         print("CALL insert")
         device.seek(0)
         store = device.readAll()
-        print(store[:80])
         self.new_cache.set_value(self.prepare_map[device], store)
-        #ret = self.old_cache.insert(device)
-        #return ret
         return
 
     def metaData(self, url):
@@ -403,9 +397,7 @@ class DiskCache(QAbstractNetworkCache):
         """
 
         print("CALL metadata, {}".format(url.toString()))
-        #ret = self.old_cache.metaData(url)
-        #print_metadata(ret)
-        #return ret
+        # TODO don't return an empty object; extract from database
         return QNetworkCacheMetaData()
 
     def prepare(self, metadata):
@@ -418,11 +410,13 @@ class DiskCache(QAbstractNetworkCache):
         """
 
         print("CALL prepare, {}".format(metadata.url().toString()))
-        #ret = self.old_cache.prepare(metadata)
+        # TODO should be deleted by the cache when inserted or removed
         ret = QBuffer()
         ret.open(QBuffer.ReadWrite)
+
         self.prepare_map[ret] = metadata.url().toString()
         self.new_cache.make_key(metadata.url().toString())
+
         return ret
 
     def remove(self, url):

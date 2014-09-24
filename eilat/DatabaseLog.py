@@ -85,10 +85,15 @@ class CacheStorage(object):
         self.litedb.exec_(query_delete)
 
     def get(self, key):
-        query_get = "SELECT value FROM entry WHERE key = '{}'".format(
-            key)
-        self.litedb.exec_(query_get)
-        return self.litedb.next()[0]
+        query = QSqlQuery(self.litedb)
+        query.prepare("SELECT value FROM entry WHERE key = :key")
+        query.bindValue(":key", key)
+        ret = query.exec_()
+        if not ret:
+            print(query.lastError().text())
+            return None
+        else:
+            return query.result()
 
 class DatabaseLogLite(object):
     """ Low load only; using SQLite
