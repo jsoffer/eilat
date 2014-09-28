@@ -110,6 +110,7 @@ class WebTab(QWidget):
         self.nav_bar.editingFinished.connect(self.webkit.clear_labels)
 
         self.nav_bar.textEdited.connect(self.webkit.akeynav)
+        self.webkit.nonvalid_tag.connect(self.nav_bar.clear)
 
         # small label identifying the instance of this tab
 
@@ -292,6 +293,10 @@ class WebTab(QWidget):
         self.address_bar.setPalette(palette)
 
         self.address_bar.setText(link)
+
+        # if used, overwrites the clipboard every time navigation is performed,
+        # either access-key or spatial
+        # clipboard(link)
 
     # connect (en constructor)
 

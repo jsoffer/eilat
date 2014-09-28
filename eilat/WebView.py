@@ -149,6 +149,7 @@ class WebView(QWebView):
 
     prefix_set = pyqtSignal(str)
     link_selected = pyqtSignal(str)
+    nonvalid_tag = pyqtSignal()
 
     def __init__(self, parent=None):
         super(WebView, self).__init__(parent)
@@ -532,6 +533,13 @@ class WebView(QWebView):
             found.setFocus()
             self.link_selected.emit(found.attribute("href"))
             self.setFocus()
+        else:
+            # deal with tags longer than a character
+            # all the combinations are at most two letters
+            if not candidate in [k[0] for k in self.map_tags.keys()]:
+                # there's no possible tag for this entry
+                # tell the webtag
+                self.nonvalid_tag.emit()
 
     def __spatialnav(self, direction):
         """ find web link nodes, move through them;
