@@ -59,21 +59,16 @@ class WebTab(QWidget):
         # address bar
         self.address_bar = AddressBar(parent=self)
 
-        def update_prefix_label(string):
-            """ if on a non-global web instance, show the instance's prefix
-            next to the address bar
-
-            """
-            if string:
-                prefix_label.setText(string)
-                prefix_label.show()
-
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
+        self.webkit.set_prefix.connect(self.address_bar.set_model)
 
-        self.webkit.prefix_set.connect(partial(setattr, self, 'prefix'))
-        self.webkit.prefix_set.connect(self.address_bar.set_model)
-        self.webkit.prefix_set.connect(update_prefix_label)
+        # small label displaying instance ID and pending tab operations
+
+        info_label = QLabel(parent=self)
+        info_label.setText('?')
+
+        self.webkit.webkit_info.connect(info_label.setText)
 
         def update_address(qurl):
             """ Just because the 'connect' gives a QUrl and setText receives
@@ -112,10 +107,6 @@ class WebTab(QWidget):
         self.nav_bar.textEdited.connect(self.webkit.akeynav)
         self.webkit.nonvalid_tag.connect(self.nav_bar.clear)
 
-        # small label identifying the instance of this tab
-
-        prefix_label = QLabel(parent=self)
-        prefix_label.hide()
 
         # progress bar
         self.pbar = QProgressBar(self)
@@ -139,7 +130,7 @@ class WebTab(QWidget):
         grid.setContentsMargins(0, 0, 0, 0)
         grid.setRowStretch(1, 1)
 
-        grid.addWidget(prefix_label, 0, 0, 1, 1)
+        grid.addWidget(info_label, 0, 0, 1, 1)
         grid.addWidget(self.address_bar, 0, 1, 1, 1)
         grid.addWidget(self.nav_bar, 0, 2, 1, 1)
 
@@ -183,7 +174,8 @@ class WebTab(QWidget):
             palette.setColor(QPalette.Text, QColor(0, 0, 0))
             self.address_bar.setPalette(palette)
 
-            self.address_bar.setText(self.current_address)
+            if self.current_address:
+                self.address_bar.setText(self.current_address)
 
             if store:
                 clipboard(self.current_address)
@@ -210,6 +202,8 @@ class WebTab(QWidget):
             # navigation
             ("Ñ", self, self.enter_nav),
             (";", self, self.enter_nav),
+            ("Shift+Ñ", self, partial(
+                self.webkit.make_labels, source=self.webkit.find_titles)),
             # toggle
             ("Q", self.webkit, self.toggle_script),
             # clipboard
@@ -360,6 +354,9 @@ class AddressBar(QLineEdit):
 
         self.database = DatabaseLogLite()
         self.__completer = None
+
+        # This first assignation is to allow a blank tab, who hasn't chosen yet
+        # an instance, to display completions for all sites
         self.set_model(None)
 
         self.set_color()
