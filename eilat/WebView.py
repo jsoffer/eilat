@@ -147,7 +147,8 @@ class WebView(QWebView):
 
     """
 
-    prefix_set = pyqtSignal(str)
+    set_prefix = pyqtSignal(str)
+    webkit_info = pyqtSignal(str)
     link_selected = pyqtSignal(str)
     nonvalid_tag = pyqtSignal()
 
@@ -158,7 +159,7 @@ class WebView(QWebView):
 
         self.css_path = expanduser("~/.eilat/css/")
 
-        self.attributes = set()
+        self.attributes = {}
 
         self.navlist = []
         self.in_focus = None
@@ -189,10 +190,12 @@ class WebView(QWebView):
                 mainwin().add_tab(qurl,
                                   scripting=(
                                       'open_scripted' in self.attributes))
-                self.attributes.discard('paste')
+                self.clear_attribute('paste')
             else:
                 self.navigate(qurl)
-            self.attributes.discard('open_scripted')
+
+            if 'open_scripted' in self.attributes:
+                self.clear_attribute('open_scripted')
 
         self.linkClicked.connect(on_link_click)
 
@@ -259,6 +262,7 @@ class WebView(QWebView):
             ("F", self, self.__unembed_frames),
             ("F2", self, self.__delete_fixed),
             ("Shift+F2", self, partial(self.__delete_fixed, delete=False)),
+            ("F10", self, self.find_titles),
             # webkit interaction
             ("Alt+Left", self, self.back),
             ("Alt+Right", self, self.forward),
@@ -290,11 +294,36 @@ class WebView(QWebView):
             ("Shift+F11", self, partial(
                 toggle_show_logs, lambda: self.prefix)),
             # clipboard related behavior
-            ("I", self, partial(self.attributes.add, 'paste')),
-            ("O", self, partial(self.attributes.add, 'open_scripted')),
-            ("S", self, partial(self.attributes.add, 'save')),
-            ("V", self, partial(self.attributes.add, 'play'))
+            ("I", self, partial(self.update_attribute, 'paste', 'I')),
+            ("O", self, partial(self.update_attribute, 'open_scripted', 'O')),
+            ("S", self, partial(self.update_attribute, 'save', 'S')),
+            ("V", self, partial(self.update_attribute, 'play', 'V'))
             ])
+
+    def clear_attribute(self, attribute):
+        del self.attributes[attribute]
+        if self.attributes:
+            self.webkit_info.emit("{} [{}]".format(self.prefix,
+                                                   ''.join([self.attributes[k]
+                                                            for k in
+                                                            self.attributes])))
+        else:
+            self.webkit_info.emit(self.prefix)
+
+    def update_attribute(self, attribute, label):
+
+        if attribute in self.attributes:
+            self.clear_attribute(attribute)
+        else:
+            self.attributes[attribute] = label
+
+        if self.attributes:
+            self.webkit_info.emit("{} [{}]".format(self.prefix,
+                                                   ''.join([self.attributes[k]
+                                                            for k in
+                                                            self.attributes])))
+        else:
+            self.webkit_info.emit(self.prefix)
 
     def play_mpv(self, qurl):
         """ Will try to open an 'mpv' instance running the video pointed at
@@ -335,13 +364,13 @@ class WebView(QWebView):
 
                 Thread(target=partial(self.play_mpv, qurl)).start()
 
-                self.attributes.discard('play')
+                self.clear_attribute('play')
 
                 return
 
             if 'save' in self.attributes:
                 clipboard(qurl)
-                self.attributes.discard('save')
+                self.clear_attribute('save')
                 return
 
         elif callable(request):
@@ -353,8 +382,13 @@ class WebView(QWebView):
         if self.prefix is None:
             options = extract_options(qurl.toString())
             self.prefix = options['prefix']
-            self.prefix_set.emit(self.prefix)
+
+            # One time; only called as a belate initialization
+            self.set_prefix.emit(self.prefix)
             print("SET PREFIX: ", self.prefix)
+
+            self.webkit_info.emit(self.prefix)
+
             # this is the first navigation on this tab/webkit; replace
             # the Network Access Manager
             if self.prefix is None:
@@ -477,6 +511,18 @@ class WebView(QWebView):
         return [node for node in self.navlist
                 if view_geom.intersects(node.geometry())]
 
+    #def find_titles(self, geometry=None):
+    def find_titles(self):
+        """ Returns a list of all the 'img' nodes that have a title """
+
+        frame = self.page().mainFrame()
+        titles_list = [node for node
+                       in frame.findAllElements("img").toList()
+                       if node.geometry() and
+                       node.attribute("title")]
+
+        return titles_list
+
     def clear_labels(self):
         """ clear the access-key navigation labels """
 
@@ -492,10 +538,16 @@ class WebView(QWebView):
         """ Create labels for the web nodes in 'source'; if not defined,
         find all visible anchor nodes first
 
+        'source' at the time has to be a function (it's called from keybinding)
+
+        Pending: pass a color
+
         """
 
         if source is None:
             source = self.__find_visible_navigables()
+        else:
+            source = source()
 
         self.map_tags = dict(zip(ALL_TAGS, source))
 
@@ -527,7 +579,7 @@ class WebView(QWebView):
         """ find and set focus on the node with the given label (if any) """
 
         candidate = candidate.upper()
-        if candidate in self.map_tags.keys():
+        if candidate in self.map_tags:
             found = self.map_tags[candidate]
             self.in_focus = found
             found.setFocus()
@@ -536,9 +588,9 @@ class WebView(QWebView):
         else:
             # deal with tags longer than a character
             # all the combinations are at most two letters
-            if not candidate in [k[0] for k in self.map_tags.keys()]:
+            if not candidate in [k[0] for k in self.map_tags]:
                 # there's no possible tag for this entry
-                # tell the webtag
+                # tell the webkit
                 self.nonvalid_tag.emit()
 
     def __spatialnav(self, direction):
@@ -588,9 +640,9 @@ class WebView(QWebView):
 
         """
         if event.buttons() & Qt.MiddleButton:
-            self.attributes.add('paste')
+            self.update_attribute('paste', 'P')
         else:
-            self.attributes.discard('paste')
+            self.clear_attribute('paste')
         return QWebView.mousePressEvent(self, event)
 
     # Clean reimplement for Qt
