@@ -159,13 +159,16 @@ class WebView(QWebView):
 
         self.css_path = expanduser("~/.eilat/css/")
 
-        self.attributes = {}
+        self.__attributes = {}
 
-        self.navlist = []
-        self.in_focus = None
+        # A web element node: akeynav, spatialnav
+        self.__in_focus = None
 
-        self.labels = []
-        self.map_tags = {}
+        # make_labels, clear_labels
+        self.__labels = []
+
+        # make_labels, clear_labels, akeynav
+        self.__map_tags = {}
 
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
 
@@ -173,8 +176,6 @@ class WebView(QWebView):
             QWebSettings.PluginsEnabled, False)
         self.settings().setAttribute(
             QWebSettings.JavascriptEnabled, False)
-        #self.settings().setAttribute(
-        #    QWebSettings.SpatialNavigationEnabled, True)
         self.settings().setAttribute(
             QWebSettings.FrameFlatteningEnabled, True)
 
@@ -186,15 +187,15 @@ class WebView(QWebView):
             to know if a middle click requested to open on a new tab.
 
             """
-            if 'paste' in self.attributes:
+            if 'paste' in self.__attributes:
                 mainwin().add_tab(qurl,
                                   scripting=(
-                                      'open_scripted' in self.attributes))
+                                      'open_scripted' in self.__attributes))
                 self.clear_attribute('paste')
             else:
                 self.navigate(qurl)
 
-            if 'open_scripted' in self.attributes:
+            if 'open_scripted' in self.__attributes:
                 self.clear_attribute('open_scripted')
 
         self.linkClicked.connect(on_link_click)
@@ -226,18 +227,15 @@ class WebView(QWebView):
         def clear_labels():
             """ clear the access-key navigation labels """
 
-            if self.labels:
-                for label in self.labels:
+            if self.__labels:
+                for label in self.__labels:
                     label.hide()
                     label.deleteLater()
-                self.labels = []
+                self.__labels = []
                 self.update()
 
         self.page().scrollRequested.connect(clear_labels)
         self.page().loadStarted.connect(clear_labels)
-
-        #self.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, False)
-        #self.setRenderHint(QtWidgets.QPainter.HighQualityAntialiasing, True)
 
         def dump_dom():
             """ saves the content of the current web page """
@@ -301,27 +299,28 @@ class WebView(QWebView):
             ])
 
     def clear_attribute(self, attribute):
-        del self.attributes[attribute]
-        if self.attributes:
+        if attribute in self.__attributes:
+            del self.__attributes[attribute]
+        if self.__attributes:
             self.webkit_info.emit("{} [{}]".format(self.prefix,
-                                                   ''.join([self.attributes[k]
+                                                   ''.join([self.__attributes[k]
                                                             for k in
-                                                            self.attributes])))
+                                                            self.__attributes])))
         else:
             self.webkit_info.emit(self.prefix)
 
     def update_attribute(self, attribute, label):
 
-        if attribute in self.attributes:
+        if attribute in self.__attributes:
             self.clear_attribute(attribute)
         else:
-            self.attributes[attribute] = label
+            self.__attributes[attribute] = label
 
-        if self.attributes:
+        if self.__attributes:
             self.webkit_info.emit("{} [{}]".format(self.prefix,
-                                                   ''.join([self.attributes[k]
+                                                   ''.join([self.__attributes[k]
                                                             for k in
-                                                            self.attributes])))
+                                                            self.__attributes])))
         else:
             self.webkit_info.emit(self.prefix)
 
@@ -353,13 +352,10 @@ class WebView(QWebView):
 
         """
 
-        #self.search_frame.setVisible(False)
-        #self.address_bar.completer().popup().close()
-
         if isinstance(request, QUrl):
             qurl = request
 
-            if 'play' in self.attributes:
+            if 'play' in self.__attributes:
                 print("PLAYING")
 
                 Thread(target=partial(self.play_mpv, qurl)).start()
@@ -368,7 +364,7 @@ class WebView(QWebView):
 
                 return
 
-            if 'save' in self.attributes:
+            if 'save' in self.__attributes:
                 clipboard(qurl)
                 self.clear_attribute('save')
                 return
@@ -426,8 +422,6 @@ class WebView(QWebView):
             qurl.toString(),
             Fore.RESET))
 
-        self.navlist = []
-
         self.setFocus()
         self.load(qurl)
 
@@ -441,9 +435,6 @@ class WebView(QWebView):
         for node in nodes:
             url = node.attribute('src')
             node.setOuterXml("""<a href="{}">{}</a>""".format(url, url))
-
-        # We've added a[href] nodes to the page... rebuild the navigation list
-        self.navlist = []
 
     def __delete_fixed(self, delete=True):
         """ Removes all '??? {position: fixed}' nodes """
@@ -460,33 +451,22 @@ class WebView(QWebView):
             else:
                 node.setStyleProperty('position', 'absolute')
 
-    def __populate_navlist(self):
-        """ Fill the spatial navigation list with the current mainFrame
-        anchor links
-
-        If it already exists and has content, do nothing; the list has to
-        be cleared when navigating or reloading a page
-
-        Ideally it could be populated once per page load. It is not, partially
-        because javascript creating/deleting anchors would require a refresh.
+    def __generate_navlist(self):
+        """ find the current mainFrame's anchor links
 
         """
 
-        if not self.navlist:
-            print("INIT self.navlist for url")
-            frame = self.page().mainFrame()
-            self.navlist = [node for node
-                            in frame.findAllElements("a[href]").toList()
-                            if node.geometry() and
-                            node.styleProperty(
-                                "visibility",
-                                QWebElement.ComputedStyle) == 'visible' and
-                            node.attribute("href") != "#" and
-                            not node.attribute("href").startswith(
-                                "javascript:")]
+        frame = self.page().mainFrame()
+        return [node for node
+                in frame.findAllElements("a[href]").toList()
+                if node.geometry() and
+                node.styleProperty(
+                    "visibility",
+                    QWebElement.ComputedStyle) == 'visible' and
+                node.attribute("href") != "#" and
+                not node.attribute("href").startswith(
+                    "javascript:")]
 
-        if not self.navlist:
-            print("No anchors in this page, at all?")
 
     def __find_visible_navigables(self, geometry=None):
         """ Find the elements on the navigation list that are visible right now
@@ -496,7 +476,7 @@ class WebView(QWebView):
         """
 
         # pending: populate only if needed
-        self.__populate_navlist()
+        navlist = self.__generate_navlist()
 
         if geometry is None:
             # updating every time; not needed unless scroll or resize
@@ -508,7 +488,7 @@ class WebView(QWebView):
 
         # just for this time; which nodes from the entire page are, in
         # any way, visible right now?
-        return [node for node in self.navlist
+        return [node for node in navlist
                 if view_geom.intersects(node.geometry())]
 
     #def find_titles(self, geometry=None):
@@ -526,12 +506,12 @@ class WebView(QWebView):
     def clear_labels(self):
         """ clear the access-key navigation labels """
 
-        for label in self.labels:
+        for label in self.__labels:
             label.hide()
             label.deleteLater()
 
-        self.labels = []
-        self.map_tags = {}
+        self.__labels = []
+        self.__map_tags = {}
         self.setFocus()
 
     def make_labels(self, source=None):
@@ -549,11 +529,11 @@ class WebView(QWebView):
         else:
             source = source()
 
-        self.map_tags = dict(zip(ALL_TAGS, source))
+        self.__map_tags = dict(zip(ALL_TAGS, source))
 
-        for tag, node in self.map_tags.items():
+        for tag, node in self.__map_tags.items():
             label = QLabel(tag, parent=self)
-            self.labels.append(label)
+            self.__labels.append(label)
 
             palette = QToolTip.palette()
 
@@ -567,8 +547,6 @@ class WebView(QWebView):
             label.setAutoFillBackground(True)
             label.setFrameStyle(QFrame.Box | QFrame.Plain)
 
-            #label.setFont(QFont(None, 8))
-
             point = QPoint(node.geometry().left(), node.geometry().center().y())
             point -= self.page().mainFrame().scrollPosition()
             label.move(point)
@@ -579,16 +557,16 @@ class WebView(QWebView):
         """ find and set focus on the node with the given label (if any) """
 
         candidate = candidate.upper()
-        if candidate in self.map_tags:
-            found = self.map_tags[candidate]
-            self.in_focus = found
+        if candidate in self.__map_tags:
+            found = self.__map_tags[candidate]
+            self.__in_focus = found
             found.setFocus()
             self.link_selected.emit(found.attribute("href"))
             self.setFocus()
         else:
             # deal with tags longer than a character
             # all the combinations are at most two letters
-            if not candidate in [k[0] for k in self.map_tags]:
+            if not candidate in [k[0] for k in self.__map_tags]:
                 # there's no possible tag for this entry
                 # tell the webkit
                 self.nonvalid_tag.emit()
@@ -601,13 +579,13 @@ class WebView(QWebView):
 
         target = None
 
-        localnav = self.__find_visible_navigables() # this populates 'navlist'
+        localnav = self.__find_visible_navigables() # this generates a navlist
 
-        if not self.navlist or not localnav:
+        if not localnav:
             print("No anchors in current view?")
             return
 
-        if not self.in_focus in localnav:
+        if not self.__in_focus in localnav:
             if direction == UP or direction == LEFT:
                 target = max(localnav, key=lambda node:
                              node.geometry().bottom())
@@ -621,7 +599,8 @@ class WebView(QWebView):
             # search from it, in the required direction, within the width of
             # the node.
 
-            target_rect = node_neighborhood(self.in_focus.geometry(), direction)
+            target_rect = node_neighborhood(self.__in_focus.geometry(),
+                                            direction)
 
             candidates = [node for node in localnav
                           if target_rect.intersects(node.geometry())]
@@ -630,9 +609,9 @@ class WebView(QWebView):
                 target = next_node(candidates, direction, target_rect)
 
         if target is not None:
-            self.in_focus = target
-            self.link_selected.emit(self.in_focus.attribute("href"))
-            self.in_focus.setFocus()
+            self.__in_focus = target
+            self.link_selected.emit(self.__in_focus.attribute("href"))
+            self.__in_focus.setFocus()
 
     def __mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks
