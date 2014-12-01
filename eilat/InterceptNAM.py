@@ -37,9 +37,8 @@
 from urllib.parse import parse_qsl
 
 from PyQt4.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
-                             QAbstractNetworkCache, QNetworkDiskCache,
-                             QNetworkCacheMetaData)
-from PyQt4.QtCore import QUrl, QBuffer
+                             QNetworkDiskCache)
+from PyQt4.QtCore import QUrl
 
 from eilat.CookieJar import CookieJar
 from eilat.libeilat import (is_local, non_whitelisted,
@@ -53,8 +52,6 @@ import tldextract
 from colorama import Fore, Style
 
 from os.path import expanduser
-
-from eilat.DatabaseLog import CacheStorage
 
 def highlight(qurl, full=False):
     """ Colorizes the address stored in 'qurl'; if 'full' is false,
@@ -135,7 +132,8 @@ class InterceptNAM(QNetworkAccessManager):
         self.cookie_jar = CookieJar(self, options)
         self.setCookieJar(self.cookie_jar)
 
-        self.setCache(DiskCache(options, parent=self))
+        self.setCache(DiskCacheDir(options, parent=self))
+        #self.setCache(DiskCache(options, parent=self))
 
         def reply_complete(reply):
             """ Prints when a request completes, handles the filter that
@@ -185,7 +183,18 @@ class InterceptNAM(QNetworkAccessManager):
                         100.0 * float(self.cache_bytes) /
                         self.total_bytes)
 
-                if self.show_log:
+                origin = reply.request().originatingObject()
+                if origin:
+                    (_, domain, suffix) = tldextract.extract(
+                        origin.baseUrl().toString())
+                    (_, r_d, r_s) = tldextract.extract(
+                        reply.url().toString())
+                    not_same = (domain, suffix) != (r_d, r_s)
+                    if origin.parentFrame():
+                        not_same = True
+
+                if self.show_log and not_same:
+                    print("REPLY ", (domain, suffix), (r_d, r_s))
                     show_labeled("{}{}{}".format(color_status,
                                                  status,
                                                  Fore.RESET),
@@ -196,7 +205,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.finished.connect(reply_complete)
 
         def handle_ssl_error(reply, errors):
-            """ Callback to connect when a SSL error happens
+            """ Callback to connect to when a SSL error happens
 
             This ignores the error before reporting it; that means all
             "issuer certificate could not be found" and similar will be
@@ -224,6 +233,7 @@ class InterceptNAM(QNetworkAccessManager):
 
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.PreferCache)
+                             #QNetworkRequest.AlwaysCache)
 
         qurl = request.url()
         url = qurl.toString()
@@ -314,143 +324,16 @@ class InterceptNAM(QNetworkAccessManager):
     # pylint: enable=C0103
 
 class DiskCacheDir(QNetworkDiskCache):
-    def __init__(self, options, parent=None):
-        super(DiskCacheDir, self).__init__(parent)
-
-        self.setCacheDirectory(
-            expanduser("~/.eilat/caches/cache{prefix}".format_map(options)))
-        self.setMaximumCacheSize(1024 * 1024 * 128)
-
-class DiskCache(QAbstractNetworkCache):
-    """ Short-wiring QAbstractNetworkCache to QNetworkDiskCache to be sure
-    that implementing the abstract methods is enough; will wire later to
-    sqlite based functions, once it's clearly understood
+    """ near-empty reimplementation of QNetworkDiskCache, only to avoid
+    setting the directory and cache size on construction
 
     """
 
     def __init__(self, options, parent=None):
-        super(DiskCache, self).__init__(parent)
+        super(DiskCacheDir, self).__init__(parent)
 
-        self.old_cache = QNetworkDiskCache(parent)
-        self.new_cache = CacheStorage()
+        self.debug = False
 
-        self.old_cache.setCacheDirectory(
+        self.setCacheDirectory(
             expanduser("~/.eilat/caches/cache{prefix}".format_map(options)))
-        self.old_cache.setMaximumCacheSize(1024 * 1024 * 128)
-
-        # TODO: remember to remove already found keys
-        self.prepare_map = {}
-
-    def cacheSize(self):
-        """ retrieve either the sum of all cache item sizes or the amount
-        of storage used by the caching
-
-        Metadata only
-
-        """
-
-        print("CALL cacheSize")
-        return 0
-
-    def clear(self):
-        """ remove all keys and values (both) """
-
-        print("CALL clear")
-        return
-
-    def data(self, url):
-        """ look for key, retrieve 'content' value (as QBuffer created from
-        QByteArray)
-
-        Key-value only
-
-        """
-
-        print("CALL data, {}".format(url.toString()))
-        return None
-
-    def insert(self, device):
-        """
-        Tricky factor: 'device' was generated from 'prepare' after creating
-        a key and assigning it its metadata.
-
-        Inserting requires finding that key. The cache instance has to keep a
-        reverse map to find keys given devices. Afterwards, copy the contents
-        of 'device' to the found key's 'data' value.
-
-        Key-value only (after dereferencing the device with locally stored map)
-
-        """
-
-        print("CALL insert")
-        device.seek(0)
-        store = device.readAll()
-        self.new_cache.set_value(self.prepare_map[device], store)
-        return
-
-    def metaData(self, url):
-        """ look for key, retrieve 'metadata' values as QNetworkCacheMetaData
-        Read as 'serialized' from storage, use at constructor
-
-        Metadata only
-
-        """
-
-        print("CALL metadata, {}".format(url.toString()))
-        # TODO don't return an empty object; extract from database
-        return QNetworkCacheMetaData()
-
-    def prepare(self, metadata):
-        """ create key, initialize 'metadata' values
-        Extract a serialization from 'metadata', store the closest possible
-        format (map, list...)
-
-        Metadata only
-
-        """
-
-        print("CALL prepare, {}".format(metadata.url().toString()))
-        # TODO should be deleted by the cache when inserted or removed
-        ret = QBuffer()
-        ret.open(QBuffer.ReadWrite)
-
-        self.prepare_map[ret] = metadata.url().toString()
-        self.new_cache.make_key(metadata.url().toString())
-
-        return ret
-
-    def remove(self, url):
-        """ delete key and all associated values (both) """
-
-        print("CALL remove, {}".format(url.toString()))
-        #return self.old_cache.remove(url)
-        return False
-
-    def updateMetaData(self, metadata):
-        """ look for key, replace 'metadata' values
-        Structurally similar to (part of) 'prepare'
-
-        Metadata only
-
-        """
-
-        print("CALL updateMetadata, {}".format(metadata.url().toString()))
-        #print_metadata(self.metaData(metadata.url()))
-        #print_metadata(metadata)
-        #ret = self.old_cache.updateMetaData(metadata)
-        #return ret
-        return
-
-def print_metadata(metadata):
-    PRINTER(metadata.attributes())
-    PRINTER(metadata.rawHeaders())
-
-# could be included as 'serialize' and as a constructor on an
-# extended QNetworkCacheMetaData
-
-def serialize_metadata(metadata):
-    return
-
-def unserialize_metadata(metadata):
-    return
-
+        self.setMaximumCacheSize(1024 * 1024 * 128)
