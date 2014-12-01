@@ -143,7 +143,7 @@ def real_host(url):
     """ Extracts the last not-tld term from the url """
     return tldextract.extract(url).domain
 
-GLOBAL_CSS = b""" :focus > img, a:focus {
+GLOBAL_CSS = b""" :focus > img, a:focus, input:focus {
 outline-color: rgba(160, 160, 255, 0.6) ! important;
 outline-width: 10px ! important;
 /* outline-offset: 1px ! important; */
