@@ -162,8 +162,6 @@ class WebView(QWebView):
 
         self.__info = {"prefix": None,
                        "css_path": expanduser("~/.eilat/css/"),
-                       # the last qurl that we sent a 'load' request to
-                       "current_qurl": None,
                        # a web element node, used for access key
                        # or spatial navigation
                        "in_focus": None}
