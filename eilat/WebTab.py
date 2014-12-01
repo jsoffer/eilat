@@ -36,9 +36,11 @@
 
 from PyQt4.QtGui import (QWidget, QProgressBar, QGridLayout,
                          QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent,
-                         QPalette, QColor)
+                         QPalette, QColor, QToolTip)
 from PyQt4.QtWebKit import QWebPage, QWebSettings
 from PyQt4.QtCore import Qt, QEvent
+
+from PyQt4.Qt import QApplication
 
 from functools import partial
 
@@ -53,8 +55,10 @@ class WebTab(QWidget):
     def __init__(self, parent=None):
         super(WebTab, self).__init__(parent)
 
-        self.current_title = "[EMPTY]"
-        self.current_address = ""
+        self.current = {
+            'title': "[EMPTY]",
+            'address': ""
+        }
 
         # address bar
         self.address_bar = AddressBar(parent=self)
@@ -71,15 +75,15 @@ class WebTab(QWidget):
         self.webkit.webkit_info.connect(info_label.setText)
 
         def update_address(qurl):
-            """ Just because the 'connect' gives a QUrl and setText receives
-            a string
+            """ The 'connect' gives a QUrl and setText receives a string;
+            can't just connect setText
 
             Required because a 3XX HTTP redirection will change the address,
             and without updating, the address bar will be left stale
 
             """
-            self.current_address = qurl.toString()
-            self.address_bar.setText(self.current_address)
+            self.current['address'] = qurl.toString()
+            self.address_bar.setText(self.current['address'])
 
         self.webkit.urlChanged.connect(update_address)
         self.webkit.loadStarted.connect(self.load_started)
@@ -107,6 +111,35 @@ class WebTab(QWidget):
         self.nav_bar.textEdited.connect(self.webkit.akeynav)
         self.webkit.nonvalid_tag.connect(self.nav_bar.clear)
 
+        # 'corner' message and notification label, not on timer, smaller
+
+        self.message_label = MessageLabel(self.webkit)
+
+        def handle_hovered(link, title, content):
+
+            if ((QApplication.keyboardModifiers() & Qt.AltModifier) and
+                    (link or title or content)):
+                # ugly hack to ensure proper resizing; find a better way?
+                self.message_label.hide()
+                self.message_label.setText(
+                    link + " " + title + " " + content)
+                self.message_label.show()
+
+            if not (link or title or content):
+                self.message_label.hide()
+
+        self.webkit.page().linkHovered.connect(handle_hovered)
+
+        def handle_signaled(title):
+            if title:
+                self.message_label.hide()
+                self.message_label.setText(title)
+                self.message_label.show()
+        self.webkit.display_title.connect(handle_signaled)
+
+        self.webkit.loadStarted.connect(self.message_label.hide)
+        self.webkit.page().scrollRequested.connect(self.message_label.hide)
+        self.webkit.hide_overlay.connect(self.message_label.hide)
 
         # progress bar
         self.pbar = QProgressBar(self)
@@ -164,7 +197,7 @@ class WebTab(QWidget):
 
         def reset_addressbar(store=False):
             """ Restore the address bar to its original address and color (it
-            could have changed because a hover event).
+            could have changed because of a hover event).
 
             Optionally, store the original address in the clipboard.
 
@@ -174,11 +207,11 @@ class WebTab(QWidget):
             palette.setColor(QPalette.Text, QColor(0, 0, 0))
             self.address_bar.setPalette(palette)
 
-            if self.current_address:
-                self.address_bar.setText(self.current_address)
+            if self.current['address']:
+                self.address_bar.setText(self.current['address'])
 
             if store:
-                clipboard(self.current_address)
+                clipboard(self.current['address'])
 
         self.webkit.loadStarted.connect(reset_addressbar)
 
@@ -199,26 +232,26 @@ class WebTab(QWidget):
             ("Ctrl+I", self.address_bar, navigate_completion),
             ("Ctrl+P", self.address_bar, partial(
                 navigate_completion, Qt.Key_Up)),
-            # navigation
+            # in-page element navigation
             ("Ñ", self, self.enter_nav),
             (";", self, self.enter_nav),
-            ("Shift+Ñ", self, partial(
-                self.webkit.make_labels, source=self.webkit.find_titles)),
+            ("Ctrl+Ñ", self, partial(self.enter_nav, target="titles")),
             # toggle
             ("Q", self.webkit, self.toggle_script),
             # clipboard
             ("E", self, partial(reset_addressbar, store=True))
             ])
 
-    def enter_nav(self):
+    def enter_nav(self, target="links"):
         """ A request for access-key navigation was received; display
         link labels and go to the input area
 
         """
 
-        self.webkit.make_labels()
-        self.nav_bar.show()
-        self.nav_bar.setFocus()
+        self.webkit.make_labels(target)
+        if self.webkit.map_tags:
+            self.nav_bar.show()
+            self.nav_bar.setFocus()
 
     def toggle_script(self):
         """ Activa o desactiva javascript, y notifica cambiando el color
@@ -243,7 +276,7 @@ class WebTab(QWidget):
         """ Callback for connection """
         if self.pbar.isVisible():
             self.pbar.setValue(val)
-            self.set_title("{}% {}".format(val, self.current_title))
+            self.set_title("{}% {}".format(val, self.current['title']))
 
     # connect (en constructor)
     def load_started(self):
@@ -262,7 +295,7 @@ class WebTab(QWidget):
         self.webkit.navlist = []
 
         self.pbar.setVisible(False)
-        self.set_title(self.current_title)
+        self.set_title(self.current['title'])
 
         if self.address_bar.hasFocus():
             self.webkit.setFocus()
@@ -280,6 +313,7 @@ class WebTab(QWidget):
 
         """
 
+
         # change the address bar's color to point out that we're in a
         # pseudo status bar, not the regular address bar
         palette = self.address_bar.palette()
@@ -296,7 +330,7 @@ class WebTab(QWidget):
 
     def save_title(self, title):
         """ Store a recently changed title, and display it """
-        self.current_title = title
+        self.current['title'] = title
         self.set_title(title)
 
     def set_title(self, title):
@@ -440,3 +474,20 @@ class NavigateInput(QLineEdit):
     # pylint: disable=C0103
     focusOutEvent = focus_out_event
     # pylint: enable=C0103
+
+class MessageLabel(QLabel):
+    def __init__(self, parent=None):
+        super(MessageLabel, self).__init__(parent)
+
+        palette = QToolTip.palette()
+        color = QColor(Qt.yellow)
+        palette.setColor(QPalette.Window, color)
+
+        self.setPalette(palette)
+        self.setAutoFillBackground(True)
+        self.setFrameStyle(QFrame.Box | QFrame.Plain)
+
+        self.setWordWrap(True)
+
+        self.hide()
+
