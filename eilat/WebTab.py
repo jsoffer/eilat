@@ -311,7 +311,7 @@ class WebTab(QWidget):
 
         if not success:
             notify("[F]")
-            print("loadFinished: failed")
+            print("loadFinished: failed", self.webkit.url())
 
 
     # connect (en constructor)
