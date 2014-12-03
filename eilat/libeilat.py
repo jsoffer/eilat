@@ -256,24 +256,26 @@ def notify(text, corner=False):
 
     label.show()
 
-SHORTENERS = ["t.co", "bit.ly"]
+SHORTENERS = ["t.co", "bit.ly", "tinyurl.com"]
 
 def unshortener(qurl):
     """ retrieve the redirect target of an url with a maximum leaps count """
 
     while qurl.host() in SHORTENERS:
-        ret = qurl
-        print("UNSHORTEN: ", ret)
         if qurl.scheme() == "http":
-            conn = http.client.HTTPConnection(qurl.host())
+            connection = http.client.HTTPConnection(qurl.host())
         elif qurl.scheme() == "https":
-            conn = http.client.HTTPSConnection(qurl.host())
+            connection = http.client.HTTPSConnection(qurl.host())
         else:
             raise Exception("bad scheme")
-        conn.request("HEAD", qurl.path())
-        res = conn.getresponse()
-        conn.close()
-        location = res.getheader("location")
+        connection.request("HEAD", qurl.path())
+        response = connection.getresponse()
+        connection.close()
+        # if location is empty, the shortener was the final destination...
+        # that case should be handled elsewere since it may only useful to
+        # create a shortened link
+        location = response.getheader("location")
+        print("UNSHORTEN: ", location)
         qurl = QUrl(location)
 
-    return ret
+    return qurl
