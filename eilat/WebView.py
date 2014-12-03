@@ -237,24 +237,49 @@ class WebView(QWebView):
         def clear_labels():
             """ clear the access-key navigation labels """
 
-            if self.__labels:
-                for label in self.__labels:
-                    label.hide()
-                    label.deleteLater()
-                self.__labels = []
-                self.update()
+            # will do nothing on an empty __labels
+            for label in self.__labels:
+                label.hide()
+                label.deleteLater()
+                del label
+
+            # this will happen every scroll request, though
+            # but it does not cause an immediate repaint - not wasted
+            self.update()
 
         self.page().scrollRequested.connect(clear_labels)
         self.page().loadStarted.connect(clear_labels)
 
+        self.page().loadStarted.connect(partial(self.update_attribute,
+                                                "in_page_load",
+                                                ">",
+                                                toggle=False))
+
+        def load_finished():
+            """ if we kept javascript on to allow the load of the page, we
+            may want to turn it off when it has finished
+
+            """
+
+            # FIXME repeated at __focus_out_event
+            if (not self.hasFocus() and
+                    "in_page_load" not in self.__attributes):
+                self.update_attribute("stored_scripting_on", toggle=False)
+                self.settings().setAttribute(
+                    QWebSettings.JavascriptEnabled, False)
+                print("EXITING LOAD WITHOUT FOCUS")
+
+        self.page().loadFinished.connect(partial(self.clear_attribute,
+                                                 "in_page_load"))
+
+        self.page().loadFinished.connect(load_finished)
 
         def dump_dom():
             """ saves the content of the current web page """
             data = self.page().currentFrame().documentElement().toInnerXml()
             print("SAVING...")
-            file_handle = open('test.html', 'w')
-            file_handle.write(data)
-            file_handle.close()
+            with open('test.html', 'w') as file_handle:
+                file_handle.write(data)
 
         def scroll(delta_x=0, delta_y=0):
             """ One-time callback for QShortcut """
@@ -319,15 +344,17 @@ class WebView(QWebView):
 
         # Do not report attributes if none has a label
         if True in [bool(k) for k in self.__attributes.values()]:
+            # FIXME ugly, maybe slow, and repeated in update_attribute
             self.webkit_info.emit(
                 "{} [{}]".format(self.__info["prefix"],
                                  ''.join([self.__attributes[k]
                                           for k in
-                                          self.__attributes])))
+                                          self.__attributes
+                                          if self.__attributes[k]])))
         else:
             self.webkit_info.emit(self.__info["prefix"])
 
-    def update_attribute(self, attribute, label, toggle=True):
+    def update_attribute(self, attribute, label=None, toggle=True):
         """ If the next-request attribute is already turned on, turn it off
         (remove from attributes set); otherwise, turn it on. Recreate the
         attributes info label.
@@ -348,7 +375,8 @@ class WebView(QWebView):
                 "{} [{}]".format(self.__info["prefix"],
                                  ''.join([self.__attributes[k]
                                           for k in
-                                          self.__attributes])))
+                                          self.__attributes
+                                          if self.__attributes[k]])))
         else:
             self.webkit_info.emit(self.__info["prefix"])
 
@@ -546,7 +574,7 @@ class WebView(QWebView):
             self.clear_attribute("find_titles")
         elif target == "titles":
             source = self.__find_visible_navigables(links=False)
-            self.update_attribute("find_titles", None, toggle=False)
+            self.update_attribute("find_titles", toggle=False)
 
         self.map_tags = dict(zip(ALL_TAGS, source))
 
@@ -655,22 +683,21 @@ class WebView(QWebView):
 
         """
 
-        if "has_scripting_on" in self.__attributes:
-            self.settings().setAttribute(
-                QWebSettings.JavascriptEnabled, True)
+        if "stored_scripting_on" in self.__attributes:
+            print("JS on")
+            self.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
+            self.clear_attribute("stored_scripting_on")
+
         return QWebView.focusInEvent(self, event)
 
     def __focus_out_event(self, event):
         """ Turn off javascript if the WebView is not focused """
 
-        if self.settings().testAttribute(QWebSettings.JavascriptEnabled):
-            self.update_attribute("has_scripting_on", None, toggle=False)
-        else:
-            self.clear_attribute("has_scripting_on")
-
-        if "has_scripting_on" in self.__attributes:
-            self.settings().setAttribute(
-                QWebSettings.JavascriptEnabled, False)
+        if (self.settings().testAttribute(QWebSettings.JavascriptEnabled) and
+                "in_page_load" not in self.__attributes):
+            self.update_attribute("stored_scripting_on", toggle=False)
+            self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
+            print("JS off")
 
         return QWebView.focusOutEvent(self, event)
 
