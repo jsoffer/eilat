@@ -42,6 +42,8 @@ from urllib.parse import parse_qsl, urlparse
 
 import tldextract
 
+import http
+
 from base64 import encodestring
 
 from eilat.global_store import get_manager, mainwin
@@ -253,3 +255,25 @@ def notify(text, corner=False):
                    mainwin().height() // 2 - label.height() // 2)
 
     label.show()
+
+SHORTENERS = ["t.co", "bit.ly"]
+
+def unshortener(qurl):
+    """ retrieve the redirect target of an url with a maximum leaps count """
+
+    while qurl.host() in SHORTENERS:
+        ret = qurl
+        print("UNSHORTEN: ", ret)
+        if qurl.scheme() == "http":
+            conn = http.client.HTTPConnection(qurl.host())
+        elif qurl.scheme() == "https":
+            conn = http.client.HTTPSConnection(qurl.host())
+        else:
+            raise Exception("bad scheme")
+        conn.request("HEAD", qurl.path())
+        res = conn.getresponse()
+        conn.close()
+        location = res.getheader("location")
+        qurl = QUrl(location)
+
+    return ret

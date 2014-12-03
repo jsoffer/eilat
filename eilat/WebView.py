@@ -46,7 +46,8 @@ from eilat.InterceptNAM import InterceptNAM
 from eilat.libeilat import (fix_url, set_shortcuts,
                             encode_css, real_host, toggle_show_logs,
                             fake_key, fake_click,
-                            notify)
+                            notify,
+                            SHORTENERS, unshortener)
 
 from eilat.global_store import (mainwin, clipboard, database,
                                 has_manager, register_manager, get_manager)
@@ -451,6 +452,8 @@ class WebView(QWebView):
             Fore.RESET))
 
         self.setFocus()
+        if qurl.host() in SHORTENERS:
+            qurl = unshortener(qurl)
         self.load(qurl)
 
     def __unembed_frames(self):
