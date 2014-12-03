@@ -116,6 +116,10 @@ class WebTab(QWidget):
         self.message_label = MessageLabel(self.webkit)
 
         def handle_hovered(link, title, content):
+            """ When hovered, if ALT is pressed, show message label;
+            hide otherwise
+
+            """
 
             if ((QApplication.keyboardModifiers() & Qt.AltModifier) and
                     (link or title or content)):
@@ -124,17 +128,22 @@ class WebTab(QWidget):
                 self.message_label.setText(
                     link + " " + title + " " + content)
                 self.message_label.show()
-
-            if not (link or title or content):
+            else:
                 self.message_label.hide()
 
         self.webkit.page().linkHovered.connect(handle_hovered)
 
         def handle_signaled(title):
-            if title:
-                self.message_label.hide()
-                self.message_label.setText(title)
-                self.message_label.show()
+            """ We received a string through a signal; display it on
+            the message label
+
+            """
+
+            #if title:
+            self.message_label.hide()
+            self.message_label.setText(title)
+            self.message_label.show()
+
         self.webkit.display_title.connect(handle_signaled)
 
         self.webkit.loadStarted.connect(self.message_label.hide)
@@ -476,6 +485,11 @@ class NavigateInput(QLineEdit):
     # pylint: enable=C0103
 
 class MessageLabel(QLabel):
+    """ A label to be displayed on the top left corner of the webview;
+    it performs most of the functions of a status bar
+
+    """
+
     def __init__(self, parent=None):
         super(MessageLabel, self).__init__(parent)
 
