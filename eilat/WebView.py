@@ -222,14 +222,7 @@ class WebView(QWebView):
             host_id = real_host(qurl.host())
             css_file = self.__info["css_path"] + host_id + ".css"
 
-            try:
-                with open(css_file, 'r') as css_fh:
-                    css_encoded = encode_css(css_fh.read()).strip()
-            except IOError:
-                css_encoded = encode_css('')
-
-            self.settings().setUserStyleSheetUrl(
-                QUrl(css_encoded))
+            self.settings().setUserStyleSheetUrl(QUrl(encode_css(css_file)))
 
         self.urlChanged.connect(url_changed)
 

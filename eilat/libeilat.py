@@ -156,11 +156,24 @@ outline-style: ridge ! important;
 
 _GLOBAL_CSS = b""" * { box-shadow: none ! important; } """
 
-def encode_css(style):
-    """ Takes a css as string, returns a proper base64 encoded "file" """
+def encode_css(css_file):
+    """ Takes a .css file, returns a base64 encoded "file" string
+    usable with setUserStyleSheetUrl
+
+    """
+
+    css_input = None
+
+    try:
+        with open(css_file, 'r') as css_fh:
+            css_input = css_fh.read()
+    except IOError:
+        css_input = ''
+
     header = b"data:text/css;charset=utf-8;base64,"
-    encoded = encodestring(GLOBAL_CSS + style.encode())
-    return (header + encoded).decode()
+    encoded = encodestring(GLOBAL_CSS + css_input.encode())
+
+    return (header + encoded).decode().strip()
 
 def encode_blocked(message, url):
     """ Generates a 'data:' string to use as reply when blocking an URL """
@@ -256,10 +269,10 @@ def notify(text, corner=False):
 
     label.show()
 
-SHORTENERS = ["t.co", "bit.ly", "tinyurl.com"]
+SHORTENERS = ["t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly"]
 
 def unshortener(qurl):
-    """ retrieve the redirect target of an url with a maximum leaps count """
+    """ retrieve the first redirect target not on SHORTENERS for an url """
 
     while qurl.host() in SHORTENERS:
         if qurl.scheme() == "http":
