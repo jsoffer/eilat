@@ -75,6 +75,7 @@ class WebTab(QWidget):
         info_label.setText('?')
 
         self.webkit.webkit_info.connect(info_label.setText)
+        self.webkit.attr.webkit_info.connect(info_label.setText)
 
         def update_address(qurl):
             """ The 'connect' gives a QUrl and setText receives a string;

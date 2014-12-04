@@ -35,7 +35,7 @@
 """
 
 from PyQt4.QtWebKit import QWebPage, QWebSettings, QWebView, QWebElement
-from PyQt4.QtCore import Qt, QUrl, pyqtSignal, QPoint
+from PyQt4.QtCore import Qt, QUrl, pyqtSignal, QPoint, QObject
 
 from PyQt4.QtGui import QLabel, QColor, QToolTip, QPalette, QFrame
 
@@ -70,6 +70,60 @@ UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
+
+class Attributes(QObject):
+    """ Stores state for the webkit """
+
+    webkit_info = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super(Attributes, self).__init__(parent)
+        self.prefix = None
+        self.__attributes = {}
+
+    def insert(self, key, value=None):
+        """ add a key-value to the local set """
+
+        self.__attributes[key] = value
+        self.__label()
+
+    def clear(self, key):
+        """ remove a key-value from the local set """
+
+        if key in self.__attributes:
+            del self.__attributes[key]
+        self.__label()
+
+    def toggle(self, key, value):
+        """ insert a key-value to the set unless the key already exists,
+        clear in that case
+
+        """
+
+        if key in self.__attributes:
+            self.clear(key)
+        else:
+            self.insert(key, value)
+
+    # TODO allow "'attrib' in attributes" syntax
+    def has(self, key):
+        """ is an attribute active? """
+        return key in self.__attributes
+
+    def __label(self):
+        """ generate an info label and send it to the web tab """
+        info = "".join([self.__attributes[k]
+                        for k in
+                        self.__attributes
+                        if self.__attributes[k]])
+        if info:
+            self.webkit_info.emit(self.prefix + " [" + info + "]")
+        else:
+            self.webkit_info.emit(self.prefix)
+
+    def set_prefix(self, pfx):
+        """ encapsulate the prefix storage (incomplete) """
+        self.prefix = pfx
 
 def node_neighborhood(rect, direction):
     """ Finds a rectangle next to the node, where close by
@@ -164,13 +218,13 @@ class WebView(QWebView):
         # see http://qt-project.org/doc/qt-4.8/stylesheet-reference.html
         self.setStyleSheet("QToolTip {max-height: 0px}")
 
-        self.__info = {"prefix": None,
-                       "css_path": expanduser("~/.eilat/css/"),
+        # TODO move css_path to Attributes, let in_focus loose
+        self.__info = {"css_path": expanduser("~/.eilat/css/"),
                        # a web element node, used for access key
                        # or spatial navigation
                        "in_focus": None}
 
-        self.__attributes = {}
+        self.attr = Attributes(parent=self)
 
         # make_labels, clear_labels
         self.__labels = []
@@ -201,22 +255,23 @@ class WebView(QWebView):
             to know if a middle click requested to open on a new tab.
 
             """
-            if 'paste' in self.__attributes:
+
+            if self.attr.has('paste'):
                 mainwin().add_tab(qurl,
                                   scripting=(
-                                      'open_scripted' in self.__attributes))
-                self.clear_attribute('paste')
+                                      self.attr.has('open_scripted')))
+                self.attr.clear('paste')
             else:
                 self.navigate(qurl)
 
-            if 'open_scripted' in self.__attributes:
-                self.clear_attribute('open_scripted')
+            if self.attr.has('open_scripted'):
+                self.attr.clear('open_scripted')
 
         self.linkClicked.connect(on_link_click)
 
         def url_changed(qurl):
             """ One time callback for 'connect'
-            Sets the user style sheet, sets the address bar text
+            Sets the user style sheet
 
             """
             host_id = real_host(qurl.host())
@@ -248,9 +303,8 @@ class WebView(QWebView):
         self.page().scrollRequested.connect(clear_labels)
         self.page().loadStarted.connect(clear_labels)
 
-        self.page().loadStarted.connect(partial(self.update_attribute,
-                                                "in_page_load",
-                                                toggle=False))
+        self.page().loadStarted.connect(partial(self.attr.insert,
+                                                'in_page_load'))
 
         def load_finished():
             """ if we kept javascript on to allow the load of the page, we
@@ -259,13 +313,13 @@ class WebView(QWebView):
             """
 
             if (not self.hasFocus() and
-                    "in_page_load" not in self.__attributes and
+                    not self.attr.has('in_page_load') and
                     self.javascript()):
-                self.update_attribute("stored_scripting_on", toggle=False)
+                self.attr.insert('stored_scripting_on')
                 self.javascript(False)
                 print("EXITING LOAD WITH JS WITHOUT FOCUS")
 
-        self.page().loadFinished.connect(partial(self.clear_attribute,
+        self.page().loadFinished.connect(partial(self.attr.clear,
                                                  "in_page_load"))
 
         self.page().loadFinished.connect(load_finished)
@@ -316,65 +370,17 @@ class WebView(QWebView):
             ("Shift+K", self, partial(self.__spatialnav, UP)),
             ("Shift+L", self, partial(self.__spatialnav, RIGHT)),
             # toggles
-            # right now the prefix is None; lambda allows to retrieve the
-            # value it will have when toggle_show_logs is called
             ("F11", self, partial(
-                toggle_show_logs, lambda: self.__info["prefix"], detail=True)),
+                toggle_show_logs, self.attr.prefix, detail=True)),
             ("Shift+F11", self, partial(
-                toggle_show_logs, lambda: self.__info["prefix"])),
+                toggle_show_logs, self.attr.prefix)),
             ("Escape", self, self.hide_overlay.emit),
             # clipboard related behavior
-            ("I", self, partial(self.update_attribute, 'paste', 'I')),
-            ("O", self, partial(self.update_attribute, 'open_scripted', 'O')),
-            ("S", self, partial(self.update_attribute, 'save', 'S')),
-            ("V", self, partial(self.update_attribute, 'play', 'V'))
+            ("I", self, partial(self.attr.toggle, 'paste', 'I')),
+            ("O", self, partial(self.attr.toggle, 'open_scripted', 'O')),
+            ("S", self, partial(self.attr.toggle, 'save', 'S')),
+            ("V", self, partial(self.attr.toggle, 'play', 'V'))
             ])
-
-    def clear_attribute(self, attribute):
-        """ Removes a next-request attribute (like "in new tab" or "play
-        as movie") from the attributes set; recreates attributes info label
-
-        """
-        if attribute in self.__attributes:
-            del self.__attributes[attribute]
-
-        # Do not report attributes if none has a label
-        if True in [bool(k) for k in self.__attributes.values()]:
-            # FIXME ugly, maybe slow, and repeated in update_attribute
-            self.webkit_info.emit(
-                "{} [{}]".format(self.__info["prefix"],
-                                 ''.join([self.__attributes[k]
-                                          for k in
-                                          self.__attributes
-                                          if self.__attributes[k]])))
-        else:
-            self.webkit_info.emit(self.__info["prefix"])
-
-    def update_attribute(self, attribute, label=None, toggle=True):
-        """ If the next-request attribute is already turned on, turn it off
-        (remove from attributes set); otherwise, turn it on. Recreate the
-        attributes info label.
-
-        If "toggle" is False, the attribute will always be set, maybe with
-        a different label
-
-        """
-
-        if attribute in self.__attributes and toggle:
-            self.clear_attribute(attribute)
-        else:
-            self.__attributes[attribute] = label
-
-        # Do not report attributes if none has a label
-        if True in [bool(k) for k in self.__attributes.values()]:
-            self.webkit_info.emit(
-                "{} [{}]".format(self.__info["prefix"],
-                                 ''.join([self.__attributes[k]
-                                          for k in
-                                          self.__attributes
-                                          if self.__attributes[k]])))
-        else:
-            self.webkit_info.emit(self.__info["prefix"])
 
     def play_mpv(self, qurl):
         """ Will try to open an 'mpv' instance running the video pointed at
@@ -407,18 +413,18 @@ class WebView(QWebView):
         if isinstance(request, QUrl):
             qurl = request
 
-            if 'play' in self.__attributes:
+            if self.attr.has('play'):
                 print("PLAYING")
 
                 Thread(target=partial(self.play_mpv, qurl)).start()
 
-                self.clear_attribute('play')
+                self.attr.clear('play')
 
                 return
 
-            if 'save' in self.__attributes:
+            if self.attr.has('save'):
                 clipboard(qurl)
-                self.clear_attribute('save')
+                self.attr.clear('save')
                 return
 
         elif callable(request):
@@ -427,33 +433,27 @@ class WebView(QWebView):
         else:
             raise RuntimeError("Navigating to non-navigable")
 
-        if self.__info["prefix"] is None:
+        if self.attr.prefix is None:
             options = extract_options(qurl.toString())
-            self.__info["prefix"] = options['prefix']
-
-            # One time; only called as a belate initialization
-            self.set_prefix.emit(self.__info["prefix"])
-            print("SET PREFIX: ", self.__info["prefix"])
-
-            self.webkit_info.emit(self.__info["prefix"])
+            self.attr.set_prefix(options['prefix'])
 
             # this is the first navigation on this tab/webkit; replace
             # the Network Access Manager
-            if self.__info["prefix"] is None:
+            if self.attr.prefix is None:
                 raise RuntimeError(
                     "prefix failed to be set... 'options' is broken")
 
-            if not has_manager(self.__info["prefix"]):
-                register_manager(self.__info["prefix"],
+            if not has_manager(self.attr.prefix):
+                register_manager(self.attr.prefix,
                                  InterceptNAM(options, None))
 
-        if self.__info["prefix"] is None:
+        if self.attr.prefix is None:
             raise RuntimeError(
                 "prefix failed to be set... 'options' is broken")
-        if not has_manager(self.__info["prefix"]):
+        if not has_manager(self.attr.prefix):
             raise RuntimeError("prefix manager not registered...")
 
-        self.page().setNetworkAccessManager(get_manager(self.__info["prefix"]))
+        self.page().setNetworkAccessManager(get_manager(self.attr.prefix))
 
         ### LOG NAVIGATION
         host = sub("^www.", "", qurl.host())
@@ -467,7 +467,7 @@ class WebView(QWebView):
                 (host not in do_not_store) and
                 (not qurl.hasQuery()) and
                 len(path.split('/')) < 4):
-            database().store_navigation(host, path, self.__info["prefix"])
+            database().store_navigation(host, path, self.attr.prefix)
 
         print("{}>>>\t\t{}\n>>> NAVIGATE {}{}".format(
             Fore.CYAN,
@@ -567,10 +567,10 @@ class WebView(QWebView):
 
         if target == "links":
             source = self.__find_visible_navigables()
-            self.clear_attribute("find_titles")
+            self.attr.clear('find_titles')
         elif target == "titles":
             source = self.__find_visible_navigables(links=False)
-            self.update_attribute("find_titles", toggle=False)
+            self.attr.insert('find_titles')
 
         self.map_tags = dict(zip(ALL_TAGS, source))
 
@@ -601,7 +601,7 @@ class WebView(QWebView):
 
         candidate = candidate.upper()
         if candidate in self.map_tags:
-            if not "find_titles" in self.__attributes:
+            if not self.attr.has('find_titles'):
                 found = self.map_tags[candidate]
                 self.__info["in_focus"] = found
                 found.setFocus()
@@ -668,9 +668,9 @@ class WebView(QWebView):
 
         """
         if event.buttons() & Qt.MiddleButton:
-            self.update_attribute('paste', 'P')
+            self.attr.toggle('paste', 'P')
         else:
-            self.clear_attribute('paste')
+            self.attr.clear('paste')
         return QWebView.mousePressEvent(self, event)
 
     def __focus_in_event(self, event):
@@ -679,18 +679,18 @@ class WebView(QWebView):
 
         """
 
-        if "stored_scripting_on" in self.__attributes:
+        if self.attr.has('stored_scripting_on'):
             print("JS on")
             self.javascript(True)
-            self.clear_attribute("stored_scripting_on")
+            self.attr.clear('stored_scripting_on')
 
         return QWebView.focusInEvent(self, event)
 
     def __focus_out_event(self, event):
         """ Turn off javascript if the WebView is not focused """
 
-        if self.javascript() and "in_page_load" not in self.__attributes:
-            self.update_attribute("stored_scripting_on", toggle=False)
+        if self.javascript() and not self.attr.has('in_page_load'):
+            self.attr.insert('stored_scripting_on')
             self.javascript(False)
             print("JS off")
 
