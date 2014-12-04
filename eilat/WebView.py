@@ -151,8 +151,11 @@ class WebView(QWebView):
     webkit_info = pyqtSignal(str)
     link_selected = pyqtSignal(str)
     display_title = pyqtSignal(str)
+
     nonvalid_tag = pyqtSignal()
     hide_overlay = pyqtSignal()
+
+    javascript_state = pyqtSignal(bool)
 
     def __init__(self, parent=None):
         super(WebView, self).__init__(parent)
@@ -180,8 +183,9 @@ class WebView(QWebView):
         self.settings().setAttribute(
             QWebSettings.PluginsEnabled, False)
 
-        self.settings().setAttribute(
-            QWebSettings.JavascriptEnabled, False)
+        # take care; if set to True, the address bar, that is not yet connected,
+        # will not be able to set its color to "javascript on"
+        self.javascript(False)
 
         self.settings().setAttribute(
             QWebSettings.FrameFlatteningEnabled, True)
@@ -244,7 +248,8 @@ class WebView(QWebView):
                 del label
 
             # this will happen every scroll request, though
-            # but it does not cause an immediate repaint - not wasted
+            # but it does not cause an immediate repaint - not wasted?
+            # FIXME it has a perceived effect, specially with large zoom
             self.update()
 
         self.page().scrollRequested.connect(clear_labels)
@@ -252,7 +257,6 @@ class WebView(QWebView):
 
         self.page().loadStarted.connect(partial(self.update_attribute,
                                                 "in_page_load",
-                                                ">",
                                                 toggle=False))
 
         def load_finished():
@@ -265,8 +269,7 @@ class WebView(QWebView):
             if (not self.hasFocus() and
                     "in_page_load" not in self.__attributes):
                 self.update_attribute("stored_scripting_on", toggle=False)
-                self.settings().setAttribute(
-                    QWebSettings.JavascriptEnabled, False)
+                self.javascript(False)
                 print("EXITING LOAD WITHOUT FOCUS")
 
         self.page().loadFinished.connect(partial(self.clear_attribute,
@@ -685,7 +688,7 @@ class WebView(QWebView):
 
         if "stored_scripting_on" in self.__attributes:
             print("JS on")
-            self.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
+            self.javascript(True)
             self.clear_attribute("stored_scripting_on")
 
         return QWebView.focusInEvent(self, event)
@@ -693,13 +696,23 @@ class WebView(QWebView):
     def __focus_out_event(self, event):
         """ Turn off javascript if the WebView is not focused """
 
-        if (self.settings().testAttribute(QWebSettings.JavascriptEnabled) and
-                "in_page_load" not in self.__attributes):
+        if self.javascript() and "in_page_load" not in self.__attributes:
             self.update_attribute("stored_scripting_on", toggle=False)
-            self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
+            self.javascript(False)
             print("JS off")
 
         return QWebView.focusOutEvent(self, event)
+
+    def javascript(self, state=None):
+        """ if called without parameters, return current state of javascript
+        being enabled; otherwise, turn javascript on or off
+
+        """
+        if state is None:
+            return self.settings().testAttribute(QWebSettings.JavascriptEnabled)
+        else:
+            self.settings().setAttribute(QWebSettings.JavascriptEnabled, state)
+            self.javascript_state.emit(state)
 
     # Clean reimplement for Qt
     # pylint: disable=C0103

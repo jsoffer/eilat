@@ -37,7 +37,7 @@
 from PyQt4.QtGui import (QWidget, QProgressBar, QGridLayout,
                          QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent,
                          QPalette, QColor, QToolTip)
-from PyQt4.QtWebKit import QWebPage, QWebSettings
+from PyQt4.QtWebKit import QWebPage
 from PyQt4.QtCore import Qt, QEvent
 
 from PyQt4.Qt import QApplication
@@ -65,7 +65,9 @@ class WebTab(QWidget):
 
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
+
         self.webkit.set_prefix.connect(self.address_bar.set_model)
+        self.webkit.javascript_state.connect(self.address_bar.set_color)
 
         # small label displaying instance ID and pending tab operations
 
@@ -269,17 +271,10 @@ class WebTab(QWidget):
         Callback for shortcut action
         """
 
-        javascript_on = self.webkit.settings().testAttribute(
-            QWebSettings.JavascriptEnabled)
-
-        if javascript_on:
-            self.webkit.settings().setAttribute(
-                QWebSettings.JavascriptEnabled, False)
-            self.address_bar.set_color()
-        else:
-            self.webkit.settings().setAttribute(
-                QWebSettings.JavascriptEnabled, True)
-            self.address_bar.set_color((230, 230, 255))
+        # FIXME needed here? Only place where .javascript() needs
+        # to be public. Mainly for address_bar's color (using signals now)
+        javascript_on = self.webkit.javascript()
+        self.webkit.javascript(not javascript_on)
 
     def load_progress(self, val):
         """ Callback for connection """
@@ -402,8 +397,6 @@ class AddressBar(QLineEdit):
         # an instance, to display completions for all sites
         self.set_model(None)
 
-        self.set_color()
-
         set_shortcuts([
             ("Ctrl+H", self, self.backspace),
             # do not create a new tab when on the address bar;
@@ -433,10 +426,14 @@ class AddressBar(QLineEdit):
         self.__completer = QCompleter(self.database.model(prefix), self)
         self.setCompleter(self.__completer)
 
-    def set_color(self, rgb=(255, 255, 255)):
-        """ Sets the background color of the address bar """
+    def set_color(self, active):
+        """ Sets the background color of the address bar; when 'active', that
+        is, javascript is active, set to blue; set to white otherwise
+
+        """
+
         palette = self.palette()
-        (red, green, blue) = rgb
+        (red, green, blue) = (230, 230, 255) if active else (255, 255, 255)
         palette.setColor(QPalette.Base, QColor(red, green, blue))
         self.setPalette(palette)
 
