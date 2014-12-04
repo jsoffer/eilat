@@ -265,12 +265,12 @@ class WebView(QWebView):
 
             """
 
-            # FIXME repeated at __focus_out_event
             if (not self.hasFocus() and
-                    "in_page_load" not in self.__attributes):
+                    "in_page_load" not in self.__attributes and
+                    self.javascript()):
                 self.update_attribute("stored_scripting_on", toggle=False)
                 self.javascript(False)
-                print("EXITING LOAD WITHOUT FOCUS")
+                print("EXITING LOAD WITH JS WITHOUT FOCUS")
 
         self.page().loadFinished.connect(partial(self.clear_attribute,
                                                  "in_page_load"))
