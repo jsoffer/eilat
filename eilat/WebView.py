@@ -436,6 +436,7 @@ class WebView(QWebView):
         if self.attr.prefix is None:
             options = extract_options(qurl.toString())
             self.attr.set_prefix(options['prefix'])
+            self.set_prefix.emit(self.attr.prefix)
 
             # this is the first navigation on this tab/webkit; replace
             # the Network Access Manager
