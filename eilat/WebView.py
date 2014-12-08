@@ -294,11 +294,9 @@ class WebView(QWebView):
                 label.hide()
                 label.deleteLater()
                 del label
-
-            # this will happen every scroll request, though
-            # but it does not cause an immediate repaint - not wasted?
-            # FIXME it has a perceived effect, specially with large zoom
-            self.update()
+                # happens once per label, but is scheduled in batches
+                # placed here it doesn't cause lag in regular scrolling
+                self.update()
 
         self.page().scrollRequested.connect(clear_labels)
         self.page().loadStarted.connect(clear_labels)
@@ -433,9 +431,13 @@ class WebView(QWebView):
         else:
             raise RuntimeError("Navigating to non-navigable")
 
+        if qurl.host() in SHORTENERS:
+            qurl = unshortener(qurl)
+
         if self.attr.prefix is None:
             options = extract_options(qurl.toString())
             self.attr.set_prefix(options['prefix'])
+            # strictly speaking, this should emit from Attributes.set_prefix
             self.set_prefix.emit(self.attr.prefix)
 
             # this is the first navigation on this tab/webkit; replace
@@ -477,8 +479,6 @@ class WebView(QWebView):
             Fore.RESET))
 
         self.setFocus()
-        if qurl.host() in SHORTENERS:
-            qurl = unshortener(qurl)
         self.load(qurl)
 
     def __unembed_frames(self):
