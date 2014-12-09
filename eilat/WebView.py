@@ -47,7 +47,7 @@ from eilat.libeilat import (fix_url, set_shortcuts,
                             encode_css, real_host, toggle_show_logs,
                             fake_key, fake_click,
                             notify,
-                            SHORTENERS, unshortener)
+                            SHORTENERS, REDIRECTORS, do_redirect)
 
 from eilat.global_store import (mainwin, clipboard, database,
                                 has_manager, register_manager, get_manager)
@@ -318,7 +318,7 @@ class WebView(QWebView):
                 print("EXITING LOAD WITH JS WITHOUT FOCUS")
 
         self.page().loadFinished.connect(partial(self.attr.clear,
-                                                 "in_page_load"))
+                                                 'in_page_load'))
 
         self.page().loadFinished.connect(load_finished)
 
@@ -431,8 +431,9 @@ class WebView(QWebView):
         else:
             raise RuntimeError("Navigating to non-navigable")
 
-        if qurl.host() in SHORTENERS:
-            qurl = unshortener(qurl)
+        if (qurl.host() in SHORTENERS or
+                qurl.host() + qurl.path() in REDIRECTORS):
+            qurl = do_redirect(qurl)
 
         if self.attr.prefix is None:
             options = extract_options(qurl.toString())

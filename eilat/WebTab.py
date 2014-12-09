@@ -266,16 +266,13 @@ class WebTab(QWidget):
             self.nav_bar.setFocus()
 
     def toggle_script(self):
-        """ Activa o desactiva javascript, y notifica cambiando el color
-        del address bar
+        """ Retrieves the current javascript state for the tab and sets
+        the opposite
 
         Callback for shortcut action
         """
 
-        # FIXME needed here? Only place where .javascript() needs
-        # to be public. Mainly for address_bar's color (using signals now)
-        javascript_on = self.webkit.javascript()
-        self.webkit.javascript(not javascript_on)
+        self.webkit.javascript(not self.webkit.javascript())
 
     def load_progress(self, val):
         """ Callback for connection """

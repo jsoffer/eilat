@@ -270,9 +270,16 @@ def notify(text, corner=False):
     label.show()
 
 SHORTENERS = ["t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly"]
+REDIRECTORS = ["lm.facebook.com/l.php", "www.google.com.mx/url"]
 
-def unshortener(qurl):
-    """ retrieve the first redirect target not on SHORTENERS for an url """
+def do_redirect(qurl):
+    """ either follow the facebook/google in-url redirect, or retrieve the
+    first redirect target not on SHORTENERS for an url
+
+    """
+
+    if qurl.host() + qurl.path() in REDIRECTORS:
+        return QUrl(extract_url(qurl.toString()))
 
     while qurl.host() in SHORTENERS:
         if qurl.scheme() == "http":
