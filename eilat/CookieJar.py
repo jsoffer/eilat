@@ -102,7 +102,8 @@ class CookieJar(QNetworkCookieJar):
         site = domain + '.' + suffix
 
         if site not in self.allowed:
-            print("COOKIE FROM {} not set".format(url.toString()))
+            # FIXME make optional to print this
+            # print("COOKIE FROM {} not set".format(url.toString()))
             ret = []
         else:
             print("SET COOKIE FROM {}".format(url.toString()))
