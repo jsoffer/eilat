@@ -48,7 +48,7 @@ from eilat.libeilat import (fix_url, set_shortcuts,
                             fake_key, fake_click,
                             notify, do_redirect)
 
-from eilat.global_store import (mainwin, clipboard, database,
+from eilat.global_store import (mainwin, clipboard,
                                 has_manager, register_manager, get_manager)
 from eilat.options import extract_options
 
