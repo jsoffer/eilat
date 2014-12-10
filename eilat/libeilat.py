@@ -192,6 +192,11 @@ def extract_url(url):
     python3-only, because of urlparse, parse_qsl; fixable, is it worth it?
 
     """
+
+    # FIXME maybe remove the entire extract_url, move to do_redirect;
+    # what to to with ^Y paste?
+
+    # FIXME use exception
     if url is None:
         return
 
@@ -269,8 +274,11 @@ def notify(text, corner=False):
 
     label.show()
 
-SHORTENERS = ["t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly"]
-REDIRECTORS = ["lm.facebook.com/l.php", "www.google.com.mx/url"]
+SHORTENERS = ["t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly", "dlvr.it"]
+REDIRECTORS = [
+    "lm.facebook.com/l.php", "m.facebook.com/l.php",
+    "www.google.com.mx/url"
+]
 
 def do_redirect(qurl):
     """ either follow the facebook/google in-url redirect, or retrieve the
@@ -278,6 +286,7 @@ def do_redirect(qurl):
 
     """
 
+    # FIXME is this qurl->string->qurl conversion required?
     if qurl.host() + qurl.path() in REDIRECTORS:
         return QUrl(extract_url(qurl.toString()))
 
