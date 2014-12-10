@@ -123,7 +123,8 @@ class InterceptNAM(QNetworkAccessManager):
         self.prefix = options['prefix']
 
         self.show_detail = self.prefix == ''
-        self.show_log = self.prefix == ''
+        #self.show_log = self.prefix == ''
+        self.show_log = True
 
         self.total_bytes = 0
         self.cache_bytes = 0
@@ -147,60 +148,66 @@ class InterceptNAM(QNetworkAccessManager):
             status = reply.attribute(
                 QNetworkRequest.HttpStatusCodeAttribute)
 
-            from_cache = reply.attribute(
-                QNetworkRequest.SourceIsFromCacheAttribute)
+            if is_local(reply.url()) or status is None or not self.show_log:
+                return
 
-            if from_cache:
-                color_status = Fore.GREEN
-            else:
-                color_status = Fore.RED
+            color_status = Fore.GREEN if reply.attribute(
+                QNetworkRequest.SourceIsFromCacheAttribute) else Fore.RED
 
-            fil = status is not None and status >= 400
-            local = is_local(reply.url())
-
-            color = Fore.RED if fil else Fore.BLUE
+            # was it a filtered reply?
+            color = Fore.RED if status >= 400 else Fore.BLUE
 
             cache_header = ''
 
-            if status is not None and not local:
-                if reply.hasRawHeader('Content-Length'):
-                    byte_length = int(reply.rawHeader(
-                        'Content-Length').data().decode())
-                    self.total_bytes += byte_length
-                    cache_header += "{:.2f} Kb\t".format(byte_length / 1024.0)
-                    if from_cache:
-                        self.cache_bytes += byte_length
-                else:
-                    cache_header += 'NO_LENGTH\t'
+            if reply.hasRawHeader('Content-Length'):
+                byte_length = int(reply.rawHeader(
+                    'Content-Length').data().decode())
+                self.total_bytes += byte_length
+                cache_header += "{:.2f} Kb\t".format(byte_length / 1024.0)
+            else:
+                cache_header += 'NO_LENGTH\t'
 
-                if reply.hasRawHeader('X-Cache'):
-                    cache_header += (
-                        reply.rawHeader('X-Cache').data().decode() +
-                        '\t')
+            if reply.hasRawHeader('X-Cache'):
+                cache_header += (
+                    reply.rawHeader('X-Cache').data().decode() +
+                    '\t')
 
-                if self.total_bytes > 0:
-                    cache_header += "[{:.2f}% from disk cache]".format(
-                        100.0 * float(self.cache_bytes) /
-                        self.total_bytes)
+            if self.total_bytes > 0:
+                cache_header += "[{:.2f}% from disk cache]".format(
+                    100.0 * float(self.cache_bytes) /
+                    self.total_bytes)
 
-                origin = reply.request().originatingObject()
-                if origin:
-                    (_, domain, suffix) = tldextract.extract(
-                        origin.baseUrl().toString())
-                    (_, r_d, r_s) = tldextract.extract(
-                        reply.url().toString())
-                    not_same = (domain, suffix) != (r_d, r_s)
-                    if origin.parentFrame():
-                        not_same = True
+            origin = reply.request().originatingObject()
+            if origin:
+                (_, domain, suffix) = tldextract.extract(
+                    origin.baseUrl().toString())
+                (_, r_d, r_s) = tldextract.extract(
+                    reply.url().toString())
+                not_same = (domain, suffix) != (r_d, r_s)
+            else:
+                return
 
-                if self.show_log and not_same:
-                    print("REPLY ", (domain, suffix), (r_d, r_s))
-                    show_labeled("{}{}{}".format(color_status,
-                                                 status,
-                                                 Fore.RESET),
-                                 reply.url(),
-                                 color=color,
-                                 detail=cache_header)
+            if (origin.requestedUrl() == reply.url() and
+                    origin == origin.page().mainFrame()):
+                print("*** ORIGINAL REQUEST ", reply.url().toString())
+            #else:
+            #    print(". ", origin.requestedUrl().toString(),
+            #          origin.url().toString(),
+            #          reply.url().toString())
+
+            # FIXME this is the 'reporting log' part that has to be revamped
+            if False and (not_same or origin.parentFrame()):
+                #if origin.requestedUrl() == reply.url():
+                print("ORIGINATING: ", origin.url().toString(),
+                      origin.parentFrame().url().toString() if
+                      origin.parentFrame() else "None")
+                print("REPLY ", origin.baseUrl().toString())
+                show_labeled("{}{}{}".format(color_status,
+                                             status,
+                                             Fore.RESET),
+                             reply.url(),
+                             color=color,
+                             detail=cache_header)
 
         self.finished.connect(reply_complete)
 
@@ -254,7 +261,8 @@ class InterceptNAM(QNetworkAccessManager):
         # stop here if the request is local enough as for not
         # requiring further scrutiny
         if is_local(qurl) and not is_font(qurl):
-            if self.show_detail:
+            #if self.show_detail:
+            if False:
                 show_labeled("LOCAL", qurl, color=Fore.GREEN)
             return QNetworkAccessManager.createRequest(
                 self, operation, request, data)
@@ -262,17 +270,18 @@ class InterceptNAM(QNetworkAccessManager):
         # If the request is going to be intercepted a custom request is
         # built and returned after optionally reporting the reason
 
-        for (stop_case, description) in [
+        for (stop_case, description, show) in [
                 # may still be local
-                (is_font(qurl), "TRIM WEBFONT"),
+                (is_font(qurl), "TRIM WEBFONT", False),
                 # it may be an un-dns'ed request; careful here
-                (is_numerical(qurl.host()), "NUMERICAL"),
+                (is_numerical(qurl.host()), "NUMERICAL", True),
                 # whitelist exists, and the requested URL is not in it
                 (non_whitelisted(self.whitelist, qurl),
-                 "NON WHITELISTED")
+                 "NON WHITELISTED", True)
         ]:
             if stop_case:
-                if self.show_detail:
+                #if self.show_detail:
+                if show:
                     show_labeled(description, qurl, color=Fore.RED)
 
                 return QNetworkAccessManager.createRequest(
@@ -287,14 +296,14 @@ class InterceptNAM(QNetworkAccessManager):
         (subdomain, domain, suffix) = tldextract.extract(url)
         subdomain = subdomain if subdomain != '' else None
 
-        for (stop_case, description, detail) in [
+        for (stop_case, description, detail, show) in [
                 # if 'domain' or 'suffix' are not valid, stop;
                 # should never happen (even though it does - some providers
                 # don't have a proper 'domain' according to tldextract
                 (domain == '' or suffix == '',
                  "SHOULD NOT HAPPEN", " {}|{}|{} ".format(subdomain,
                                                           domain,
-                                                          suffix)),
+                                                          suffix), True),
                 # found the requested URL in the blacklist
                 (self.whitelist is None and
                  database().is_blacklisted(domain,
@@ -302,10 +311,11 @@ class InterceptNAM(QNetworkAccessManager):
                                            subdomain),
                  "FILTER", "{} || {} || {} ".format(subdomain,
                                                     domain,
-                                                    suffix))
+                                                    suffix), False)
         ]:
             if stop_case:
-                if self.show_detail:
+                #if self.show_detail:
+                if show:
                     show_labeled(description, qurl,
                                  detail=detail, color=Fore.RED)
 
@@ -325,14 +335,12 @@ class InterceptNAM(QNetworkAccessManager):
 
 class DiskCacheDir(QNetworkDiskCache):
     """ near-empty reimplementation of QNetworkDiskCache, only to avoid
-    setting the directory and cache size on construction
+    setting the directory and cache size after construction
 
     """
 
     def __init__(self, options, parent=None):
         super(DiskCacheDir, self).__init__(parent)
-
-        self.debug = False
 
         self.setCacheDirectory(
             expanduser("~/.eilat/caches/cache{prefix}".format_map(options)))
