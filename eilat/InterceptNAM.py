@@ -205,7 +205,7 @@ class InterceptNAM(QNetworkAccessManager):
                         (not reply.url().hasQuery()) and
                         len(path.split('/')) < 4 and
                         status is not None and
-                        200 <= status < 300):
+                        200 <= status < 400):
                     database().store_navigation(host, path, self.prefix)
 
             #else:
