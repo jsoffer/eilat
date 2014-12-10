@@ -53,6 +53,12 @@ from colorama import Fore, Style
 
 from os.path import expanduser
 
+from re import sub
+
+DO_NOT_STORE = [
+    "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
+]
+
 def highlight(qurl, full=False):
     """ Colorizes the address stored in 'qurl'; if 'full' is false,
     it will print only the filename in the end of the path (if any)
@@ -187,9 +193,19 @@ class InterceptNAM(QNetworkAccessManager):
             else:
                 return
 
+            # TODO store reply.url() in variable?
             if (origin.requestedUrl() == reply.url() and
                     origin == origin.page().mainFrame()):
                 print("*** ORIGINAL REQUEST ", reply.url().toString())
+                host = sub("^www.", "", reply.url().host())
+                path = reply.url().path().rstrip("/ ")
+
+                if (
+                        (host not in DO_NOT_STORE) and
+                        (not reply.url().hasQuery()) and
+                        len(path.split('/')) < 4):
+                    database().store_navigation(host, path, self.prefix)
+
             #else:
             #    print(". ", origin.requestedUrl().toString(),
             #          origin.url().toString(),

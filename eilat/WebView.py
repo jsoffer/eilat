@@ -46,15 +46,13 @@ from eilat.InterceptNAM import InterceptNAM
 from eilat.libeilat import (fix_url, set_shortcuts,
                             encode_css, real_host, toggle_show_logs,
                             fake_key, fake_click,
-                            notify,
-                            SHORTENERS, REDIRECTORS, do_redirect)
+                            notify, do_redirect)
 
 from eilat.global_store import (mainwin, clipboard, database,
                                 has_manager, register_manager, get_manager)
 from eilat.options import extract_options
 
 from os.path import expanduser
-from re import sub
 import datetime
 
 from threading import Thread
@@ -431,9 +429,9 @@ class WebView(QWebView):
         else:
             raise RuntimeError("Navigating to non-navigable")
 
-        if (qurl.host() in SHORTENERS or
-                qurl.host() + qurl.path() in REDIRECTORS):
-            qurl = do_redirect(qurl)
+        # if the qurl does not trigger an URL in SHORTENERS or REDIRECTORS,
+        # this will be a no-op
+        qurl = do_redirect(qurl)
 
         if self.attr.prefix is None:
             options = extract_options(qurl.toString())
@@ -460,18 +458,18 @@ class WebView(QWebView):
         self.page().setNetworkAccessManager(get_manager(self.attr.prefix))
 
         ### LOG NAVIGATION
-        host = sub("^www.", "", qurl.host())
-        path = qurl.path().rstrip("/ ")
+        #host = sub("^www.", "", qurl.host())
+        #path = qurl.path().rstrip("/ ")
 
-        do_not_store = [
-            "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
-        ]
+        #do_not_store = [
+        #    "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
+        #]
 
-        if (
-                (host not in do_not_store) and
-                (not qurl.hasQuery()) and
-                len(path.split('/')) < 4):
-            database().store_navigation(host, path, self.attr.prefix)
+        #if (
+        #        (host not in do_not_store) and
+        #        (not qurl.hasQuery()) and
+        #        len(path.split('/')) < 4):
+        #    database().store_navigation(host, path, self.attr.prefix)
 
         print("{}>>>\t\t{}\n>>> NAVIGATE {}{}".format(
             Fore.CYAN,
