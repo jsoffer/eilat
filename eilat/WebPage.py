@@ -38,6 +38,7 @@ from PyQt4.QtWebKit import QWebPage
 
 from libeilat import user_agent_for_url
 
+
 class WebPage(QWebPage):
     """ Reimplemented to operate on the user agent """
 

@@ -45,7 +45,7 @@ load-plugins=
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
 #disable=C0330
-disable=
+disable=locally-enabled,locally-disabled
 
 
 [REPORTS]
@@ -116,7 +116,7 @@ ignore-mixin-members=yes
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus extisting member attributes cannot be deduced by static analysis
-ignored-modules=
+ignored-modules=PyQt4.Qt,PyQt4.QtGui,PyQt4.QtCore,PyQt4.QtNetwork,PyQt4.QtWebKit,PyQt4.QtSql
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).

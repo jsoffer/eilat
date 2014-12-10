@@ -39,6 +39,7 @@ from os.path import expanduser
 
 from tldextract import extract
 
+
 def format_cookie(url, cookies):
     """ Constructs a log message from a list of cookies and the host
     where they're set
@@ -51,6 +52,7 @@ def format_cookie(url, cookies):
                                                    cookie.value())
                         for cookie in cookies])
     return prefix + suffix
+
 
 class CookieJar(QNetworkCookieJar):
     """ Logs and intercepts cookies; part of the Network Access Manager
@@ -76,7 +78,7 @@ class CookieJar(QNetworkCookieJar):
                 with open(self.storage, "r") as readfile:
                     cookies = [QNetworkCookie.parseCookies(k)
                                for k in readfile.readlines()]
-                    cookies = [x for y in cookies for x in y] # flatten
+                    cookies = [x for y in cookies for x in y]  # flatten
                     self.setAllCookies(cookies)
             except IOError:
                 print("LOAD COOKIES: empty?")

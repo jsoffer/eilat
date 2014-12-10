@@ -48,6 +48,7 @@ from base64 import encodestring
 
 from eilat.global_store import get_manager, mainwin
 
+
 def fix_url(url):
     """ Converts an url string to a QUrl object; checks if turning to
     search query is necessary
@@ -84,12 +85,14 @@ def fix_url(url):
     else:
         return QUrl.fromUserInput(url)
 
+
 def set_shortcuts(lista, context=Qt.WidgetWithChildrenShortcut):
     """ Creates QShortcuts from a list of (key, owner, callback) 3-tuples
 
     """
     for (shortcut, owner, callback) in lista:
         QShortcut(shortcut, owner, callback).setContext(context)
+
 
 def is_local(url):
     """ Predicate for create_request
@@ -100,6 +103,7 @@ def is_local(url):
             url.host() == 'localhost' or
             url.scheme() == 'data')
 
+
 def is_numerical(url):
     """ Predicate for create_request
     Is the URL an already resolved numeric ip address?
@@ -108,6 +112,7 @@ def is_numerical(url):
     if url in ["192.168.1.254"]:
         return False
     return not ([k for k in url if k not in "0123456789."])
+
 
 def is_font(qurl):
     """ Predicate for create_request
@@ -122,9 +127,10 @@ def is_font(qurl):
                  'application/font-woff',
                  'application/font-sfnt',
                  'application/vnd.ms-fontobject',
-                 'image/svg+xml' # may not be a font?
+                 'image/svg+xml'  # may not be a font?
              ]) or
              (qurl.path().endswith('.svg') and "font" in qurl.path())))
+
 
 def non_whitelisted(whitelist, url):
     """ Predicate for create_request
@@ -141,6 +147,7 @@ def non_whitelisted(whitelist, url):
         host in whitelist or
         any([(host + path).startswith(k) for k in whitelist]))
 
+
 def real_host(url):
     """ Extracts the last not-tld term from the url """
     return tldextract.extract(url).domain
@@ -155,6 +162,7 @@ outline-style: ridge ! important;
 """
 
 _GLOBAL_CSS = b""" * { box-shadow: none ! important; } """
+
 
 def encode_css(css_file):
     """ Takes a .css file, returns a base64 encoded "file" string
@@ -175,6 +183,7 @@ def encode_css(css_file):
 
     return (header + encoded).decode().strip()
 
+
 def encode_blocked(message, url):
     """ Generates a 'data:' string to use as reply when blocking an URL """
     header = b"data:text/html;base64,"
@@ -182,6 +191,7 @@ def encode_blocked(message, url):
     <a href={}>{}</a></div></body>""".format(message, url, url)
     encoded = encodestring(content.encode())
     return (header + encoded).decode()
+
 
 def extract_url(url):
     """ From string to string.
@@ -205,12 +215,14 @@ def extract_url(url):
         if value[:4] == 'http':
             return value
 
+
 def fake_key(widget, key):
     """ Generate a fake key click in the widget """
     enter_event = QKeyEvent(
         QEvent.KeyPress, key,
         Qt.KeyboardModifiers())
     QApplication.sendEvent(widget, enter_event)
+
 
 def fake_click(widget):
     """ Generate a fake mouse click in the cursor position inside 'widget' """
@@ -232,6 +244,7 @@ def fake_click(widget):
 
     QApplication.sendEvent(widget, exit_event)
 
+
 def toggle_show_logs(prefix, detail=False):
     """ Inverts a value, toggling between printing responses
     that were accepted by the webkit or (some of) those that
@@ -252,6 +265,7 @@ def toggle_show_logs(prefix, detail=False):
             print("---- SHOWING LOG ----")
         else:
             print("---- HIDING LOG ----")
+
 
 def notify(text, corner=False):
     """ Pushes a notification to the main window's notifier label
@@ -276,9 +290,10 @@ def notify(text, corner=False):
 
 SHORTENERS = ["t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly", "dlvr.it"]
 REDIRECTORS = [
-    "lm.facebook.com/l.php", "m.facebook.com/l.php",
+    "lm.facebook.com/l.php", "m.facebook.com/l.php", "l.facebook.com/l.php",
     "www.google.com.mx/url"
 ]
+
 
 def do_redirect(qurl):
     """ either follow the facebook/google in-url redirect, or retrieve the

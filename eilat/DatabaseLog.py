@@ -38,6 +38,7 @@ from os.path import expanduser, isfile
 
 from PyQt4.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
 
+
 class DatabaseLogLite(object):
     """ Low load only; using SQLite
     To store bookmarks, configuration, etc.
@@ -45,7 +46,7 @@ class DatabaseLogLite(object):
     """
     def __init__(self):
 
-        ####### STARTUP
+        # ###### STARTUP
 
         super(DatabaseLogLite, self).__init__()
         self.litedb = QSqlDatabase("QSQLITE")
@@ -85,7 +86,7 @@ class DatabaseLogLite(object):
             for host, tld in inserts:
                 self.litedb.exec_(query_insertbl.format(host, tld))
 
-        ####### VALIDATION
+        # ###### VALIDATION
         # verifies database structure, not datatypes
 
         tables = self.litedb.tables()
@@ -131,7 +132,7 @@ class DatabaseLogLite(object):
         self.__model.setQuery(query_nav)
         return self.__model
 
-        #return completion_model
+        # return completion_model
 
     def store_navigation(self, host, path, prefix):
         """ save host, path and increase its count """

@@ -6,11 +6,13 @@ from os.path import isdir, isfile, expanduser
 # do not warn about unused variables (nothing is going to be used,
 # just looked at
 
+
 def check_python_3():
     """ Using Python 3? """
     from sys import version_info
     if version_info < (3, 0):
         raise RuntimeError("Using python 2.x? 3.x required")
+
 
 # pylint: disable=W0612
 def check_libraries():
@@ -65,6 +67,7 @@ def check_libraries():
 
 # pylint: enable=W0612
 
+
 def check_dotfile():
     """ Is the dotfile structure usable enough?
 
@@ -87,6 +90,7 @@ def check_dotfile():
             isdir(path) and isdir(path + '/cookies') and isdir(path + '/css')
             and isfile(path + '/options.yaml')):
         return True
+
 
 def check_proxy(host, port):
     """ Is there even an appearance of something resembling a proxy on the set

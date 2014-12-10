@@ -41,7 +41,6 @@ from PyQt4.QtGui import QLabel, QColor, QToolTip, QPalette, QFrame
 
 from functools import partial
 
-#from WebPage import WebPage
 from eilat.InterceptNAM import InterceptNAM
 from eilat.libeilat import (fix_url, set_shortcuts,
                             encode_css, real_host, toggle_show_logs,
@@ -68,6 +67,7 @@ UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
+
 
 class Attributes(QObject):
     """ Stores state for the webkit """
@@ -123,6 +123,7 @@ class Attributes(QObject):
         """ encapsulate the prefix storage (incomplete) """
         self.prefix = pfx
 
+
 def node_neighborhood(rect, direction):
     """ Finds a rectangle next to the node, where close by
     nodes could be
@@ -143,6 +144,7 @@ def node_neighborhood(rect, direction):
         rect.setRight(rect.right() + 100)
 
     return rect
+
 
 def next_node(candidates, direction, boundary):
     """ Given the direction that was travelled to create the
@@ -194,6 +196,7 @@ ALL_TAGS.remove('J')
 ALL_TAGS.remove('F')
 ALL_TAGS.remove('H')
 
+
 class WebView(QWebView):
     """ Una página web con contenedor, para poner en una tab
 
@@ -235,15 +238,15 @@ class WebView(QWebView):
         self.settings().setAttribute(
             QWebSettings.PluginsEnabled, False)
 
-        # take care; if set to True, the address bar, that is not yet connected,
-        # will not be able to set its color to "javascript on"
+        # take care; if set to True, the address bar, that is not yet
+        # connected, will not be able to set its color to "javascript on"
         self.javascript(False)
 
         self.settings().setAttribute(
             QWebSettings.FrameFlatteningEnabled, True)
 
-        #self.settings().setAttribute(
-        #    QWebSettings.DeveloperExtrasEnabled, True)
+        # self.settings().setAttribute(
+        #     QWebSettings.DeveloperExtrasEnabled, True)
 
         self.page().setForwardUnsupportedContent(True)
 
@@ -388,7 +391,7 @@ class WebView(QWebView):
 
         try:
             process = Popen(['mpv', qurl.toString()])
-            process.wait() # wait, or mpv will be <defunct> after exiting!
+            process.wait()  # wait, or mpv will be <defunct> after exiting!
             if process.returncode != 0:
                 self.statusBarMessage.emit("mpv can't play: status {}".format(
                     process.returncode))
@@ -457,20 +460,6 @@ class WebView(QWebView):
 
         self.page().setNetworkAccessManager(get_manager(self.attr.prefix))
 
-        ### LOG NAVIGATION
-        #host = sub("^www.", "", qurl.host())
-        #path = qurl.path().rstrip("/ ")
-
-        #do_not_store = [
-        #    "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
-        #]
-
-        #if (
-        #        (host not in do_not_store) and
-        #        (not qurl.hasQuery()) and
-        #        len(path.split('/')) < 4):
-        #    database().store_navigation(host, path, self.attr.prefix)
-
         print("{}>>>\t\t{}\n>>> NAVIGATE {}{}".format(
             Fore.CYAN,
             datetime.datetime.now().isoformat(),
@@ -518,7 +507,6 @@ class WebView(QWebView):
                 node.styleProperty(
                     "visibility",
                     QWebElement.ComputedStyle) == 'visible']
-
 
     def __find_visible_navigables(self, links=True):
         """ Find the elements on the navigation list that are visible right now
@@ -582,15 +570,17 @@ class WebView(QWebView):
 
             color = QColor(Qt.yellow)
 
-            color = color.lighter(160) # 150
-            color.setAlpha(196) # 112
+            color = color.lighter(160)
+            color.setAlpha(196)
             palette.setColor(QPalette.Window, color)
 
             label.setPalette(palette)
             label.setAutoFillBackground(True)
             label.setFrameStyle(QFrame.Box | QFrame.Plain)
 
-            point = QPoint(node.geometry().left(), node.geometry().center().y())
+            point = QPoint(
+                node.geometry().left(),
+                node.geometry().center().y())
             point -= self.page().mainFrame().scrollPosition()
             label.move(point)
             label.show()
@@ -615,7 +605,7 @@ class WebView(QWebView):
         else:
             # deal with tags longer than a character
             # all the combinations are at most two letters
-            if not candidate in [k[0] for k in self.map_tags]:
+            if candidate not in [k[0] for k in self.map_tags]:
                 # there's no possible tag for this entry
                 # tell the webkit
                 self.nonvalid_tag.emit()
@@ -628,7 +618,7 @@ class WebView(QWebView):
 
         target = None
 
-        localnav = self.__find_visible_navigables() # this generates a navlist
+        localnav = self.__find_visible_navigables()  # this generates a navlist
 
         if not localnav:
             print("No anchors in current view?")
@@ -702,7 +692,8 @@ class WebView(QWebView):
 
         """
         if state is None:
-            return self.settings().testAttribute(QWebSettings.JavascriptEnabled)
+            return self.settings().testAttribute(
+                QWebSettings.JavascriptEnabled)
         else:
             self.settings().setAttribute(QWebSettings.JavascriptEnabled, state)
             self.javascript_state.emit(state)

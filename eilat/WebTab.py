@@ -50,6 +50,7 @@ from eilat.DatabaseLog import DatabaseLogLite
 from eilat.libeilat import set_shortcuts, notify
 from eilat.global_store import mainwin, clipboard
 
+
 class WebTab(QWidget):
     """ Cada tab contiene una página web """
     def __init__(self, parent=None):
@@ -142,7 +143,7 @@ class WebTab(QWidget):
 
             """
 
-            #if title:
+            # if title:
             self.message_label.hide()
             self.message_label.setText(title)
             self.message_label.show()
@@ -306,7 +307,6 @@ class WebTab(QWidget):
             notify("[F]")
             print("loadFinished: failed", self.webkit.url())
 
-
     # connect (en constructor)
     def on_link_hovered(self, link):
         """ A link has been selected (no relation with legacy 'link hovered').
@@ -314,7 +314,6 @@ class WebTab(QWidget):
         bar.
 
         """
-
 
         # change the address bar's color to point out that we're in a
         # pseudo status bar, not the regular address bar
@@ -357,6 +356,7 @@ class WebTab(QWidget):
             search = self.search_frame.search_line.text()
         self.webkit.findText(search, QWebPage.FindWrapsAroundDocument)
 
+
 class SearchFrame(QFrame):
     """ A frame with a label and a text entry. The text is provided to
     the application upwards to perform in-page search.
@@ -378,6 +378,7 @@ class SearchFrame(QFrame):
         set_shortcuts([
             ("Ctrl+H", self, self.search_line.backspace),
             ])
+
 
 class AddressBar(QLineEdit):
     """ A command line of sorts; receives addresses, search terms or
@@ -414,7 +415,6 @@ class AddressBar(QLineEdit):
         self.setPalette(palette)
         QLineEdit.focusInEvent(self, event)
 
-
     def set_model(self, prefix):
         """ Update the completion model when the prefix is known. Has to
         be done through an instance variable because of a bug (will not
@@ -439,6 +439,7 @@ class AddressBar(QLineEdit):
     # pylint: disable=C0103
     focusInEvent = focus_in_event
     # pylint: enable=C0103
+
 
 class NavigateInput(QLineEdit):
     """ When access-key navigation starts, jump to a line edit, where it's
@@ -479,6 +480,7 @@ class NavigateInput(QLineEdit):
     focusOutEvent = focus_out_event
     # pylint: enable=C0103
 
+
 class MessageLabel(QLabel):
     """ A label to be displayed on the top left corner of the webview;
     it performs most of the functions of a status bar
@@ -499,4 +501,3 @@ class MessageLabel(QLabel):
         self.setWordWrap(True)
 
         self.hide()
-

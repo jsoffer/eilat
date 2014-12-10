@@ -51,13 +51,14 @@ import sys
 
 from collections import deque
 
+
 class MainWin(QMainWindow):
     """ It's a window, stores a TabWidget """
 
     def __init__(self, parent=None):
         super(MainWin, self).__init__(parent)
         self.setWindowTitle("Eilat Browser")
-        #gc.set_debug(gc.DEBUG_LEAK)
+        # gc.set_debug(gc.DEBUG_LEAK)
 
         self.last_closed = None
 
@@ -109,7 +110,6 @@ class MainWin(QMainWindow):
             ("Ctrl+Q", self, self.finalize)
             ])
 
-    #def new_tab_from_clipboard(self, scripting=False, extract=False):
     def new_tab_from_clipboard(self, extract=False):
         """ One-use callback for QShortcut.
         Reads the content of the PRIMARY clipboard and navigates to it
@@ -202,7 +202,7 @@ class MainWin(QMainWindow):
         self.tab_widget.setCurrentWidget(tab)
         tab_idx = self.tab_widget.indexOf(tab)
 
-        self.tab_widget.tabBar().tabButton(tab_idx, 1).hide() # 1: right align
+        self.tab_widget.tabBar().tabButton(tab_idx, 1).hide()  # 1: right align
 
         if scripting:
             tab.toggle_script()
@@ -212,6 +212,7 @@ class MainWin(QMainWindow):
             tab.webkit.navigate(qurl)
         else:
             tab.address_bar.setFocus()
+
 
 class MidClickTabBar(QTabBar):
     """ Overloads middle click to close the clicked tab """
@@ -225,6 +226,7 @@ class MidClickTabBar(QTabBar):
     # pylint: disable=C0103
     mouseReleaseEvent = mouse_release_event
     # pylint: enable=C0103
+
 
 class NotifyLabel(QLabel):
     """ A tooltip that can stack notifications """

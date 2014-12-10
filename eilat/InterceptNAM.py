@@ -59,6 +59,7 @@ DO_NOT_STORE = [
     "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
 ]
 
+
 def highlight(qurl, full=False):
     """ Colorizes the address stored in 'qurl'; if 'full' is false,
     it will print only the filename in the end of the path (if any)
@@ -93,6 +94,7 @@ def highlight(qurl, full=False):
         Style.NORMAL, host, Style.NORMAL,
         path)
 
+
 def show_labeled(label, url, detail='', color=Fore.RESET, full=False):
     """ Creates a colorized ' LABEL: url path   '
                             '         > details '
@@ -114,6 +116,7 @@ def show_labeled(label, url, detail='', color=Fore.RESET, full=False):
 
 PRINTER = PrettyPrinter(indent=4).pprint
 
+
 class InterceptNAM(QNetworkAccessManager):
     """ Reimplements the Network Access Manager to see what's being requested
     by web pages, besides of the page itself. Has primitive support to allow
@@ -129,7 +132,6 @@ class InterceptNAM(QNetworkAccessManager):
         self.prefix = options['prefix']
 
         self.show_detail = self.prefix == ''
-        #self.show_log = self.prefix == ''
         self.show_log = True
 
         self.total_bytes = 0
@@ -140,7 +142,6 @@ class InterceptNAM(QNetworkAccessManager):
         self.setCookieJar(self.cookie_jar)
 
         self.setCache(DiskCacheDir(options, parent=self))
-        #self.setCache(DiskCache(options, parent=self))
 
         def reply_complete(reply):
             """ Prints when a request completes, handles the filter that
@@ -208,14 +209,8 @@ class InterceptNAM(QNetworkAccessManager):
                         200 <= status < 400):
                     database().store_navigation(host, path, self.prefix)
 
-            #else:
-            #    print(". ", origin.requestedUrl().toString(),
-            #          origin.url().toString(),
-            #          reply.url().toString())
-
             # FIXME this is the 'reporting log' part that has to be revamped
             if False and (not_same or origin.parentFrame()):
-                #if origin.requestedUrl() == reply.url():
                 print("ORIGINATING: ", origin.url().toString(),
                       origin.parentFrame().url().toString() if
                       origin.parentFrame() else "None")
@@ -258,7 +253,6 @@ class InterceptNAM(QNetworkAccessManager):
 
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.PreferCache)
-                             #QNetworkRequest.AlwaysCache)
 
         qurl = request.url()
         url = qurl.toString()
@@ -279,7 +273,7 @@ class InterceptNAM(QNetworkAccessManager):
         # stop here if the request is local enough as for not
         # requiring further scrutiny
         if is_local(qurl) and not is_font(qurl):
-            #if self.show_detail:
+            # if self.show_detail:
             if False:
                 show_labeled("LOCAL", qurl, color=Fore.GREEN)
             return QNetworkAccessManager.createRequest(
@@ -298,7 +292,6 @@ class InterceptNAM(QNetworkAccessManager):
                  "NON WHITELISTED", True)
         ]:
             if stop_case:
-                #if self.show_detail:
                 if show:
                     show_labeled(description, qurl, color=Fore.RED)
 
@@ -332,7 +325,6 @@ class InterceptNAM(QNetworkAccessManager):
                                                     suffix), False)
         ]:
             if stop_case:
-                #if self.show_detail:
                 if show:
                     show_labeled(description, qurl,
                                  detail=detail, color=Fore.RED)
@@ -350,6 +342,7 @@ class InterceptNAM(QNetworkAccessManager):
     # pylint: disable=C0103
     createRequest = create_request
     # pylint: enable=C0103
+
 
 class DiskCacheDir(QNetworkDiskCache):
     """ near-empty reimplementation of QNetworkDiskCache, only to avoid

@@ -43,24 +43,23 @@ MAINWIN = None
 DATABASE = None
 MANAGERS = {}
 
+
 def has_manager(prefix):
     """ Is a network manager registered for this web instance?
 
     """
     return prefix in MANAGERS.keys()
 
-# intentionally updating (initializing) global constants
-# pylint: disable=W0603
+
 def register_manager(prefix, manager):
     """ Make a web instance specific network access manager globally
     accessible
 
     """
-    #global MANAGERS
 
-    if not prefix in MANAGERS.keys():
+    if prefix not in MANAGERS.keys():
         MANAGERS[prefix] = manager
-# pylint: enable=W0603
+
 
 def get_manager(prefix):
     """ Retrieve the network access manager for 'prefix' web instance
@@ -68,11 +67,13 @@ def get_manager(prefix):
     """
     return MANAGERS[prefix]
 
+
 def close_managers():
     """ Do cleanup on all the cookie jars """
 
     for prefix in MANAGERS:
         MANAGERS[prefix].cookie_jar.store_cookies()
+
 
 # intentionally updating (initializing) global constants
 # pylint: disable=W0603
@@ -87,13 +88,13 @@ def export_database(datab):
         raise RuntimeError("Attempting to initialize database twice")
 # pylint: enable=W0603
 
+
 def database():
     """ global access """
     return DATABASE
 
 # intentionally updating (initializing) global constants
 # pylint: disable=W0603
-
 
 
 def export_clipboard(clipb):
@@ -122,12 +123,14 @@ def export_mainwin(win):
         raise RuntimeError("Attempting to initialize main window twice")
 # pylint: enable=W0603
 
+
 def mainwin():
     """ Access the main window globally (fixable after passing 'options' in
     a more sane way than through the window; imprement "add tab" directly")
 
     """
     return MAINWIN
+
 
 def clipboard(request=None):
     """ Globally handle PRIMARY clipboard's contents
