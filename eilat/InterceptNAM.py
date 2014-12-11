@@ -59,53 +59,81 @@ DO_NOT_STORE = [
     "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
 ]
 
+def compare_host(url1, url2):
+    """ True if the domain.suffix part of both hosts is the same """
 
-def highlight(qurl, full=False):
+    (_, domain1, suffix1) = tldextract.extract(url1)
+    (_, domain2, suffix2) = tldextract.extract(url2)
+
+    return domain1 == domain2 and suffix1 == suffix2
+
+def show_info(info_map):
+    """ Construct and disply a colorized string to show
+    information for a reply
+
+    """
+
+    result = "{}{}: {}[{}] {}".format(info_map['color_status'],
+                                      info_map['status'],
+                                      info_map['main_color'],
+                                      highlight(info_map['source'],
+                                                show_path=False,
+                                                iframe=info_map['iframe']),
+                                      highlight(info_map['resource']))
+    result += Fore.RESET
+
+    print(result)
+
+def highlight(qurl, show_path=True, full=False, iframe=False):
     """ Colorizes the address stored in 'qurl'; if 'full' is false,
     it will print only the filename in the end of the path (if any)
     instead of the full path.
 
     """
 
-    url = qurl.host()
-    path = qurl.path()
-
-    if path and not full and qurl.scheme() != 'data':
-        path = path.split('/')[-1]
-
-    if path and qurl.scheme() == 'data':
-        path = path.split(';')[0]
-        return "[data] {}".format(path)
-
-    (subdomain, domain, suffix) = tldextract.extract(url)
+    (subdomain, domain, suffix) = tldextract.extract(qurl.host())
 
     host = "{}.{}{}.{}".format(subdomain,
                                Style.BRIGHT, domain, suffix)
     host = host.strip('.')
 
+    if show_path:
+        path = qurl.path()
+        if path and not full and qurl.scheme() != 'data':
+            path = path.split('/')[-1]
+
+        if path and qurl.scheme() == 'data':
+            path = path.split(';')[0]
+            return "[data] {}".format(path)
+
     port = ":{}".format(qurl.port()) if qurl.port() >= 0 else ''
     if port:
         host += port
 
-    if qurl.scheme() != 'http':
+    if show_path and qurl.scheme() != 'http':
         host = "[{}] {}".format(qurl.scheme(), host)
 
-    return "{}{}{} {}".format(
-        Style.NORMAL, host, Style.NORMAL,
-        path)
+    if iframe:
+        host = "* {}".format(host)
+
+    result = "{}{}{}".format(Style.NORMAL, host, Style.NORMAL)
+    if show_path:
+        result += " {}".format(path)
+
+    return result
 
 
-def show_labeled(label, url, detail='', color=Fore.RESET, full=False):
-    """ Creates a colorized ' LABEL: url path   '
-                            '         > details '
+def show_labeled(label, url, color=Fore.RESET, full=False, detail=None):
+    """ Creates a colorized ' LABEL: [source] url path   '
         string to display as log output
 
     """
 
-    result = "{}{}: {}{}".format(Fore.RESET,
-                                 label,
-                                 color,
-                                 highlight(url, full=full))
+    result = "{}{}: {}{}".format(
+        Fore.RESET,
+        label,
+        color,
+        highlight(url, full=full))
 
     if detail:
         result += "\n\t> {}".format(detail)
@@ -134,9 +162,6 @@ class InterceptNAM(QNetworkAccessManager):
         self.show_detail = self.prefix == ''
         self.show_log = True
 
-        self.total_bytes = 0
-        self.cache_bytes = 0
-
         # reference needed to save in shutdown
         self.cookie_jar = CookieJar(self, options)
         self.setCookieJar(self.cookie_jar)
@@ -152,75 +177,61 @@ class InterceptNAM(QNetworkAccessManager):
 
             """
 
+            qurl = reply.url()
+            s_url = qurl.toString()
+
             status = reply.attribute(
                 QNetworkRequest.HttpStatusCodeAttribute)
 
-            if is_local(reply.url()) or status is None or not self.show_log:
+            if is_local(qurl) or status is None or not self.show_log:
                 return
 
+            # 'status' will never be None from here on
+
+            # used only once
             color_status = Fore.GREEN if reply.attribute(
                 QNetworkRequest.SourceIsFromCacheAttribute) else Fore.RED
 
             # was it a filtered reply?
-            color = Fore.RED if status >= 400 else Fore.BLUE
-
-            cache_header = ''
-
-            if reply.hasRawHeader('Content-Length'):
-                byte_length = int(reply.rawHeader(
-                    'Content-Length').data().decode())
-                self.total_bytes += byte_length
-                cache_header += "{:.2f} Kb\t".format(byte_length / 1024.0)
-            else:
-                cache_header += 'NO_LENGTH\t'
-
-            if reply.hasRawHeader('X-Cache'):
-                cache_header += (
-                    reply.rawHeader('X-Cache').data().decode() +
-                    '\t')
-
-            if self.total_bytes > 0:
-                cache_header += "[{:.2f}% from disk cache]".format(
-                    100.0 * float(self.cache_bytes) /
-                    self.total_bytes)
+            # used only once
+            color = Fore.BLUE if 200 <= status < 400 else Fore.RED
 
             origin = reply.request().originatingObject()
+
             if origin:
-                (_, domain, suffix) = tldextract.extract(
-                    origin.baseUrl().toString())
-                (_, r_d, r_s) = tldextract.extract(
-                    reply.url().toString())
-                not_same = (domain, suffix) != (r_d, r_s)
+                #(_, domain, suffix) = tldextract.extract(
+                #    origin.baseUrl().toString())
+                #(_, r_d, r_s) = tldextract.extract(s_url)
+                # used only once
+                not_same = not compare_host(
+                    origin.requestedUrl().host(), qurl.host())
             else:
+                print("NO ORIGINATING OBJECT", s_url)
                 return
 
-            # TODO store reply.url() in variable?
-            if (origin.requestedUrl() == reply.url() and
-                    origin == origin.page().mainFrame()):
-                print("*** ORIGINAL REQUEST ", reply.url().toString())
-                host = sub("^www.", "", reply.url().host())
-                path = reply.url().path().rstrip("/ ")
+            in_iframe = origin != origin.page().mainFrame()
+
+            if origin.requestedUrl() == qurl and not in_iframe:
+                print("*** ORIGINAL REQUEST ", s_url)
+                host = sub("^www.", "", qurl.host())
+                path = qurl.path().rstrip("/ ")
 
                 if (
                         (host not in DO_NOT_STORE) and
-                        (not reply.url().hasQuery()) and
+                        (not qurl.hasQuery()) and
                         len(path.split('/')) < 4 and
-                        status is not None and
                         200 <= status < 400):
                     database().store_navigation(host, path, self.prefix)
 
-            # FIXME this is the 'reporting log' part that has to be revamped
-            if False and (not_same or origin.parentFrame()):
-                print("ORIGINATING: ", origin.url().toString(),
-                      origin.parentFrame().url().toString() if
-                      origin.parentFrame() else "None")
-                print("REPLY ", origin.baseUrl().toString())
-                show_labeled("{}{}{}".format(color_status,
-                                             status,
-                                             Fore.RESET),
-                             reply.url(),
-                             color=color,
-                             detail=cache_header)
+            if not_same or in_iframe:
+                info = {
+                    'color_status': color_status,
+                    'status': status,
+                    'resource': qurl,
+                    'source': origin.requestedUrl(),
+                    'main_color': color,
+                    'iframe': in_iframe}
+                show_info(info)
 
         self.finished.connect(reply_complete)
 
