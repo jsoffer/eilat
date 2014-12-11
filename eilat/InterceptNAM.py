@@ -59,11 +59,11 @@ DO_NOT_STORE = [
     "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
 ]
 
-def compare_host(url1, url2):
+def compare_host(host1, host2):
     """ True if the domain.suffix part of both hosts is the same """
 
-    (_, domain1, suffix1) = tldextract.extract(url1)
-    (_, domain2, suffix2) = tldextract.extract(url2)
+    (_, domain1, suffix1) = tldextract.extract(host1)
+    (_, domain2, suffix2) = tldextract.extract(host2)
 
     return domain1 == domain2 and suffix1 == suffix2
 
@@ -199,9 +199,6 @@ class InterceptNAM(QNetworkAccessManager):
             origin = reply.request().originatingObject()
 
             if origin:
-                #(_, domain, suffix) = tldextract.extract(
-                #    origin.baseUrl().toString())
-                #(_, r_d, r_s) = tldextract.extract(s_url)
                 # used only once
                 not_same = not compare_host(
                     origin.requestedUrl().host(), qurl.host())
