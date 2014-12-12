@@ -267,8 +267,11 @@ def toggle_show_logs(prefix, detail=False):
             print("---- HIDING LOG ----")
 
 
-def notify(text, corner=False):
+def notify(text):
     """ Pushes a notification to the main window's notifier label
+
+    Blueish, big fonts, transparent, in the center of the window;
+    always transient
 
     """
 
@@ -279,12 +282,8 @@ def notify(text, corner=False):
     label.push_text(text)
     label.adjustSize()
 
-    if corner:
-        label.move(mainwin().width() - (label.width() + 10),
-                   mainwin().height() - (label.height() + 10))
-    else:
-        label.move(mainwin().width() // 2 - label.width() // 2,
-                   mainwin().height() // 2 - label.height() // 2)
+    label.move(mainwin().width() // 2 - label.width() // 2,
+               mainwin().height() // 2 - label.height() // 2)
 
     label.show()
 

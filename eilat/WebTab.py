@@ -68,14 +68,13 @@ class WebTab(QWidget):
         self.webkit = WebView(parent=self)
 
         self.webkit.set_prefix.connect(self.address_bar.set_model)
-        self.webkit.javascript_state.connect(self.address_bar.set_color)
+        self.webkit.javascript_state.connect(self.address_bar.set_bgcolor)
 
         # small label displaying instance ID and pending tab operations
 
         info_label = QLabel(parent=self)
         info_label.setText('?')
 
-        self.webkit.webkit_info.connect(info_label.setText)
         self.webkit.attr.webkit_info.connect(info_label.setText)
 
         def update_address(qurl):
@@ -148,9 +147,17 @@ class WebTab(QWidget):
             self.message_label.setText(title)
             self.message_label.show()
 
-        self.webkit.display_title.connect(handle_signaled)
-
+        self.webkit.show_message.connect(handle_signaled)
         self.webkit.loadStarted.connect(self.message_label.hide)
+
+        # At the time navigation is requested load_requested is sent, and the
+        # requested url is set as text in grey at the address bar. Once the
+        # urlChanged signal is received, the actual url is set in black.
+
+        self.webkit.load_requested.connect(
+            partial(self.address_bar.set_txt_color,
+                    color=QColor(128, 128, 128)))
+
         self.webkit.page().scrollRequested.connect(self.message_label.hide)
         self.webkit.hide_overlay.connect(self.message_label.hide)
 
@@ -165,7 +172,7 @@ class WebTab(QWidget):
         # search in page
         self.search_frame = SearchFrame(parent=self)
 
-        self.webkit.link_selected.connect(self.on_link_hovered)
+        self.webkit.link_selected.connect(self.address_bar.set_txt_color)
 
         self.search_frame.search_line.textChanged.connect(self.do_search)
 
@@ -226,7 +233,7 @@ class WebTab(QWidget):
             if store:
                 clipboard(self.current['address'])
 
-        self.webkit.loadStarted.connect(reset_addressbar)
+        self.webkit.urlChanged.connect(reset_addressbar)
 
         set_shortcuts([
             # search
@@ -305,30 +312,10 @@ class WebTab(QWidget):
 
         if not success:
             notify("[F]")
-            print("loadFinished: failed", self.webkit.url())
+            print("loadFinished: failed",
+                  self.webkit.page().mainFrame().requestedUrl())
 
     # connect (en constructor)
-    def on_link_hovered(self, link):
-        """ A link has been selected (no relation with legacy 'link hovered').
-        Display the href (if there's no href, it's '') on the (pseudo) status
-        bar.
-
-        """
-
-        # change the address bar's color to point out that we're in a
-        # pseudo status bar, not the regular address bar
-        palette = self.address_bar.palette()
-        palette.setColor(QPalette.Text, QColor(127, 127, 255))
-        self.address_bar.setPalette(palette)
-
-        self.address_bar.setText(link)
-
-        # if used, overwrites the clipboard every time navigation is performed,
-        # either access-key or spatial
-        # clipboard(link)
-
-    # connect (en constructor)
-
     def save_title(self, title):
         """ Store a recently changed title, and display it """
         self.current['title'] = title
@@ -424,7 +411,7 @@ class AddressBar(QLineEdit):
         self.__completer = QCompleter(self.database.model(prefix), self)
         self.setCompleter(self.__completer)
 
-    def set_color(self, active):
+    def set_bgcolor(self, active):
         """ Sets the background color of the address bar; when 'active', that
         is, javascript is active, set to blue; set to white otherwise
 
@@ -434,6 +421,17 @@ class AddressBar(QLineEdit):
         (red, green, blue) = (230, 230, 255) if active else (255, 255, 255)
         palette.setColor(QPalette.Base, QColor(red, green, blue))
         self.setPalette(palette)
+
+    def set_txt_color(self, text, color=QColor(127, 127, 255)):
+        """ Write 'text' on the address bar in the given color """
+
+        # change the address bar's color to point out that we're in a
+        # special state (pseudo-statusbar, waiting for load start, etc)
+        palette = self.palette()
+        palette.setColor(QPalette.Text, color)
+        self.setPalette(palette)
+
+        self.setText(text)
 
     # Clean reimplement for Qt
     # pylint: disable=C0103
@@ -484,6 +482,8 @@ class NavigateInput(QLineEdit):
 class MessageLabel(QLabel):
     """ A label to be displayed on the top left corner of the webview;
     it performs most of the functions of a status bar
+
+    Yellow, opaque, regular fonts, rectangle shaped due to setWordWrap
 
     """
 

@@ -202,12 +202,23 @@ class WebView(QWebView):
 
     """
 
+    # sent only once, to define the model to use for completion
     set_prefix = pyqtSignal(str)
-    webkit_info = pyqtSignal(str)
-    link_selected = pyqtSignal(str)
-    display_title = pyqtSignal(str)
 
+    # spatial or access key navigation focused an <a> or <input> link
+    link_selected = pyqtSignal(str)
+
+    # a page load with destination 'str' started, but the url
+    # has not changed yet
+    load_requested = pyqtSignal(str)
+
+    # sends a string to the yellow corner message area
+    show_message = pyqtSignal(str)
+
+    # emits in akey_nav to tell the akey input area to reset itself
     nonvalid_tag = pyqtSignal()
+
+    # hides the message_label
     hide_overlay = pyqtSignal()
 
     javascript_state = pyqtSignal(bool)
@@ -467,6 +478,7 @@ class WebView(QWebView):
             Fore.RESET))
 
         self.setFocus()
+        self.load_requested.emit(qurl.toString())
         self.load(qurl)
 
     def __unembed_frames(self):
@@ -598,7 +610,7 @@ class WebView(QWebView):
                 self.link_selected.emit(found.attribute("href"))
             else:
                 title = self.map_tags[candidate].attribute("title")
-                self.display_title.emit(title)
+                self.show_message.emit(title)
 
             # this moves us back from the text entry to the webView
             self.setFocus()
