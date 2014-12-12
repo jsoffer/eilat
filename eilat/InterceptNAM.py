@@ -59,6 +59,7 @@ DO_NOT_STORE = [
     "duckduckgo.com", "t.co", "i.imgur.com", "imgur.com"
 ]
 
+
 def compare_host(host1, host2):
     """ True if the domain.suffix part of both hosts is the same """
 
@@ -66,6 +67,7 @@ def compare_host(host1, host2):
     (_, domain2, suffix2) = tldextract.extract(host2)
 
     return domain1 == domain2 and suffix1 == suffix2
+
 
 def show_info(info_map):
     """ Construct and disply a colorized string to show
@@ -83,6 +85,7 @@ def show_info(info_map):
     result += Fore.RESET
 
     print(result)
+
 
 def highlight(qurl, show_path=True, full=False, iframe=False):
     """ Colorizes the address stored in 'qurl'; if 'full' is false,
@@ -208,8 +211,9 @@ class InterceptNAM(QNetworkAccessManager):
 
             in_iframe = origin != origin.page().mainFrame()
 
+            # this is the response to the original .load(), not a
+            # resource loaded by the page itself
             if origin.requestedUrl() == qurl and not in_iframe:
-                print("*** ORIGINAL REQUEST ", s_url)
                 host = sub("^www.", "", qurl.host())
                 path = qurl.path().rstrip("/ ")
 
