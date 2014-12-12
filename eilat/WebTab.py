@@ -67,7 +67,9 @@ class WebTab(QWidget):
         # webkit (the actual "web engine")
         self.webkit = WebView(parent=self)
 
+        # set_prefix: app defined, carries str
         self.webkit.set_prefix.connect(self.address_bar.set_model)
+        # javascript_state: app defined, carries bool
         self.webkit.javascript_state.connect(self.address_bar.set_bgcolor)
 
         # small label displaying instance ID and pending tab operations
@@ -75,6 +77,7 @@ class WebTab(QWidget):
         info_label = QLabel(parent=self)
         info_label.setText('?')
 
+        # webkit_info: app defined, carries str
         self.webkit.attr.webkit_info.connect(info_label.setText)
 
         def update_address(qurl):
@@ -88,6 +91,9 @@ class WebTab(QWidget):
             self.current['address'] = qurl.toString()
             self.address_bar.setText(self.current['address'])
 
+        # urlChanged carries QUrl; loadStarted carries nothing;
+        # loadFinished carries bool; titleChanged carries str;
+        # loadProgress carries int
         self.webkit.urlChanged.connect(update_address)
         self.webkit.loadStarted.connect(self.load_started)
         self.webkit.loadFinished.connect(self.load_finished)
@@ -95,23 +101,27 @@ class WebTab(QWidget):
         self.webkit.loadProgress.connect(self.load_progress)
 
         def fill_notifier(message, request):
-            """ sends a message to be displayed by the notifier, and starts a
-            timer to hide it after eight seconds
+            """ sends a message to be displayed by the notifier
 
             """
             notify(message + " " + request.url().toString())
 
+        # downloadRequested carries QNetworkRequest
         self.webkit.page().downloadRequested.connect(
             partial(fill_notifier, "download"))
+        # unsupportedContent carries QNetworkReply
         self.webkit.page().unsupportedContent.connect(
             partial(fill_notifier, "unsupported"))
 
         # input area for access-key navigation
 
         self.nav_bar = NavigateInput(parent=self)
+        # editingFinished carries nothing
         self.nav_bar.editingFinished.connect(self.webkit.clear_labels)
 
+        # textEdited carries str
         self.nav_bar.textEdited.connect(self.webkit.akeynav)
+        # nonvalid_tag (app defined) carries nothing
         self.webkit.nonvalid_tag.connect(self.nav_bar.clear)
 
         # 'corner' message and notification label, not on timer, smaller
@@ -134,6 +144,7 @@ class WebTab(QWidget):
             else:
                 self.message_label.hide()
 
+        # linkHovered carries str, str, str
         self.webkit.page().linkHovered.connect(handle_hovered)
 
         def handle_signaled(title):
@@ -147,18 +158,23 @@ class WebTab(QWidget):
             self.message_label.setText(title)
             self.message_label.show()
 
+        # show_message (app defined) carries str
         self.webkit.show_message.connect(handle_signaled)
+        # loadStarted carries nothing
         self.webkit.loadStarted.connect(self.message_label.hide)
 
         # At the time navigation is requested load_requested is sent, and the
         # requested url is set as text in grey at the address bar. Once the
         # urlChanged signal is received, the actual url is set in black.
 
+        # load_requested (app defined) carries str
         self.webkit.load_requested.connect(
             partial(self.address_bar.set_txt_color,
                     color=QColor(128, 128, 128)))
 
+        # FIXME scrollRequested carries int, int, QRect
         self.webkit.page().scrollRequested.connect(self.message_label.hide)
+        # hide_overlay (app defined) carries nothing
         self.webkit.hide_overlay.connect(self.message_label.hide)
 
         # progress bar
@@ -172,8 +188,10 @@ class WebTab(QWidget):
         # search in page
         self.search_frame = SearchFrame(parent=self)
 
+        # link_selected (app defined) carries str
         self.webkit.link_selected.connect(self.address_bar.set_txt_color)
 
+        # textChanged carries str
         self.search_frame.search_line.textChanged.connect(self.do_search)
 
         # layout
@@ -215,7 +233,8 @@ class WebTab(QWidget):
 
             self.address_bar.completer().popup().keyPressEvent(event)
 
-        def reset_addressbar(store=False):
+        # the star swallows all arguments that aren't named 'store'
+        def reset_addressbar(*, store=False):
             """ Restore the address bar to its original address and color (it
             could have changed because of a hover event).
 
@@ -233,6 +252,7 @@ class WebTab(QWidget):
             if store:
                 clipboard(self.current['address'])
 
+        # urlChanged carries QUrl (ignored)
         self.webkit.urlChanged.connect(reset_addressbar)
 
         set_shortcuts([

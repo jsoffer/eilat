@@ -279,6 +279,7 @@ class WebView(QWebView):
             if self.attr.has('open_scripted'):
                 self.attr.clear('open_scripted')
 
+        # linkClicked carries QUrl
         self.linkClicked.connect(on_link_click)
 
         def url_changed(qurl):
@@ -291,28 +292,18 @@ class WebView(QWebView):
 
             self.settings().setUserStyleSheetUrl(QUrl(encode_css(css_file)))
 
+        # urlChanged carries QUrl
         self.urlChanged.connect(url_changed)
 
+        # statusBarMessage carries str
         self.statusBarMessage.connect(notify)
 
+        # downloadRequested carries QNetworkRequest
         self.page().downloadRequested.connect(clipboard)
+        # unsupportedContent carries QNetworkReply
         self.page().unsupportedContent.connect(clipboard)
 
-        def clear_labels():
-            """ clear the access-key navigation labels """
-
-            # will do nothing on an empty __labels
-            for label in self.__labels:
-                label.hide()
-                label.deleteLater()
-                del label
-                # happens once per label, but is scheduled in batches
-                # placed here it doesn't cause lag in regular scrolling
-                self.update()
-
-        self.page().scrollRequested.connect(clear_labels)
-        self.page().loadStarted.connect(clear_labels)
-
+        # loadStarted carries nothing
         self.page().loadStarted.connect(partial(self.attr.insert,
                                                 'in_page_load'))
 
@@ -329,9 +320,11 @@ class WebView(QWebView):
                 self.javascript(False)
                 print("EXITING LOAD WITH JS WITHOUT FOCUS")
 
+        # FIXME loadFinished carries bool
         self.page().loadFinished.connect(partial(self.attr.clear,
                                                  'in_page_load'))
 
+        # FIXME loadFinished carries bool
         self.page().loadFinished.connect(load_finished)
 
         def dump_dom():
@@ -547,7 +540,11 @@ class WebView(QWebView):
                     and node.attribute("title")]
 
     def clear_labels(self):
-        """ clear the access-key navigation labels """
+        """ clear the access-key navigation labels
+
+        Called externally from WebTab when nav_bar is hidden
+
+        """
 
         for label in self.__labels:
             label.hide()

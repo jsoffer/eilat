@@ -67,6 +67,7 @@ class MainWin(QMainWindow):
         self.tab_widget.tabBar().setMovable(True)
         self.tab_widget.setTabsClosable(True)
 
+        # tabCloseRequested carries int (index of a tab)
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
         self.setCentralWidget(self.tab_widget)
@@ -172,6 +173,7 @@ class MainWin(QMainWindow):
 
         if idx is None:
             idx = self.tab_widget.currentIndex()
+
         self.tab_widget.widget(idx).webkit.stop()
 
         self.last_closed = self.tab_widget.widget(idx).webkit.url()

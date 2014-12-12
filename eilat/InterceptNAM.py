@@ -234,6 +234,7 @@ class InterceptNAM(QNetworkAccessManager):
                     'iframe': in_iframe}
                 show_info(info)
 
+        # finished carries QNetworkReply
         self.finished.connect(reply_complete)
 
         def handle_ssl_error(reply, errors):
