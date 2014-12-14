@@ -268,7 +268,14 @@ class WebView(QWebView):
 
             """
 
-            if self.attr.has('paste'):
+            # required for 'open in new tab if not in this instance'
+            qurl = do_redirect(qurl)
+
+            options = extract_options(qurl.toString())
+            qurl_prefix = options['prefix']
+
+            print("ATTR", self.attr.prefix, "QURL", qurl_prefix)
+            if self.attr.has('paste') or self.attr.prefix != qurl_prefix:
                 mainwin().add_tab(qurl,
                                   scripting=(
                                       self.attr.has('open_scripted')))
