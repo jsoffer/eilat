@@ -245,27 +245,18 @@ def fake_click(widget):
     QApplication.sendEvent(widget, exit_event)
 
 
-def toggle_show_logs(prefix, detail=False):
-    """ Inverts a value, toggling between printing responses
-    that were accepted by the webkit or (some of) those that
-    were filtered at some point.
+def toggle_show_logs(prefix):
+    """ Inverts a value, toggling between printing or not responses that were
+    accepted by the webkit or (some of) those that were filtered at some point.
 
     """
 
-    netmanager = get_manager(prefix())
-    if detail:
-        netmanager.show_detail ^= True
-        if netmanager.show_detail:
-            print("---- SHOWING DETAILS ----")
-        else:
-            print("---- HIDING DETAILS ----")
+    netmanager = get_manager(prefix)
+    netmanager.show_detail ^= True
+    if netmanager.show_detail:
+        print("---- SHOWING DETAILS ----")
     else:
-        netmanager.show_log ^= True
-        if netmanager.show_log:
-            print("---- SHOWING LOG ----")
-        else:
-            print("---- HIDING LOG ----")
-
+        print("---- HIDING DETAILS ----")
 
 def notify(text):
     """ Pushes a notification to the main window's notifier label

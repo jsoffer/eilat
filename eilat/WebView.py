@@ -274,7 +274,6 @@ class WebView(QWebView):
             options = extract_options(qurl.toString())
             qurl_prefix = options['prefix']
 
-            print("ATTR", self.attr.prefix, "QURL", qurl_prefix)
             if self.attr.has('paste') or self.attr.prefix != qurl_prefix:
                 mainwin().add_tab(qurl,
                                   scripting=(
@@ -380,10 +379,9 @@ class WebView(QWebView):
             ("Shift+K", self, partial(self.__spatialnav, UP)),
             ("Shift+L", self, partial(self.__spatialnav, RIGHT)),
             # toggles
-            ("F11", self, partial(
-                toggle_show_logs, self.attr.prefix, detail=True)),
-            ("Shift+F11", self, partial(
-                toggle_show_logs, self.attr.prefix)),
+            # lambda required because self.attr.prefix is updated
+            # when the web view navigates the first time
+            ("F11", self, lambda: toggle_show_logs(self.attr.prefix)),
             ("Escape", self, self.hide_overlay.emit),
             # clipboard related behavior
             ("I", self, partial(self.attr.toggle, 'paste', 'I')),

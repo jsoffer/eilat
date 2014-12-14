@@ -162,8 +162,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.whitelist = options['host_whitelist']
         self.prefix = options['prefix']
 
-        self.show_detail = self.prefix == ''
-        self.show_log = True
+        self.show_detail = False
 
         # reference needed to save in shutdown
         self.cookie_jar = CookieJar(self, options)
@@ -186,7 +185,7 @@ class InterceptNAM(QNetworkAccessManager):
             status = reply.attribute(
                 QNetworkRequest.HttpStatusCodeAttribute)
 
-            if is_local(qurl) or status is None or not self.show_log:
+            if is_local(qurl) or status is None:
                 return
 
             # 'status' will never be None from here on
@@ -286,8 +285,7 @@ class InterceptNAM(QNetworkAccessManager):
         # stop here if the request is local enough as for not
         # requiring further scrutiny
         if is_local(qurl) and not is_font(qurl):
-            # if self.show_detail:
-            if False:
+            if self.show_detail:
                 show_labeled("LOCAL", qurl, color=Fore.GREEN)
             return QNetworkAccessManager.createRequest(
                 self, operation, request, data)
@@ -297,12 +295,12 @@ class InterceptNAM(QNetworkAccessManager):
 
         for (stop_case, description, show) in [
                 # may still be local
-                (is_font(qurl), "TRIM WEBFONT", False),
+                (is_font(qurl), "TRIM WEBFONT", self.show_detail),
                 # it may be an un-dns'ed request; careful here
                 (is_numerical(qurl.host()), "NUMERICAL", True),
                 # whitelist exists, and the requested URL is not in it
                 (non_whitelisted(self.whitelist, qurl),
-                 "NON WHITELISTED", True)
+                 "NON WHITELISTED", self.show_detail)
         ]:
             if stop_case:
                 if show:
@@ -335,7 +333,7 @@ class InterceptNAM(QNetworkAccessManager):
                                            subdomain),
                  "FILTER", "{} || {} || {} ".format(subdomain,
                                                     domain,
-                                                    suffix), False)
+                                                    suffix), self.show_detail)
         ]:
             if stop_case:
                 if show:
