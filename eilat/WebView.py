@@ -271,9 +271,27 @@ class WebView(QWebView):
             # required for 'open in new tab if not in this instance'
             qurl = do_redirect(qurl)
 
+            # 'play' and 'save' should only happen from inside the webkit and
+            # if the user started the action; handle here, not in 'navigate'
+
+            if self.attr.has('play'):
+                print("PLAYING")
+
+                Thread(target=partial(self.play_mpv, qurl)).start()
+
+                self.attr.clear('play')
+
+                return
+
+            if self.attr.has('save'):
+                clipboard(qurl)
+                self.attr.clear('save')
+                return
+
             options = extract_options(qurl.toString())
             qurl_prefix = options['prefix']
 
+            # if the prefixes don't match, we're requesting a new instance
             if self.attr.has('paste') or self.attr.prefix != qurl_prefix:
                 mainwin().add_tab(qurl,
                                   scripting=(
@@ -420,20 +438,6 @@ class WebView(QWebView):
 
         if isinstance(request, QUrl):
             qurl = request
-
-            if self.attr.has('play'):
-                print("PLAYING")
-
-                Thread(target=partial(self.play_mpv, qurl)).start()
-
-                self.attr.clear('play')
-
-                return
-
-            if self.attr.has('save'):
-                clipboard(qurl)
-                self.attr.clear('save')
-                return
 
         elif callable(request):
             url = request()
