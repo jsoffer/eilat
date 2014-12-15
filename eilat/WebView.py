@@ -103,8 +103,8 @@ class Attributes(QObject):
         else:
             self.insert(key, value)
 
-    # TODO allow "'attrib' in attributes" syntax
-    def has(self, key):
+    # allows "'attrib' in attributes" syntax
+    def __contains__(self, key):
         """ is an attribute active? """
         return key in self.__attributes
 
@@ -274,7 +274,7 @@ class WebView(QWebView):
             # 'play' and 'save' should only happen from inside the webkit and
             # if the user started the action; handle here, not in 'navigate'
 
-            if self.attr.has('play'):
+            if 'play' in self.attr:
                 print("PLAYING")
 
                 Thread(target=partial(self.play_mpv, qurl)).start()
@@ -283,7 +283,7 @@ class WebView(QWebView):
 
                 return
 
-            if self.attr.has('save'):
+            if 'save' in self.attr:
                 clipboard(qurl)
                 self.attr.clear('save')
                 return
@@ -292,15 +292,14 @@ class WebView(QWebView):
             qurl_prefix = options['prefix']
 
             # if the prefixes don't match, we're requesting a new instance
-            if self.attr.has('paste') or self.attr.prefix != qurl_prefix:
+            if 'paste' in self.attr or self.attr.prefix != qurl_prefix:
                 mainwin().add_tab(qurl,
-                                  scripting=(
-                                      self.attr.has('open_scripted')))
+                                  scripting=('open_scripted' in self.attr))
                 self.attr.clear('paste')
             else:
                 self.navigate(qurl)
 
-            if self.attr.has('open_scripted'):
+            if 'open_scripted' in self.attr:
                 self.attr.clear('open_scripted')
 
         # linkClicked carries QUrl
@@ -338,7 +337,7 @@ class WebView(QWebView):
             """
 
             if (not self.hasFocus() and
-                    not self.attr.has('in_page_load') and
+                    'in_page_load' not in self.attr and
                     self.javascript()):
                 self.attr.insert('stored_scripting_on')
                 self.javascript(False)
@@ -609,7 +608,7 @@ class WebView(QWebView):
 
         candidate = candidate.upper()
         if candidate in self.map_tags:
-            if not self.attr.has('find_titles'):
+            if 'find_titles' not in self.attr:
                 found = self.map_tags[candidate]
                 self.__info["in_focus"] = found
                 found.setFocus()
@@ -687,7 +686,7 @@ class WebView(QWebView):
 
         """
 
-        if self.attr.has('stored_scripting_on'):
+        if 'stored_scripting_on' in self.attr:
             print("JS on")
             self.javascript(True)
             self.attr.clear('stored_scripting_on')
@@ -697,7 +696,7 @@ class WebView(QWebView):
     def __focus_out_event(self, event):
         """ Turn off javascript if the WebView is not focused """
 
-        if self.javascript() and not self.attr.has('in_page_load'):
+        if self.javascript() and 'in_page_load' not in self.attr:
             self.attr.insert('stored_scripting_on')
             self.javascript(False)
             print("JS off")
