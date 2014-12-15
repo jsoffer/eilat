@@ -43,7 +43,7 @@ from functools import partial
 # local
 from eilat.WebTab import WebTab
 
-from eilat.libeilat import fix_url, set_shortcuts, extract_url
+from eilat.libeilat import fix_url, set_shortcuts
 from eilat.global_store import clipboard, close_managers
 
 import gc
@@ -98,8 +98,6 @@ class MainWin(QMainWindow):
             ("Ctrl+T", self, self.add_tab),
             ("Ctrl+Shift+T", self, partial(self.add_tab, scripting=True)),
             ("Y", self, self.new_tab_from_clipboard),
-            ("Ctrl+Y", self, partial(
-                self.new_tab_from_clipboard, extract=True)),
             # movement
             ("M", self, self.inc_tab),
             ("N", self, partial(self.inc_tab, -1)),
@@ -111,7 +109,7 @@ class MainWin(QMainWindow):
             ("Ctrl+Q", self, self.finalize)
             ])
 
-    def new_tab_from_clipboard(self, extract=False):
+    def new_tab_from_clipboard(self):
         """ One-use callback for QShortcut.
         Reads the content of the PRIMARY clipboard and navigates to it
         on a new tab.
@@ -119,9 +117,6 @@ class MainWin(QMainWindow):
         """
 
         url = clipboard()
-
-        if extract:
-            url = extract_url(url)
 
         if url is not None:
             self.add_tab(url)

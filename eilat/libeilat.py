@@ -193,29 +193,6 @@ def encode_blocked(message, url):
     return (header + encoded).decode()
 
 
-def extract_url(url):
-    """ From string to string.
-
-    Takes a "facebook.com/something/q?u=http://something.com/&etc..." form
-    Returns the http://something.com
-
-    python3-only, because of urlparse, parse_qsl; fixable, is it worth it?
-
-    """
-
-    # FIXME maybe remove the entire extract_url, move to do_redirect;
-    # what to to with ^Y paste?
-
-    # FIXME use exception
-    if url is None:
-        return
-
-    query = urlparse(url).query
-    for (_, value) in parse_qsl(query):
-        if value[:4] == 'http':
-            return value
-
-
 def fake_key(widget, key):
     """ Generate a fake key click in the widget """
     enter_event = QKeyEvent(
@@ -258,6 +235,7 @@ def toggle_show_logs(prefix):
     else:
         print("---- HIDING DETAILS ----")
 
+
 def notify(text):
     """ Pushes a notification to the main window's notifier label
 
@@ -291,9 +269,13 @@ def do_redirect(qurl):
 
     """
 
-    # FIXME is this qurl->string->qurl conversion required?
     if qurl.host() + qurl.path() in REDIRECTORS:
-        return QUrl(extract_url(qurl.toString()))
+        # was 'extract_url'; finds the 'http://...' inside of a
+        # "facebook.com/something/q?u=http://something.com/&etc..." form
+        query = urlparse(qurl.toString()).query
+        for (_, value) in parse_qsl(query):
+            if value[:4] == 'http':
+                return QUrl(value)
 
     while qurl.host() in SHORTENERS:
         if qurl.scheme() == "http":
