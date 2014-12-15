@@ -77,6 +77,7 @@ class Attributes(QObject):
     def __init__(self, parent=None):
         super(Attributes, self).__init__(parent)
         self.prefix = None
+        self.css_path = None
         self.__attributes = {}
 
     def insert(self, key, value=None):
@@ -230,13 +231,12 @@ class WebView(QWebView):
         # see http://qt-project.org/doc/qt-4.8/stylesheet-reference.html
         self.setStyleSheet("QToolTip {max-height: 0px}")
 
-        # TODO move css_path to Attributes, let in_focus loose
-        self.__info = {"css_path": expanduser("~/.eilat/css/"),
-                       # a web element node, used for access key
-                       # or spatial navigation
-                       "in_focus": None}
-
         self.attr = Attributes(parent=self)
+        self.attr.css_path = expanduser("~/.eilat/css/")
+
+        # a web element node, used for access key
+        # or spatial navigation
+        self.__in_focus = None
 
         # make_labels, clear_labels
         self.__labels = []
@@ -311,7 +311,7 @@ class WebView(QWebView):
 
             """
             host_id = real_host(qurl.host())
-            css_file = self.__info["css_path"] + host_id + ".css"
+            css_file = self.attr.css_path + host_id + ".css"
 
             self.settings().setUserStyleSheetUrl(QUrl(encode_css(css_file)))
 
@@ -390,7 +390,6 @@ class WebView(QWebView):
             ("Ctrl+H", self, partial(fake_key, self, Qt.Key_Backspace)),
             ("C", self, partial(fake_click, self)),
             # spatial navigation
-            ("Shift+I", self, partial(setattr, self, 'in_focus', None)),
             ("Shift+H", self, partial(self.__spatialnav, LEFT)),
             ("Shift+J", self, partial(self.__spatialnav, DOWN)),
             ("Shift+K", self, partial(self.__spatialnav, UP)),
@@ -610,7 +609,7 @@ class WebView(QWebView):
         if candidate in self.map_tags:
             if 'find_titles' not in self.attr:
                 found = self.map_tags[candidate]
-                self.__info["in_focus"] = found
+                self.__in_focus = found
                 found.setFocus()
                 self.link_selected.emit(found.attribute("href"))
             else:
@@ -641,7 +640,7 @@ class WebView(QWebView):
             print("No anchors in current view?")
             return
 
-        if not self.__info["in_focus"] in localnav:
+        if self.__in_focus not in localnav:
             if direction == UP or direction == LEFT:
                 target = max(localnav, key=lambda node:
                              node.geometry().bottom())
@@ -655,7 +654,7 @@ class WebView(QWebView):
             # search from it, in the required direction, within the width of
             # the node.
 
-            target_rect = node_neighborhood(self.__info["in_focus"].geometry(),
+            target_rect = node_neighborhood(self.__in_focus.geometry(),
                                             direction)
 
             candidates = [node for node in localnav
@@ -665,9 +664,9 @@ class WebView(QWebView):
                 target = next_node(candidates, direction, target_rect)
 
         if target is not None:
-            self.__info["in_focus"] = target
-            self.link_selected.emit(self.__info["in_focus"].attribute("href"))
-            self.__info["in_focus"].setFocus()
+            self.__in_focus = target
+            self.link_selected.emit(self.__in_focus.attribute("href"))
+            self.__in_focus.setFocus()
 
     def __mouse_press_event(self, event):
         """ Reimplementation from base class. Detects middle clicks
