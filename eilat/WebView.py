@@ -175,7 +175,7 @@ def next_node(candidates, direction, boundary):
             title-to-comments instead of to username)
 
             """
-            intersect = boundary.intersect(node.geometry())
+            intersect = boundary & node.geometry()
             return -(intersect.height() * intersect.width())
         target = min(candidates, key=lambda node:
                      (node.geometry().top(), surface(node)))
@@ -262,8 +262,8 @@ class WebView(QWebView):
         self.settings().setAttribute(
             QWebSettings.FrameFlatteningEnabled, True)
 
-        # self.settings().setAttribute(
-        #     QWebSettings.DeveloperExtrasEnabled, True)
+        self.settings().setAttribute(
+            QWebSettings.DeveloperExtrasEnabled, True)
 
         self.page().setForwardUnsupportedContent(True)
 
@@ -408,6 +408,7 @@ class WebView(QWebView):
             ("Ctrl+Down", self, partial(zoom, -1)),
             ("Ctrl+J", self, partial(fake_key, self, Qt.Key_Enter)),
             ("Ctrl+H", self, partial(fake_key, self, Qt.Key_Backspace)),
+            ("Backspace", self, self.back),
             ("C", self, partial(fake_click, self)),
             # spatial navigation
             ("Shift+H", self, partial(self.__spatialnav, LEFT)),
