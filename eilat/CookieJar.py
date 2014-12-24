@@ -94,6 +94,7 @@ class CookieJar(QNetworkCookieJar):
             with open(self.storage, "w") as savefile:
                 for cookie in self.allCookies():
                     savefile.write(cookie.toRawForm().data().decode()+"\n")
+            print("stored cookies...", self.storage)
 
     def set_cookies_from_url(self, cookies, url):
         """ Reimplementation from base class. Prevents cookies from being set

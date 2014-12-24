@@ -38,6 +38,8 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.Qt import QClipboard
 
+from os import _exit
+
 CLIPBOARD = None
 MAINWIN = None
 DATABASE = None
@@ -73,6 +75,10 @@ def close_managers():
 
     for prefix in MANAGERS:
         MANAGERS[prefix].cookie_jar.store_cookies()
+        print("done closing manager...", prefix)
+
+    print("EXITING...\n\n\n\n\n\n\n\n\n\n")
+    _exit(0)
 
 
 # intentionally updating (initializing) global constants

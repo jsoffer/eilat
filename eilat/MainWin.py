@@ -146,13 +146,16 @@ class MainWin(QMainWindow):
         when the address bar popup is visible doesn't close the popup, and
         leaves the window hidden and unclosable (except e.g. for KILL 15)
 
+        Makes a hard app close through os._exit to prevent garbage collection;
+        cleanup has typically done more harm than good. Any state that we may
+        want to preserve we should do ourselves (e.g. cookies through the NAMs)
+
         """
 
         idx = self.tab_widget.currentIndex()
         self.tab_widget.widget(idx).deleteLater()
         self.tab_widget.removeTab(idx)
-        close_managers()
-        self.close()
+        close_managers() # also does an os._exit
 
     # action y connect en llamada en constructor
     def del_tab(self, idx=None):
