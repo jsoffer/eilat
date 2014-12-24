@@ -34,9 +34,10 @@
 
 """
 
-from PyQt4.QtGui import (QMainWindow, QTabWidget, QTabBar, QLabel,
-                         QToolTip, QColor, QPalette, QFrame, QFont)
-from PyQt4.QtCore import Qt, QTimer
+from PyQt5.Qt import (QMainWindow, QTabWidget, QTabBar, QLabel, QToolTip,
+                      QFrame)
+from PyQt5.QtGui import (QColor, QPalette, QFont)
+from PyQt5.QtCore import Qt, QTimer
 
 from functools import partial
 

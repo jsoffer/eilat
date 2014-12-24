@@ -34,7 +34,7 @@
 
 """
 
-from PyQt4.QtNetwork import QNetworkCookieJar, QNetworkCookie
+from PyQt5.QtNetwork import QNetworkCookieJar, QNetworkCookie
 from os.path import expanduser
 
 from tldextract import extract
@@ -90,7 +90,7 @@ class CookieJar(QNetworkCookieJar):
         """
 
         if self.storage is not None:
-            print("Store cookies...")
+            print("Store cookies...", self.storage)
             with open(self.storage, "w") as savefile:
                 for cookie in self.allCookies():
                     savefile.write(cookie.toRawForm().data().decode()+"\n")

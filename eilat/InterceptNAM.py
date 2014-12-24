@@ -36,9 +36,9 @@
 
 from urllib.parse import parse_qsl
 
-from PyQt4.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
+from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
                              QNetworkDiskCache)
-from PyQt4.QtCore import QUrl
+from PyQt5.QtCore import QUrl
 
 from eilat.CookieJar import CookieJar
 from eilat.libeilat import (is_local, non_whitelisted,

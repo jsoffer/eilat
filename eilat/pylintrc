@@ -116,7 +116,7 @@ ignore-mixin-members=yes
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus extisting member attributes cannot be deduced by static analysis
-ignored-modules=PyQt4.Qt,PyQt4.QtGui,PyQt4.QtCore,PyQt4.QtNetwork,PyQt4.QtWebKit,PyQt4.QtSql
+ignored-modules=PyQt5.Qt,PyQt5.QtGui,PyQt5.QtCore,PyQt5.QtNetwork,PyQt5.QtWebKit,PyQt5.QtSql,PyQt5.QtWebKitWidgets
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).

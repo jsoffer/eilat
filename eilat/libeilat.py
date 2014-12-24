@@ -34,9 +34,9 @@
 
 """
 
-from PyQt4.QtGui import QShortcut, QMouseEvent, QKeyEvent, QCursor
-from PyQt4.QtCore import QUrl, QEvent, Qt
-from PyQt4.Qt import QApplication
+from PyQt5.QtGui import QMouseEvent, QKeyEvent, QCursor
+from PyQt5.QtCore import QUrl, QEvent, Qt
+from PyQt5.Qt import QApplication, QShortcut
 
 from urllib.parse import parse_qsl, urlparse
 
@@ -256,7 +256,12 @@ def notify(text):
 
     label.show()
 
-SHORTENERS = ["t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly", "dlvr.it"]
+SHORTENERS = [
+    "t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly", "dlvr.it",
+    "dailym.ai", "fb.me", "wp.me", "amzn.to", "slate.me", "ht.ly",
+    "ow.ly", "j.mp", "met.org", "youtu.be"
+]
+
 REDIRECTORS = [
     "lm.facebook.com/l.php", "m.facebook.com/l.php", "l.facebook.com/l.php",
     "www.google.com.mx/url"

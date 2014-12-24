@@ -9,12 +9,12 @@ if version_info < (3, 0):
         """)
 
 try:
-    import PyQt4
+    import PyQt5
 except ImportError:
     print("""
 
-    PyQt4 is not available and setuptools is unable to install it from Pypi.
-    Please install PyQt4 from distribution package or from source and try again.
+    PyQt5 is not available and setuptools is unable to install it from Pypi.
+    Please install PyQt5 from distribution package or from source and try again.
 
     """)
     raise

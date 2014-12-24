@@ -36,7 +36,7 @@
 
 from os.path import expanduser, isfile
 
-from PyQt4.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
+from PyQt5.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
 
 
 class DatabaseLogLite(object):
