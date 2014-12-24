@@ -34,13 +34,12 @@
 
 """
 
-from PyQt4.QtGui import (QWidget, QProgressBar, QGridLayout,
-                         QFrame, QLabel, QLineEdit, QCompleter, QKeyEvent,
-                         QPalette, QColor, QToolTip)
-from PyQt4.QtWebKit import QWebPage
-from PyQt4.QtCore import Qt, QEvent
+from PyQt5.QtGui import (QKeyEvent, QPalette, QColor)
+from PyQt5.QtWebKitWidgets import QWebPage
+from PyQt5.QtCore import Qt, QEvent
 
-from PyQt4.Qt import QApplication
+from PyQt5.Qt import (QApplication, QWidget, QProgressBar, QGridLayout, QFrame,
+                      QLabel, QLineEdit, QCompleter, QToolTip)
 
 from functools import partial
 
@@ -172,10 +171,11 @@ class WebTab(QWidget):
             partial(self.address_bar.set_txt_color,
                     color=QColor(128, 128, 128)))
 
-        # FIXME scrollRequested carries int, int, QRect
+        # WARNING scrollRequested carries int, int, QRect
         self.webkit.page().scrollRequested.connect(self.message_label.hide)
-        # hide_overlay (app defined) carries nothing
+        # focus_webkit (app defined) carries nothing
         self.webkit.hide_overlay.connect(self.message_label.hide)
+        self.webkit.focus_webkit.connect(self.address_bar.restore)
 
         # progress bar
         self.pbar = QProgressBar(self)
@@ -242,12 +242,9 @@ class WebTab(QWidget):
 
             """
 
-            palette = self.address_bar.palette()
-            palette.setColor(QPalette.Text, QColor(0, 0, 0))
-            self.address_bar.setPalette(palette)
-
             if self.current['address']:
-                self.address_bar.setText(self.current['address'])
+                self.address_bar.set_txt_color(self.current['address'],
+                                               color=QColor(0, 0, 0))
 
             if store:
                 clipboard(self.current['address'])
@@ -267,7 +264,8 @@ class WebTab(QWidget):
             ("Return", self.address_bar, partial(
                 self.webkit.navigate, self.address_bar.text)),
             # address bar interaction
-            ("Ctrl+L", self.webkit, self.address_bar.setFocus),
+            ("Ctrl+L", self.webkit, self.address_bar.clear_and_focus),
+            ("Ctrl+Shift+L", self.webkit, self.address_bar.setFocus),
             ("Escape", self.address_bar, self.webkit.setFocus),
             ("Ctrl+I", self.address_bar, navigate_completion),
             ("Ctrl+P", self.address_bar, partial(
@@ -399,6 +397,9 @@ class AddressBar(QLineEdit):
         self.database = DatabaseLogLite()
         self.__completer = None
 
+        self.__stored_text = ''
+        self.__stored_color = QColor(0, 0, 0)
+
         # This first assignation is to allow a blank tab, who hasn't chosen yet
         # an instance, to display completions for all sites
         self.set_model(None)
@@ -411,7 +412,17 @@ class AddressBar(QLineEdit):
             ("Ctrl+Shift+T", self, lambda: None)
         ])
 
-    def focus_in_event(self, event):
+        self.textEdited.connect(self.reset_color)
+
+    def clear_and_focus(self):
+        """ called by keybinding when edition of the address bar is requested
+
+        """
+
+        self.clear()
+        self.setFocus()
+
+    def reset_color(self, _):
         """ Reset the address bar's color if entering; because the
         pseudo-status-bar color is not valid anymore
 
@@ -420,7 +431,6 @@ class AddressBar(QLineEdit):
         palette = self.palette()
         palette.setColor(QPalette.Text, QColor(0, 0, 0))
         self.setPalette(palette)
-        QLineEdit.focusInEvent(self, event)
 
     def set_model(self, prefix):
         """ Update the completion model when the prefix is known. Has to
@@ -445,6 +455,9 @@ class AddressBar(QLineEdit):
     def set_txt_color(self, text, color=QColor(127, 127, 255)):
         """ Write 'text' on the address bar in the given color """
 
+        self.__stored_color = color
+        self.__stored_text = text
+
         # change the address bar's color to point out that we're in a
         # special state (pseudo-statusbar, waiting for load start, etc)
         palette = self.palette()
@@ -453,10 +466,13 @@ class AddressBar(QLineEdit):
 
         self.setText(text)
 
-    # Clean reimplement for Qt
-    # pylint: disable=C0103
-    focusInEvent = focus_in_event
-    # pylint: enable=C0103
+    def restore(self):
+        """ After clearing out the address bar for text input, if cancelled,
+        go back to the previous state
+
+        """
+
+        self.set_txt_color(self.__stored_text, self.__stored_color)
 
 
 class NavigateInput(QLineEdit):

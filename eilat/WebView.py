@@ -34,10 +34,13 @@
 
 """
 
-from PyQt4.QtWebKit import QWebPage, QWebSettings, QWebView, QWebElement
-from PyQt4.QtCore import Qt, QUrl, pyqtSignal, QPoint, QObject
+from PyQt5.QtWebKitWidgets import QWebPage, QWebView
+from PyQt5.QtWebKit import QWebSettings, QWebElement
 
-from PyQt4.QtGui import QLabel, QColor, QToolTip, QPalette, QFrame
+from PyQt5.Qt import QLabel, QToolTip, QFrame
+from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QPoint, QObject
+
+from PyQt5.QtGui import QColor, QPalette
 
 from functools import partial
 
@@ -222,6 +225,9 @@ class WebView(QWebView):
     # hides the message_label
     hide_overlay = pyqtSignal()
 
+    # sent when the webkit acquires focus
+    focus_webkit = pyqtSignal()
+
     javascript_state = pyqtSignal(bool)
 
     def __init__(self, parent=None):
@@ -330,9 +336,25 @@ class WebView(QWebView):
         self.page().loadStarted.connect(partial(self.attr.insert,
                                                 'in_page_load'))
 
-        def load_finished():
+        def load_started():
+            """ Clear __in_focus; we don't even know if the focused
+            node still exists.
+
+            Set the "we're starting to load" attribute.
+
+            """
+
+            self.attr.insert('in_page_load')
+            self.__in_focus = None
+
+        self.page().loadStarted.connect(load_started)
+
+        # the star swallows all arguments
+        def load_finished(*_):
             """ if we kept javascript on to allow the load of the page, we
-            may want to turn it off when it has finished
+            may want to turn it off when it has finished.
+
+            Remove the "we're starting to load" attribute.
 
             """
 
@@ -343,11 +365,9 @@ class WebView(QWebView):
                 self.javascript(False)
                 print("EXITING LOAD WITH JS WITHOUT FOCUS")
 
-        # FIXME loadFinished carries bool
-        self.page().loadFinished.connect(partial(self.attr.clear,
-                                                 'in_page_load'))
+            self.attr.clear('in_page_load')
 
-        # FIXME loadFinished carries bool
+        # loadFinished carries bool (ignored)
         self.page().loadFinished.connect(load_finished)
 
         def dump_dom():
@@ -398,12 +418,12 @@ class WebView(QWebView):
             # lambda required because self.attr.prefix is updated
             # when the web view navigates the first time
             ("F11", self, lambda: toggle_show_logs(self.attr.prefix)),
-            ("Escape", self, self.hide_overlay.emit),
+            ("Escape", self, self.focus_webkit.emit),
             # clipboard related behavior
             ("I", self, partial(self.attr.toggle, 'paste', 'I')),
             ("O", self, partial(self.attr.toggle, 'open_scripted', 'O')),
             ("S", self, partial(self.attr.toggle, 'save', 'S')),
-            ("V", self, partial(self.attr.toggle, 'play', 'V'))
+            ("V", self, partial(self.attr.toggle, 'play', 'V')),
             ])
 
     def play_mpv(self, qurl):
@@ -689,6 +709,8 @@ class WebView(QWebView):
             print("JS on")
             self.javascript(True)
             self.attr.clear('stored_scripting_on')
+
+        self.focus_webkit.emit()
 
         return QWebView.focusInEvent(self, event)
 
