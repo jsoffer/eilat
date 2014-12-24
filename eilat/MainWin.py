@@ -68,6 +68,12 @@ class MainWin(QMainWindow):
         self.tab_widget.tabBar().setMovable(True)
         self.tab_widget.setTabsClosable(True)
 
+        # the right side of the tab already has the space for
+        # a non-shown close button
+        self.tab_widget.setStyleSheet(
+            'QTabBar::tab {padding: 0px 5px 0px 0px; margin: 0px;} '
+            'QTabBar::tab:selected {color: #00f;}')
+
         # tabCloseRequested carries int (index of a tab)
         self.tab_widget.tabCloseRequested.connect(self.del_tab)
 
