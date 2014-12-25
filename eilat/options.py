@@ -8,6 +8,19 @@ import tldextract
 import yaml
 from os.path import expanduser
 
+from eilat.global_store import set_options, get_options
+
+
+def load_options():
+    """ to be called at startup and maybe with a keybinding after
+    modifying the options file
+
+    """
+
+    with open(expanduser("~/.eilat/options.yaml")) as yaml_file:
+        options_yaml = yaml.safe_load(yaml_file)
+        set_options(options_yaml)
+
 
 def proxy_options():
     """ Extracts the proxy information from YAML user settings. If any is
@@ -15,9 +28,8 @@ def proxy_options():
     the app will fail hard.
 
     """
-    with open(expanduser("~/.eilat/options.yaml")) as yaml_file:
-        options = yaml.safe_load(yaml_file)['proxy']
 
+    options = get_options()['proxy']
     return (options['host'], options['port'])
 
 
@@ -29,10 +41,7 @@ def extract_options(url):
 
     host = None if url is None else tldextract.extract(url).domain
 
-    with open(expanduser("~/.eilat/options.yaml")) as yaml_file:
-        options_yaml = yaml.safe_load(yaml_file)
-        options_sites = options_yaml['sites']
-
+    options_sites = get_options()['sites']
     options = options_sites['general']
 
     if host not in options_sites.keys():

@@ -51,6 +51,22 @@ MAINWIN = None
 DATABASE = None
 MANAGERS = {}
 
+OPTIONS = None
+
+
+# intentionally initializing global constants
+# pylint: disable=W0603
+def set_options(opts):
+    """ to be run at start and when reloading the options YAML file """
+    global OPTIONS
+    OPTIONS = opts
+# pylint: enable=W0603
+
+
+def get_options():
+    """ read map from memory instead of loading from file every time """
+    return OPTIONS
+
 
 # intentionally updating global constants
 # pylint: disable=W0603
