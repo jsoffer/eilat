@@ -51,7 +51,8 @@ from eilat.libeilat import (fix_url, set_shortcuts,
                             notify, do_redirect)
 
 from eilat.global_store import (mainwin, clipboard,
-                                has_manager, register_manager, get_manager)
+                                has_manager, register_manager, get_manager,
+                                profiling)
 from eilat.options import extract_options
 
 from os.path import expanduser
@@ -65,26 +66,11 @@ from colorama import Fore
 import string
 import itertools
 
-# for profiling
-import cProfile
-import pstats
-import io
-
 # Poor man's symbols (enum would be better - Python 3.4 and up only)
 UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
-
-
-def show_stats(profiler):
-    """ reports the profiling results of a cProfile.Profile object """
-
-    string_io = io.StringIO()
-    sortby = 'cumulative'
-    p_stat = pstats.Stats(profiler, stream=string_io).sort_stats(sortby)
-    p_stat.print_stats()
-    print(string_io.getvalue())
 
 
 class Attributes(QObject):
@@ -364,7 +350,7 @@ class WebView(QWebView):
             self.attr.insert('in_page_load')
             self.__in_focus = None
 
-            # self.profiling()
+            # profiling()
 
         self.page().loadStarted.connect(load_started)
 
@@ -386,7 +372,7 @@ class WebView(QWebView):
 
             self.attr.clear('in_page_load')
 
-            # self.profiling(begin=False)
+            # profiling(begin=False)
 
         # loadFinished carries bool (ignored)
         self.page().loadFinished.connect(load_finished)
@@ -447,22 +433,9 @@ class WebView(QWebView):
             ("S", self, partial(self.attr.toggle, 'save', 'S')),
             ("V", self, partial(self.attr.toggle, 'play', 'V')),
             # profiler
-            ("9", self, self.profiling),
-            ("0", self, partial(self.profiling, begin=False))
+            ("9", self, profiling),
+            ("0", self, partial(profiling, begin=False))
             ])
-
-    def profiling(self, begin=True):
-        """ start or end (and report) a profiling session in this web view """
-
-        if begin:
-            self.statusBarMessage.emit("Profiling...")
-            self.profiler = cProfile.Profile()
-            self.profiler.enable()
-        else:
-            self.statusBarMessage.emit("Done profiling")
-            self.profiler.disable()
-            show_stats(self.profiler)
-            self.profiler = None
 
     def play_mpv(self, qurl):
         """ Will try to open an 'mpv' instance running the video pointed at

@@ -40,10 +40,41 @@ from PyQt5.Qt import QClipboard
 
 from os import _exit
 
+# for profiling
+import cProfile
+import pstats
+import io
+
+PROFILER = None
 CLIPBOARD = None
 MAINWIN = None
 DATABASE = None
 MANAGERS = {}
+
+
+# intentionally updating global constants
+# pylint: disable=W0603
+def profiling(begin=True):
+    """ start or end (and report) a profiling session """
+
+    global PROFILER
+
+    if begin:
+        PROFILER = cProfile.Profile()
+        PROFILER.enable()
+    else:
+        try:
+            PROFILER.disable()
+            string_io = io.StringIO()
+            sortby = 'cumulative'
+            p_stat = pstats.Stats(
+                PROFILER, stream=string_io).sort_stats(sortby)
+            p_stat.print_stats()
+            print(string_io.getvalue())
+            PROFILER = None
+        except AttributeError:
+            print("No active profiling session")
+# pylint: enable=W0603
 
 
 def has_manager(prefix):
