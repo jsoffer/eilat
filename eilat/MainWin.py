@@ -71,7 +71,8 @@ class MainWin(QMainWindow):
         # the right side of the tab already has the space for
         # a non-shown close button
         self.tab_widget.setStyleSheet(
-            'QTabBar::tab {padding: 0px 5px 0px 0px; margin: 0px;} '
+            'QTabBar::tab {padding-top: 0px; padding-bottom: 0px; '
+            'padding-left: 0.3em;} '
             'QTabBar::tab:selected {color: #00f;}')
 
         # tabCloseRequested carries int (index of a tab)
@@ -161,7 +162,7 @@ class MainWin(QMainWindow):
         idx = self.tab_widget.currentIndex()
         self.tab_widget.widget(idx).deleteLater()
         self.tab_widget.removeTab(idx)
-        close_managers() # also does an os._exit
+        close_managers()  # also does an os._exit
 
     # action y connect en llamada en constructor
     def del_tab(self, idx=None):
