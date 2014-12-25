@@ -65,11 +65,26 @@ from colorama import Fore
 import string
 import itertools
 
+# for profiling
+import cProfile
+import pstats
+import io
+
 # Poor man's symbols (enum would be better - Python 3.4 and up only)
 UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
+
+
+def show_stats(profiler):
+    """ reports the profiling results of a cProfile.Profile object """
+
+    string_io = io.StringIO()
+    sortby = 'cumulative'
+    p_stat = pstats.Stats(profiler, stream=string_io).sort_stats(sortby)
+    p_stat.print_stats()
+    print(string_io.getvalue())
 
 
 class Attributes(QObject):
@@ -336,6 +351,8 @@ class WebView(QWebView):
         self.page().loadStarted.connect(partial(self.attr.insert,
                                                 'in_page_load'))
 
+        self.profiler = None
+
         def load_started():
             """ Clear __in_focus; we don't even know if the focused
             node still exists.
@@ -346,6 +363,9 @@ class WebView(QWebView):
 
             self.attr.insert('in_page_load')
             self.__in_focus = None
+
+            self.profiler = cProfile.Profile()
+            self.profiler.enable()
 
         self.page().loadStarted.connect(load_started)
 
@@ -366,6 +386,10 @@ class WebView(QWebView):
                 print("EXITING LOAD WITH JS WITHOUT FOCUS")
 
             self.attr.clear('in_page_load')
+
+            self.profiler.disable()
+            show_stats(self.profiler)
+            self.profiler = None
 
         # loadFinished carries bool (ignored)
         self.page().loadFinished.connect(load_finished)
