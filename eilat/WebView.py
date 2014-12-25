@@ -364,8 +364,7 @@ class WebView(QWebView):
             self.attr.insert('in_page_load')
             self.__in_focus = None
 
-            self.profiler = cProfile.Profile()
-            self.profiler.enable()
+            # self.profiling()
 
         self.page().loadStarted.connect(load_started)
 
@@ -387,9 +386,7 @@ class WebView(QWebView):
 
             self.attr.clear('in_page_load')
 
-            self.profiler.disable()
-            show_stats(self.profiler)
-            self.profiler = None
+            # self.profiling(begin=False)
 
         # loadFinished carries bool (ignored)
         self.page().loadFinished.connect(load_finished)
@@ -449,7 +446,21 @@ class WebView(QWebView):
             ("O", self, partial(self.attr.toggle, 'open_scripted', 'O')),
             ("S", self, partial(self.attr.toggle, 'save', 'S')),
             ("V", self, partial(self.attr.toggle, 'play', 'V')),
+            # profiler
+            ("9", self, self.profiling),
+            ("0", self, partial(self.profiling, begin=False))
             ])
+
+    def profiling(self, begin=True):
+        """ start or end (and report) a profiling session in this web view """
+
+        if begin:
+            self.profiler = cProfile.Profile()
+            self.profiler.enable()
+        else:
+            self.profiler.disable()
+            show_stats(self.profiler)
+            self.profiler = None
 
     def play_mpv(self, qurl):
         """ Will try to open an 'mpv' instance running the video pointed at
