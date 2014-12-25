@@ -455,9 +455,11 @@ class WebView(QWebView):
         """ start or end (and report) a profiling session in this web view """
 
         if begin:
+            self.statusBarMessage.emit("Profiling...")
             self.profiler = cProfile.Profile()
             self.profiler.enable()
         else:
+            self.statusBarMessage.emit("Done profiling")
             self.profiler.disable()
             show_stats(self.profiler)
             self.profiler = None
