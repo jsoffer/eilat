@@ -480,28 +480,26 @@ class WebView(QWebView):
         qurl = do_redirect(qurl)
 
         if self.attr.prefix is None:
-            options = extract_options(qurl.toString())
-            self.attr.set_prefix(options['prefix'])
-            # strictly speaking, this should emit from Attributes.set_prefix
-            self.set_prefix.emit(self.attr.prefix)
-
             # this is the first navigation on this tab/webkit; replace
             # the Network Access Manager
+            options = extract_options(qurl.toString())
+            self.attr.set_prefix(options['prefix'])
+
             if self.attr.prefix is None:
                 raise RuntimeError(
                     "prefix failed to be set... 'options' is broken")
 
+            # strictly speaking, this should emit from Attributes.set_prefix
+            self.set_prefix.emit(self.attr.prefix)
+
             if not has_manager(self.attr.prefix):
                 register_manager(self.attr.prefix,
-                                 InterceptNAM(options, None))
+                                 InterceptNAM(options, parent=None))
 
-        if self.attr.prefix is None:
-            raise RuntimeError(
-                "prefix failed to be set... 'options' is broken")
-        if not has_manager(self.attr.prefix):
-            raise RuntimeError("prefix manager not registered...")
+            if not has_manager(self.attr.prefix):
+                raise RuntimeError("prefix manager not registered...")
 
-        self.page().setNetworkAccessManager(get_manager(self.attr.prefix))
+            self.page().setNetworkAccessManager(get_manager(self.attr.prefix))
 
         print("{}>>>\t\t{}\n>>> NAVIGATE {}{}".format(
             Fore.CYAN,
