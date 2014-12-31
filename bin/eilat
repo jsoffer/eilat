@@ -44,7 +44,7 @@ from eilat.SanityChecks import (check_libraries,
                                 check_python_3,
                                 check_dotfile)
 
-from eilat.options import proxy_options
+from eilat.options import proxy_options, load_options
 
 check_python_3()
 check_libraries()
@@ -90,6 +90,8 @@ def main():
         site = None
 
     export_database(DatabaseLogLite())
+
+    load_options()
 
     # Proxy
     (proxy_host, proxy_port) = proxy_options()
