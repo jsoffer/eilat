@@ -177,6 +177,7 @@ def export_mainwin(win):
 # pylint: enable=W0603
 
 
+# FIXME should not be needed, maybe bad architecture
 def mainwin():
     """ Access the main window globally (fixable after passing 'options' in
     a more sane way than through the window; imprement "add tab" directly")
@@ -206,8 +207,6 @@ def clipboard(request=None):
         elif (isinstance(request, QNetworkRequest) or
               isinstance(request, QNetworkReply)):
             string_to_copy = request.url().toString()
-        elif callable(request):
-            string_to_copy = request()
         else:
             raise RuntimeError("Attempt to store non-text on clipboard")
 
