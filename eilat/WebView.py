@@ -37,7 +37,7 @@
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 from PyQt5.QtWebKit import QWebSettings, QWebElement
 
-from PyQt5.Qt import QLabel, QToolTip, QFrame
+from PyQt5.Qt import QLabel, QToolTip, QFrame, QLineEdit
 from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QPoint, QObject
 
 from PyQt5.QtGui import QColor, QPalette
@@ -468,8 +468,9 @@ class WebView(QWebView):
         if isinstance(request, QUrl):
             qurl = request
 
-        elif callable(request):
-            url = request()
+        # 'navigate' was connected to a QLineEdit to extract its text
+        elif isinstance(request, QLineEdit):
+            url = request.text()
             qurl = fix_url(url)
         else:
             raise RuntimeError("Navigating to non-navigable")

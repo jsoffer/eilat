@@ -259,9 +259,9 @@ class WebTab(QWidget):
             ("Ctrl+J", self.search_frame, self.do_search),
             # go to page
             ("Ctrl+J", self.address_bar, partial(
-                self.webkit.navigate, self.address_bar.text)),
+                self.webkit.navigate, self.address_bar)),
             ("Return", self.address_bar, partial(
-                self.webkit.navigate, self.address_bar.text)),
+                self.webkit.navigate, self.address_bar)),
             # address bar interaction
             ("Ctrl+L", self.webkit, self.address_bar.clear_and_focus),
             ("Ctrl+Shift+L", self.webkit, self.address_bar.setFocus),
