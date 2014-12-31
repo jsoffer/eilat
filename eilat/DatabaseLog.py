@@ -108,7 +108,7 @@ class DatabaseLogLite(object):
 
         # it seems to be unable to do completion if 'model' creates and
         # returns a locally scoped variable... why?
-        self.__model = None
+        self.__models = {}
 
     def model(self, prefix=None):
         """ recreate the model each call; opening a new window will not
@@ -128,9 +128,9 @@ class DatabaseLogLite(object):
                 "order by count desc",
                 self.litedb)
 
-        self.__model = QSqlQueryModel()
-        self.__model.setQuery(query_nav)
-        return self.__model
+        self.__models[prefix] = QSqlQueryModel()
+        self.__models[prefix].setQuery(query_nav)
+        return self.__models[prefix]
 
         # return completion_model
 

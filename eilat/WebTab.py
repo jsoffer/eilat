@@ -45,9 +45,8 @@ from functools import partial
 
 # local
 from eilat.WebView import WebView
-from eilat.DatabaseLog import DatabaseLogLite
 from eilat.libeilat import set_shortcuts, notify
-from eilat.global_store import mainwin, clipboard
+from eilat.global_store import mainwin, clipboard, database
 
 
 class WebTab(QWidget):
@@ -336,8 +335,12 @@ class WebTab(QWidget):
     # connect (en constructor)
     def save_title(self, title):
         """ Store a recently changed title, and display it """
-        self.current['title'] = title
-        self.set_title(title)
+        if title:
+            self.current['title'] = title
+            self.set_title(title)
+        else:
+            print("ATTEMPTING TITLE CHANGE (empty), <{}> -> <{}>".format(
+                self.current['title'], title))
 
     def set_title(self, title):
         """ Go upwards to the main window's tab widget and set this
@@ -394,7 +397,6 @@ class AddressBar(QLineEdit):
     def __init__(self, parent=None):
         super(AddressBar, self).__init__(parent)
 
-        self.database = DatabaseLogLite()
         self.__completer = None
 
         self.__stored_text = ''
@@ -438,7 +440,7 @@ class AddressBar(QLineEdit):
         complete the line edit otherwise)
 
         """
-        self.__completer = QCompleter(self.database.model(prefix), self)
+        self.__completer = QCompleter(database().model(prefix), self)
         self.setCompleter(self.__completer)
 
     def set_bgcolor(self, active):
