@@ -2,7 +2,7 @@
 
 """
 
-  Copyright (c) 2012, Davyd McColl; 2013, 2014 Jaime Soffer
+  Copyright (c) 2012, Davyd McColl; 2013, 2014, 2015 Jaime Soffer
 
    All rights reserved.
 
@@ -398,6 +398,7 @@ class AddressBar(QLineEdit):
         super(AddressBar, self).__init__(parent)
 
         self.__completer = None
+        self.__model = None
 
         self.__stored_text = ''
         self.__stored_color = QColor(0, 0, 0)
@@ -440,7 +441,12 @@ class AddressBar(QLineEdit):
         complete the line edit otherwise)
 
         """
-        self.__completer = QCompleter(database().model(prefix), self)
+
+        # storage in __model is required because, apparently, the value
+        # returned from DatabaseLogLite.model() is deleted somehow if used
+        # directly to set the QCompleter, disabled completion silently
+        self.__model = database().model(prefix)
+        self.__completer = QCompleter(self.__model, self)
         self.setCompleter(self.__completer)
 
     def set_bgcolor(self, active):

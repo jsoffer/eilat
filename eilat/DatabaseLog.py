@@ -2,7 +2,7 @@
 
 """
 
-  Copyright (c) 2013, 2014 Jaime Soffer
+  Copyright (c) 2013, 2014, 2015 Jaime Soffer
 
    All rights reserved.
 
@@ -106,10 +106,6 @@ class DatabaseLogLite(object):
         if not all(fbl_ok):
             raise RuntimeError("bad structure for 'blacklist' table")
 
-        # it seems to be unable to do completion if 'model' creates and
-        # returns a locally scoped variable... why?
-        self.__models = {}
-
     def model(self, prefix=None):
         """ recreate the model each call; opening a new window will not
         be needed to use the recent completions
@@ -128,11 +124,9 @@ class DatabaseLogLite(object):
                 "order by count desc",
                 self.litedb)
 
-        self.__models[prefix] = QSqlQueryModel()
-        self.__models[prefix].setQuery(query_nav)
-        return self.__models[prefix]
-
-        # return completion_model
+        ret_model = QSqlQueryModel()
+        ret_model.setQuery(query_nav)
+        return ret_model
 
     def store_navigation(self, host, path, prefix):
         """ save host, path and increase its count """
