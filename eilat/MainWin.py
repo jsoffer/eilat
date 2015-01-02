@@ -228,7 +228,7 @@ class MidClickTabBar(QTabBar):
         """ Emits the "close tab" signal if a middle click happened """
         if event.button() == Qt.MidButton:
             self.tabCloseRequested.emit(self.tabAt(event.pos()))
-        super(MidClickTabBar, self).mouseReleaseEvent(event)
+        return super(MidClickTabBar, self).mouseReleaseEvent(event)
 
     # Clean reimplement for Qt
     # pylint: disable=C0103
