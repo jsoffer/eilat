@@ -187,9 +187,6 @@ class WebTab(QWidget):
         # search in page
         self.search_frame = SearchFrame(parent=self)
 
-        # link_selected (app defined) carries str
-        self.webkit.link_selected.connect(self.address_bar.set_txt_color)
-
         # textChanged carries str
         self.search_frame.search_line.textChanged.connect(self.do_search)
 
@@ -251,6 +248,30 @@ class WebTab(QWidget):
         # urlChanged carries QUrl (ignored)
         self.webkit.urlChanged.connect(reset_addressbar)
 
+        def enter_address_bar(clear=True):
+            """ do not try entering the address bar if a load is in
+            progress; do an 'stop' first
+
+            """
+
+            if 'in_page_load' not in self.webkit.attr:
+                if clear:
+                    self.address_bar.clear_and_focus()
+                else:
+                    self.address_bar.setFocus()
+
+        def cancel():
+            """ if we're in the middle of loading the document, stop loading.
+            Otherwise, hide the message label. The general concept is to reach
+            a basic state.
+
+            """
+
+            if 'in_page_load' not in self.webkit.attr:
+                self.message_label.hide()
+            else:
+                self.webkit.stop()
+
         set_shortcuts([
             # search
             ("G", self.webkit, show_search),
@@ -263,8 +284,10 @@ class WebTab(QWidget):
             ("Return", self.address_bar, partial(
                 self.webkit.navigate, self.address_bar)),
             # address bar interaction
-            ("Ctrl+L", self.webkit, self.address_bar.clear_and_focus),
-            ("Ctrl+Shift+L", self.webkit, self.address_bar.setFocus),
+            ("A", self.webkit, cancel),
+            ("Ctrl+L", self.webkit, enter_address_bar),
+            ("Ctrl+Shift+L", self.webkit, partial(
+                enter_address_bar, clear=False)),
             ("Escape", self.address_bar, self.webkit.setFocus),
             ("Ctrl+I", self.address_bar, navigate_completion),
             ("Ctrl+P", self.address_bar, partial(
@@ -415,8 +438,6 @@ class AddressBar(QLineEdit):
             ("Ctrl+Shift+T", self, lambda: None)
         ])
 
-        self.textEdited.connect(self.reset_color)
-
     def clear_and_focus(self):
         """ called by keybinding when edition of the address bar is requested
 
@@ -424,16 +445,6 @@ class AddressBar(QLineEdit):
 
         self.clear()
         self.setFocus()
-
-    def reset_color(self, _):
-        """ Reset the address bar's color if entering; because the
-        pseudo-status-bar color is not valid anymore
-
-        """
-
-        palette = self.palette()
-        palette.setColor(QPalette.Text, QColor(0, 0, 0))
-        self.setPalette(palette)
 
     def set_model(self, prefix):
         """ Update the completion model when the prefix is known. Has to
@@ -461,13 +472,13 @@ class AddressBar(QLineEdit):
         self.setPalette(palette)
 
     def set_txt_color(self, text, color=QColor(127, 127, 255)):
-        """ Write 'text' on the address bar in the given color """
+        """ Write text on the address bar in the given color """
 
         self.__stored_color = color
         self.__stored_text = text
 
         # change the address bar's color to point out that we're in a
-        # special state (pseudo-statusbar, waiting for load start, etc)
+        # special state (waiting for load start, etc)
         palette = self.palette()
         palette.setColor(QPalette.Text, color)
         self.setPalette(palette)

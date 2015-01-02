@@ -210,9 +210,6 @@ class WebView(QWebView):
     # sent only once, to define the model to use for completion
     set_prefix = pyqtSignal(str)
 
-    # spatial or access key navigation focused an <a> or <input> link
-    link_selected = pyqtSignal(str)
-
     # a page load with destination 'str' started, but the url
     # has not changed yet
     load_requested = pyqtSignal(str)
@@ -393,7 +390,14 @@ class WebView(QWebView):
             factor = self.zoomFactor() + (lvl * 0.25)
             self.setZoomFactor(factor)
 
+        def show_link_target():
+            """ if a link is focused, send its target to the message label """
+            if self.__in_focus is not None:
+                self.show_message.emit(self.__in_focus.attribute('href'))
+
         set_shortcuts([
+            # notifications
+            ("D", self, show_link_target),
             # DOM actions
             ("Ctrl+M", self, dump_dom),
             ("F", self, self.__unembed_frames),
@@ -641,7 +645,6 @@ class WebView(QWebView):
                 found = self.map_tags[candidate]
                 self.__in_focus = found
                 found.setFocus()
-                self.link_selected.emit(found.attribute("href"))
             else:
                 title = self.map_tags[candidate].attribute("title")
                 self.show_message.emit(title)
@@ -695,7 +698,6 @@ class WebView(QWebView):
 
         if target is not None:
             self.__in_focus = target
-            self.link_selected.emit(self.__in_focus.attribute("href"))
             self.__in_focus.setFocus()
 
     def __mouse_press_event(self, event):
