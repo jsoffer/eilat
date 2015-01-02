@@ -177,10 +177,11 @@ def export_mainwin(win):
 # pylint: enable=W0603
 
 
-# FIXME should not be needed, maybe bad architecture
 def mainwin():
-    """ Access the main window globally (fixable after passing 'options' in
-    a more sane way than through the window; imprement "add tab" directly")
+    """ Access the main window globally
+
+    Used for: open in new tab (WebView), set tab text (WebTab),
+    get tooltip and window size (notify, libeilat)
 
     """
     return MAINWIN
