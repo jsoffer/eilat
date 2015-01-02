@@ -361,9 +361,6 @@ class WebTab(QWidget):
         if title:
             self.current['title'] = title
             self.set_title(title)
-        else:
-            print("ATTEMPTING TITLE CHANGE (empty), <{}> -> <{}>".format(
-                self.current['title'], title))
 
     def set_title(self, title):
         """ Go upwards to the main window's tab widget and set this
