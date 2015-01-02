@@ -495,6 +495,10 @@ class WebView(QWebView):
 
             # strictly speaking, this should emit from Attributes.set_prefix
             self.set_prefix.emit(self.attr.prefix)
+            if self.attr.prefix == "":
+                print("GENERAL")
+            else:
+                print("INSTANCE: {}".format(self.attr.prefix))
 
             if not has_manager(self.attr.prefix):
                 register_manager(self.attr.prefix,

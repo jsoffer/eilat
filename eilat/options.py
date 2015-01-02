@@ -42,12 +42,11 @@ def extract_options(url):
     host = None if url is None else tldextract.extract(url).domain
 
     options_sites = get_options()['sites']
-    options = options_sites['general']
+    options = None
 
-    if host not in options_sites.keys():
-        print("GENERAL")
-    else:
+    if host in options_sites.keys():
         options = options_sites[host]
-        print("INSTANCE: {prefix}".format_map(options))
+    else:
+        options = options_sites['general']
 
     return options
