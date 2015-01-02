@@ -165,7 +165,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.show_detail = False
 
         # reference needed to save in shutdown
-        self.cookie_jar = CookieJar(self, options)
+        self.cookie_jar = CookieJar(parent=self, options=options)
         self.setCookieJar(self.cookie_jar)
 
         self.setCache(DiskCacheDir(options, parent=self))
