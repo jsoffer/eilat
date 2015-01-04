@@ -75,6 +75,7 @@ from sys import argv
 APP = QApplication([])
 APP.setApplicationName("Eilat")
 APP.setApplicationVersion("1.5.008")
+APP.setCursorFlashTime(0)
 export_clipboard(APP.clipboard())
 
 
