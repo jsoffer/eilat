@@ -250,6 +250,9 @@ class WebView(QWebView):
 
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
 
+        # self.settings().setFontFamily(
+        #     QWebSettings.StandardFont, "Georgia")
+
         self.settings().setAttribute(
             QWebSettings.PluginsEnabled, False)
 
@@ -390,14 +393,22 @@ class WebView(QWebView):
             factor = self.zoomFactor() + (lvl * 0.25)
             self.setZoomFactor(factor)
 
-        def show_link_target():
-            """ if a link is focused, send its target to the message label """
-            if self.__in_focus is not None:
+        def emit_message_info(title=False):
+            """
+            If requesting for the document's title, emit it. Otherwise,
+            if a link is focused, emit its target to the message label
+
+            """
+
+            if title:
+                self.show_message.emit(self.title())
+            elif self.__in_focus is not None:
                 self.show_message.emit(self.__in_focus.attribute('href'))
 
         set_shortcuts([
             # notifications
-            ("D", self, show_link_target),
+            ("Shift+D", self, partial(emit_message_info, title=True)),
+            ("D", self, emit_message_info),
             # DOM actions
             ("Ctrl+M", self, dump_dom),
             ("F", self, self.__unembed_frames),
