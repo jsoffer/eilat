@@ -19,7 +19,15 @@ def load_options():
 
     with open(expanduser("~/.eilat/options.yaml")) as yaml_file:
         options_yaml = yaml.safe_load(yaml_file)
-        set_options(options_yaml)
+
+    all_whitelists = [options_yaml['sites'][k]['host_whitelist']
+                      for k in options_yaml['sites']]
+    all_whitelists = [k for k in all_whitelists if k is not None]  # filter
+    all_whitelists = [x for y in all_whitelists for x in y]  # flatten
+    all_whitelists = [k.split('/')[0] for k in all_whitelists]  # no paths
+
+    options_yaml['all_whitelists'] = set(all_whitelists)  # no repetitions
+    set_options(options_yaml)
 
 
 def proxy_options():
