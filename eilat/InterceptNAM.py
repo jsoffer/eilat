@@ -155,21 +155,22 @@ class InterceptNAM(QNetworkAccessManager):
 
     """
 
-    def __init__(self, options, parent=None):
+    def __init__(self, instance, parent=None):
         super(InterceptNAM, self).__init__(parent)
         print("INIT InterceptNAM")
 
-        self.whitelist = options['host_whitelist']
-        self.prefix = options['prefix']
+        self.__instance = instance
+        self.prefix = get_options()['sites'][instance]['prefix']
 
         self.show_detail = False
         self.load_webfonts = False
 
         # reference needed to save in shutdown
-        self.cookie_jar = CookieJar(parent=self, options=options)
+        self.cookie_jar = CookieJar(parent=self,
+                                    options=get_options()['sites'][instance])
         self.setCookieJar(self.cookie_jar)
 
-        self.setCache(DiskCacheDir(options, parent=self))
+        self.setCache(DiskCacheDir(instance, parent=self))
 
         def reply_complete(reply):
             """ Prints when a request completes, handles the filter that
@@ -307,11 +308,13 @@ class InterceptNAM(QNetworkAccessManager):
         # If the request is going to be intercepted a custom request is
         # built and returned after optionally reporting the reason
 
+        whitelist = get_options()['sites'][self.__instance]['host_whitelist']
+
         for (stop_case, description, show) in [
                 # it may be an un-dns'ed request; careful here
                 (is_numerical(qurl.host()), "NUMERICAL", True),
                 # whitelist exists, and the requested URL is not in it
-                (non_whitelisted(self.whitelist, qurl),
+                (non_whitelisted(whitelist, qurl),
                  "NON WHITELISTED", self.show_detail)
         ]:
             if stop_case:
@@ -338,7 +341,7 @@ class InterceptNAM(QNetworkAccessManager):
                 # whitelists; this means it belong to another instance,
                 # assuming exclusivity
                 # TODO 'domain + suffix' is a maybe bad generalization
-                (self.whitelist is None and
+                (whitelist is None and
                  domain + '.' + suffix in get_options()['all_whitelists'],
                  "NEG-WL FILTER", "{} || {} || {} ".format(
                      subdomain,
@@ -381,9 +384,10 @@ class DiskCacheDir(QNetworkDiskCache):
 
     """
 
-    def __init__(self, options, parent=None):
+    def __init__(self, instance, parent=None):
         super(DiskCacheDir, self).__init__(parent)
 
         self.setCacheDirectory(
-            expanduser("~/.eilat/caches/cache{prefix}".format_map(options)))
+            expanduser("~/.eilat/caches/cache{prefix}".format_map(
+                get_options()['sites'][instance])))
         self.setMaximumCacheSize(1024 * 1024 * 128)

@@ -52,8 +52,9 @@ from eilat.libeilat import (fix_url, set_shortcuts,
 
 from eilat.global_store import (mainwin, clipboard,
                                 has_manager, register_manager, get_manager,
+                                get_options,
                                 profiling)
-from eilat.options import extract_options
+from eilat.options import extract_instance
 
 from os.path import expanduser
 import datetime
@@ -323,11 +324,12 @@ class WebView(QWebView):
                 self.attr.clear('save')
                 return
 
-            options = extract_options(qurl.toString())
-            qurl_prefix = options['prefix']
+            instance = extract_instance(qurl.toString())
+
+            target_prefix = get_options()['sites'][instance]['prefix']
 
             # if the prefixes don't match, we're requesting a new instance
-            if 'paste' in self.attr or self.attr.prefix != qurl_prefix:
+            if 'paste' in self.attr or self.attr.prefix != target_prefix:
                 mainwin().add_tab(qurl,
                                   scripting=('open_scripted' in self.attr))
                 self.attr.clear('paste')
@@ -526,8 +528,9 @@ class WebView(QWebView):
         if self.attr.prefix is None:
             # this is the first navigation on this tab/webkit; replace
             # the Network Access Manager
-            options = extract_options(qurl.toString())
-            self.attr.set_prefix(options['prefix'])
+
+            instance = extract_instance(qurl.toString())
+            self.attr.set_prefix(get_options()['sites'][instance]['prefix'])
 
             if self.attr.prefix is None:
                 raise RuntimeError(
@@ -542,7 +545,8 @@ class WebView(QWebView):
 
             if not has_manager(self.attr.prefix):
                 register_manager(self.attr.prefix,
-                                 InterceptNAM(options, parent=None))
+                                 InterceptNAM(instance,
+                                              parent=None))
 
             if not has_manager(self.attr.prefix):
                 raise RuntimeError("prefix manager not registered...")

@@ -41,20 +41,17 @@ def proxy_options():
     return (options['host'], options['port'])
 
 
-def extract_options(url):
-    """ Given a site, decide if cookies are allowed, if only some sites
-    will not be blocked, etc.
+def extract_instance(url):
+    """ Given a site, give the key to a map that decides if cookies are
+    allowed, if only some sites will not be blocked, etc.
 
     """
 
     host = None if url is None else tldextract.extract(url).domain
 
     options_sites = get_options()['sites']
-    options = None
 
     if host in options_sites.keys():
-        options = options_sites[host]
+        return host
     else:
-        options = options_sites['general']
-
-    return options
+        return 'general'
