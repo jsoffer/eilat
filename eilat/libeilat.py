@@ -46,7 +46,7 @@ import http
 
 from base64 import encodestring
 
-from eilat.global_store import get_manager, mainwin
+from eilat.global_store import mainwin
 
 
 def fix_url(url):
@@ -222,20 +222,6 @@ def fake_click(widget):
     QApplication.sendEvent(widget, exit_event)
 
 
-def toggle_show_logs(prefix):
-    """ Inverts a value, toggling between printing or not responses that were
-    accepted by the webkit or (some of) those that were filtered at some point.
-
-    """
-
-    netmanager = get_manager(prefix)
-    netmanager.show_detail ^= True
-    if netmanager.show_detail:
-        print("---- SHOWING DETAILS ----")
-    else:
-        print("---- HIDING DETAILS ----")
-
-
 def notify(text):
     """ Pushes a notification to the main window's notifier label
 
@@ -259,7 +245,7 @@ def notify(text):
 SHORTENERS = [
     "t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly", "dlvr.it",
     "dailym.ai", "fb.me", "wp.me", "amzn.to", "slate.me", "ht.ly",
-    "ow.ly", "j.mp", "met.org", "youtu.be"
+    "ow.ly", "j.mp", "met.org", "youtu.be", "tmblr.co"
 ]
 
 REDIRECTORS = [
