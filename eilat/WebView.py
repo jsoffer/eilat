@@ -46,7 +46,7 @@ from functools import partial
 
 from eilat.InterceptNAM import InterceptNAM
 from eilat.libeilat import (fix_url, set_shortcuts,
-                            encode_css, real_host, toggle_show_logs,
+                            encode_css, real_host,
                             fake_key, fake_click,
                             notify, do_redirect)
 
@@ -71,6 +71,34 @@ UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
+
+
+def toggle_show_logs(prefix):
+    """ Inverts a value, toggling between printing or not responses that were
+    accepted by the webkit or (some of) those that were filtered at some point.
+
+    """
+
+    netmanager = get_manager(prefix)
+    netmanager.show_detail ^= True
+    if netmanager.show_detail:
+        print("---- SHOWING DETAILS ----")
+    else:
+        print("---- HIDING DETAILS ----")
+
+
+def toggle_load_fonts(prefix):
+    """ Inverts a value, toggling between filtering or not the requests for
+    web fonts on the net manager level
+
+    """
+
+    netmanager = get_manager(prefix)
+    netmanager.load_webfonts ^= True
+    if netmanager.load_webfonts:
+        print("---- LOADING WEB FONTS NOW ----")
+    else:
+        print("---- DISABLING WEB FONTS ----")
 
 
 class Attributes(QObject):
@@ -441,6 +469,7 @@ class WebView(QWebView):
             # lambda required because self.attr.prefix is updated
             # when the web view navigates the first time
             ("F11", self, lambda: toggle_show_logs(self.attr.prefix)),
+            ("Shift+F11", self, lambda: toggle_load_fonts(self.attr.prefix)),
             ("Escape", self, self.focus_webkit.emit),
             # clipboard related behavior
             ("I", self, partial(self.attr.toggle, 'paste', 'I')),

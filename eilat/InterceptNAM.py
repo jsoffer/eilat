@@ -44,7 +44,7 @@ from eilat.CookieJar import CookieJar
 from eilat.libeilat import (is_local, non_whitelisted,
                             is_font, is_numerical,
                             encode_blocked)
-from eilat.global_store import database
+from eilat.global_store import database, get_options
 
 from pprint import PrettyPrinter
 import tldextract
@@ -163,6 +163,7 @@ class InterceptNAM(QNetworkAccessManager):
         self.prefix = options['prefix']
 
         self.show_detail = False
+        self.load_webfonts = False
 
         # reference needed to save in shutdown
         self.cookie_jar = CookieJar(parent=self, options=options)
@@ -255,6 +256,21 @@ class InterceptNAM(QNetworkAccessManager):
 
         self.sslErrors.connect(handle_ssl_error)
 
+    def __pass(self, operation, request, data):
+        """ short for "ignore filter, just generate the request" """
+
+        return QNetworkAccessManager.createRequest(
+            self, operation, request, data)
+
+    def __block(self, message):
+        """ short for "ignore request; generate default empty request" """
+
+        return QNetworkAccessManager.createRequest(
+            self,
+            QNetworkAccessManager.GetOperation,
+            QNetworkRequest(QUrl(message)),
+            None)
+
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests
 
@@ -270,32 +286,28 @@ class InterceptNAM(QNetworkAccessManager):
         url = qurl.toString()
 
         # if keeping a log of the POST data, do it before anything else
-        try:
-            if operation == QNetworkAccessManager.PostOperation:
-                post_str = data.peek(4096).data().decode()
-                print("_-_-_-_")
-                print(url)
-                # parse_qsl is imported on a python3-only way;
-                # fixable (or maskable) for python2; worth it?
-                PRINTER(parse_qsl(post_str, keep_blank_values=True))
-                print("-_-_-_-")
-        except UnicodeDecodeError:
-            print("Binary POST upload")
+        if operation == QNetworkAccessManager.PostOperation:
+            notify_post(data, url)
 
         # stop here if the request is local enough as for not
         # requiring further scrutiny
         if is_local(qurl) and not is_font(qurl):
             if self.show_detail:
                 show_labeled("LOCAL", qurl, color=Fore.GREEN)
-            return QNetworkAccessManager.createRequest(
-                self, operation, request, data)
+            return self.__pass(operation, request, data)
+
+        # make optional the loading of webfonts
+        if is_font(qurl):
+            if self.load_webfonts:
+                return self.__pass(operation, request, data)
+            else:
+                print("TRIMMED WEBFONT", qurl.toString()[:255])
+                return self.__block("about:blank")
 
         # If the request is going to be intercepted a custom request is
         # built and returned after optionally reporting the reason
 
         for (stop_case, description, show) in [
-                # may still be local
-                (is_font(qurl), "TRIM WEBFONT", self.show_detail),
                 # it may be an un-dns'ed request; careful here
                 (is_numerical(qurl.host()), "NUMERICAL", True),
                 # whitelist exists, and the requested URL is not in it
@@ -305,12 +317,7 @@ class InterceptNAM(QNetworkAccessManager):
             if stop_case:
                 if show:
                     show_labeled(description, qurl, color=Fore.RED)
-
-                return QNetworkAccessManager.createRequest(
-                    self,
-                    QNetworkAccessManager.GetOperation,
-                    QNetworkRequest(QUrl("about:blank")),
-                    None)
+                return self.__block("about:blank")
 
         # It's not a local request; it should have a proper URL structure
         # then. 'domain' and 'suffix' must be non-None (and non-empty).
@@ -326,33 +333,46 @@ class InterceptNAM(QNetworkAccessManager):
                  "SHOULD NOT HAPPEN", " {}|{}|{} ".format(subdomain,
                                                           domain,
                                                           suffix), True),
-                # found the requested URL in the blacklist
+
+                # site is on a whitelist, but this instance does not use
+                # whitelists; this means it belong to another instance,
+                # assuming exclusivity
+                # TODO 'domain + suffix' is a maybe bad generalization
                 (self.whitelist is None and
-                 database().is_blacklisted(domain,
-                                           suffix,
-                                           subdomain),
-                 "FILTER", "{} || {} || {} ".format(subdomain,
-                                                    domain,
-                                                    suffix), self.show_detail)
+                 domain + '.' + suffix in get_options()['all_whitelists'],
+                 "NEG-WL FILTER", "{} || {} || {} ".format(
+                     subdomain,
+                     domain,
+                     suffix), self.show_detail)
         ]:
             if stop_case:
                 if show:
                     show_labeled(description, qurl,
                                  detail=detail, color=Fore.RED)
+                return self.__block(encode_blocked(description, url))
 
-                return QNetworkAccessManager.createRequest(
-                    self,
-                    QNetworkAccessManager.GetOperation,
-                    QNetworkRequest(QUrl(encode_blocked(description, url))),
-                    None)
-
-        return QNetworkAccessManager.createRequest(self, operation,
-                                                   request, data)
+        return self.__pass(operation, request, data)
 
     # Clean reimplement for Qt
     # pylint: disable=C0103
     createRequest = create_request
     # pylint: enable=C0103
+
+
+def notify_post(data, url):
+    """ 'data' being from a POST request, watch (but don't consume) its
+    contents, and report them in a notification
+
+    """
+
+    try:
+        post_str = data.peek(4096).data().decode()
+        print("_-_-_-_")
+        print(url)
+        PRINTER(parse_qsl(post_str, keep_blank_values=True))
+        print("-_-_-_-")
+    except UnicodeDecodeError:
+        print("Binary POST upload")
 
 
 class DiskCacheDir(QNetworkDiskCache):
