@@ -257,14 +257,21 @@ class InterceptNAM(QNetworkAccessManager):
 
         self.sslErrors.connect(handle_ssl_error)
 
-    def __pass(self, operation, request, data):
+    def __pass(self, operation, request, data, info=None):
         """ short for "ignore filter, just generate the request" """
+
+        if info is not None and info['notify']:
+            show_labeled(info['message'], info['qurl'], color=info['color'])
 
         return QNetworkAccessManager.createRequest(
             self, operation, request, data)
 
-    def __block(self, message):
+    def __block(self, message, info=None):
         """ short for "ignore request; generate default empty request" """
+
+        if info is not None and info['notify']:
+            show_labeled(info['message'], info['qurl'],
+                         color=info['color'], detail=info['detail'])
 
         return QNetworkAccessManager.createRequest(
             self,
@@ -286,6 +293,12 @@ class InterceptNAM(QNetworkAccessManager):
         qurl = request.url()
         url = qurl.toString()
 
+        info = {'notify': self.show_detail,
+                'message': None,
+                'detail': None,
+                'qurl': qurl,
+                'color': Fore.GREEN}
+
         # if keeping a log of the POST data, do it before anything else
         if operation == QNetworkAccessManager.PostOperation:
             notify_post(data, url)
@@ -293,22 +306,23 @@ class InterceptNAM(QNetworkAccessManager):
         # stop here if the request is local enough as for not
         # requiring further scrutiny
         if is_local(qurl) and not is_font(qurl):
-            if self.show_detail:
-                show_labeled("LOCAL", qurl, color=Fore.GREEN)
-            return self.__pass(operation, request, data)
+            info['message'] = "LOCAL"
+            return self.__pass(operation, request, data, info=info)
 
         # make optional the loading of webfonts
         if is_font(qurl):
             if self.load_webfonts:
                 return self.__pass(operation, request, data)
             else:
-                print("TRIMMED WEBFONT", qurl.toString()[:255])
-                return self.__block("about:blank")
+                info['message'] = "TRIMMED WEBFONT"
+                return self.__block("about:blank", info=info)
 
         # If the request is going to be intercepted a custom request is
         # built and returned after optionally reporting the reason
 
         whitelist = get_options()['sites'][self.__instance]['host_whitelist']
+
+        info['color'] = Fore.RED
 
         for (stop_case, description, show) in [
                 # it may be an un-dns'ed request; careful here
@@ -318,9 +332,9 @@ class InterceptNAM(QNetworkAccessManager):
                  "NON WHITELISTED", self.show_detail)
         ]:
             if stop_case:
-                if show:
-                    show_labeled(description, qurl, color=Fore.RED)
-                return self.__block("about:blank")
+                info['notify'] = show
+                info['message'] = description
+                return self.__block("about:blank", info=info)
 
         # It's not a local request; it should have a proper URL structure
         # then. 'domain' and 'suffix' must be non-None (and non-empty).
@@ -349,10 +363,10 @@ class InterceptNAM(QNetworkAccessManager):
                      suffix), self.show_detail)
         ]:
             if stop_case:
-                if show:
-                    show_labeled(description, qurl,
-                                 detail=detail, color=Fore.RED)
-                return self.__block(encode_blocked(description, url))
+                info['message'] = description
+                info['detail'] = detail
+                return self.__block(encode_blocked(description, url),
+                                    info=info)
 
         return self.__pass(operation, request, data)
 
