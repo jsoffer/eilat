@@ -46,13 +46,13 @@ from functools import partial
 
 from eilat.InterceptNAM import InterceptNAM
 from eilat.libeilat import (fix_url, set_shortcuts,
-                            encode_css, real_host,
+                            real_host,
                             fake_key, fake_click,
                             notify, do_redirect)
 
 from eilat.global_store import (mainwin, clipboard,
                                 has_manager, register_manager, get_manager,
-                                get_options,
+                                get_options, get_css,
                                 profiling)
 from eilat.options import extract_instance
 
@@ -348,9 +348,12 @@ class WebView(QWebView):
 
             """
             host_id = real_host(qurl.host())
-            css_file = self.attr.css_path + host_id + ".css"
 
-            self.settings().setUserStyleSheetUrl(QUrl(encode_css(css_file)))
+            css_map = get_css()
+
+            css_pseudo_file = (
+                css_map[host_id] if host_id in css_map else css_map[None])
+            self.settings().setUserStyleSheetUrl(QUrl(css_pseudo_file))
 
         # urlChanged carries QUrl
         self.urlChanged.connect(url_changed)

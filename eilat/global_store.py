@@ -52,6 +52,7 @@ DATABASE = None
 MANAGERS = {}
 
 OPTIONS = None
+CSS = None
 
 
 # intentionally initializing global constants
@@ -66,6 +67,20 @@ def set_options(opts):
 def get_options():
     """ read map from memory instead of loading from file every time """
     return OPTIONS
+
+
+# intentionally initializing global constants
+# pylint: disable=W0603
+def set_css(css):
+    """ to be run at start and when reloading the CSS directory """
+    global CSS
+    CSS = css
+# pylint: enable=W0603
+
+
+def get_css():
+    """ read map from memory instead of loading from file every time """
+    return CSS
 
 
 # intentionally updating global constants

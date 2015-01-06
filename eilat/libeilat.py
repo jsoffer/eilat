@@ -152,37 +152,6 @@ def real_host(url):
     """ Extracts the last not-tld term from the url """
     return tldextract.extract(url).domain
 
-GLOBAL_CSS = b""" :focus > img, a:focus, input:focus {
-outline-color: rgba(160, 160, 255, 0.6) ! important;
-outline-width: 10px ! important;
-/* outline-offset: 1px ! important; */
-outline-style: ridge ! important;
-}
-* { box-shadow: none ! important; }
-"""
-
-_GLOBAL_CSS = b""" * { box-shadow: none ! important; } """
-
-
-def encode_css(css_file):
-    """ Takes a .css file, returns a base64 encoded "file" string
-    usable with setUserStyleSheetUrl
-
-    """
-
-    css_input = None
-
-    try:
-        with open(css_file, 'r') as css_fh:
-            css_input = css_fh.read()
-    except IOError:
-        css_input = ''
-
-    header = b"data:text/css;charset=utf-8;base64,"
-    encoded = encodestring(GLOBAL_CSS + css_input.encode())
-
-    return (header + encoded).decode().strip()
-
 
 def encode_blocked(message, url):
     """ Generates a 'data:' string to use as reply when blocking an URL """

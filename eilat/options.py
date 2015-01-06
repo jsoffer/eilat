@@ -7,8 +7,10 @@ import tldextract
 
 import yaml
 from os.path import expanduser
+from glob import glob
 
-from eilat.global_store import set_options, get_options
+from eilat.global_store import set_options, get_options, set_css
+from base64 import encodestring
 
 
 def load_options():
@@ -28,6 +30,43 @@ def load_options():
 
     options_yaml['all_whitelists'] = set(all_whitelists)  # no repetitions
     set_options(options_yaml)
+
+
+GLOBAL_CSS = b""" :focus > img, a:focus, input:focus {
+outline-color: rgba(160, 160, 255, 0.6) ! important;
+outline-width: 10px ! important;
+/* outline-offset: 1px ! important; */
+outline-style: ridge ! important;
+}
+* { box-shadow: none ! important; }
+"""
+
+
+def load_css():
+    """ read and encode every stylesheet file on the CSS directory;
+    store the encoding on a map, as a cache
+
+    """
+
+    css_dictionary = {}
+    css_files = glob(expanduser("~/.eilat/css/")+"*.css")
+    header = b"data:text/css;charset=utf-8;base64,"
+
+    for css_file in css_files:
+        with open(css_file) as file_handle:
+            css_input = file_handle.read()
+
+        encoded = encodestring(GLOBAL_CSS + css_input.encode())
+
+        # filename without extension; also, host to apply css to
+        key = css_file.split('/')[-1].split('.css')[0]
+        css_dictionary[key] = (header + encoded).decode().strip()
+
+    # default key; every host without .css file, load the global css only
+    empty = (header + encodestring(GLOBAL_CSS)).decode().strip()
+    css_dictionary[None] = empty
+
+    set_css(css_dictionary)
 
 
 def proxy_options():
