@@ -78,6 +78,8 @@ def toggle_show_logs(prefix):
     """ Inverts a value, toggling between printing or not responses that were
     accepted by the webkit or (some of) those that were filtered at some point.
 
+    TOG02
+
     """
 
     netmanager = get_manager(prefix)
@@ -91,6 +93,8 @@ def toggle_show_logs(prefix):
 def toggle_load_fonts(prefix):
     """ Inverts a value, toggling between filtering or not the requests for
     web fonts on the net manager level
+
+    TOG03
 
     """
 
@@ -162,6 +166,8 @@ def node_neighborhood(rect, direction):
     """ Finds a rectangle next to the node, where close by
     nodes could be
 
+    NAV12
+
     """
 
     if direction == UP:
@@ -183,6 +189,8 @@ def node_neighborhood(rect, direction):
 def next_node(candidates, direction, boundary):
     """ Given the direction that was travelled to create the
     candidates, find the best close node
+
+    NAV12
 
     """
 
@@ -262,14 +270,13 @@ class WebView(QWebView):
 
         # hide the tooltips (they're still there, just with a height of zero)
         # see http://qt-project.org/doc/qt-4.8/stylesheet-reference.html
-        self.setStyleSheet("QToolTip {max-height: 0px}")
+        self.setStyleSheet("QToolTip {max-height: 0px}")  # CFG11
 
         self.attr = Attributes(parent=self)
-        self.attr.css_path = expanduser("~/.eilat/css/")
+        self.attr.css_path = expanduser("~/.eilat/css/")  # CFG01
 
-        # a web element node, used for access key
-        # or spatial navigation
-        self.__in_focus = None
+        # a web element node
+        self.__in_focus = None  # NAV11, NAV12
 
         # make_labels, clear_labels
         self.__labels = []
@@ -277,7 +284,7 @@ class WebView(QWebView):
         # make_labels, clear_labels, akeynav
         self.map_tags = {}
 
-        self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)  # CB04
 
         # self.settings().setFontFamily(
         #     QWebSettings.StandardFont, "Georgia")
@@ -295,17 +302,19 @@ class WebView(QWebView):
         self.settings().setAttribute(
             QWebSettings.DeveloperExtrasEnabled, True)
 
-        self.page().setForwardUnsupportedContent(True)
+        self.page().setForwardUnsupportedContent(True)  # CB04
 
         # connect (en constructor)
         def on_link_click(qurl):
             """ Callback for connection. Reads the 'paste' attribute
             to know if a middle click requested to open on a new tab.
 
+            BRW01 BRW12 VID01 CB03
+
             """
 
             # required for 'open in new tab if not in this instance'
-            qurl = do_redirect(qurl)
+            qurl = do_redirect(qurl)  # BRW12
 
             # 'play' and 'save' should only happen from inside the webkit and
             # if the user started the action; handle here, not in 'navigate'
@@ -313,14 +322,14 @@ class WebView(QWebView):
             if 'play' in self.attr:
                 print("PLAYING")
 
-                Thread(target=partial(self.play_mpv, qurl)).start()
+                Thread(target=partial(self.play_mpv, qurl)).start()  # VID01
 
                 self.attr.clear('play')
 
                 return
 
             if 'save' in self.attr:
-                clipboard(qurl)
+                clipboard(qurl)  # CB02
                 self.attr.clear('save')
                 return
 
@@ -329,12 +338,13 @@ class WebView(QWebView):
             target_prefix = get_options()['sites'][instance]['prefix']
 
             # if the prefixes don't match, we're requesting a new instance
+            # TAB04 TAB05
             if 'paste' in self.attr or self.attr.prefix != target_prefix:
                 mainwin().add_tab(qurl,
                                   scripting=('open_scripted' in self.attr))
                 self.attr.clear('paste')
             else:
-                self.navigate(qurl)
+                self.navigate(qurl)  # BRW01
 
             if 'open_scripted' in self.attr:
                 self.attr.clear('open_scripted')
@@ -345,6 +355,8 @@ class WebView(QWebView):
         def url_changed(qurl):
             """ One time callback for 'connect'
             Sets the user style sheet
+
+            CFG01
 
             """
             host_id = real_host(qurl.host())
@@ -362,9 +374,9 @@ class WebView(QWebView):
         self.statusBarMessage.connect(notify)
 
         # downloadRequested carries QNetworkRequest
-        self.page().downloadRequested.connect(clipboard)
+        self.page().downloadRequested.connect(clipboard)  # CB04
         # unsupportedContent carries QNetworkReply
-        self.page().unsupportedContent.connect(clipboard)
+        self.page().unsupportedContent.connect(clipboard)  # CB04
 
         # loadStarted carries nothing
         self.page().loadStarted.connect(partial(self.attr.insert,
@@ -400,7 +412,7 @@ class WebView(QWebView):
                     'in_page_load' not in self.attr and
                     self.javascript()):
                 self.attr.insert('stored_scripting_on')
-                self.javascript(False)
+                self.javascript(False)  # JS01
                 print("EXITING LOAD WITH JS WITHOUT FOCUS")
 
             self.attr.clear('in_page_load')
@@ -411,18 +423,30 @@ class WebView(QWebView):
         self.page().loadFinished.connect(load_finished)
 
         def dump_dom():
-            """ saves the content of the current web page """
+            """ saves the content of the current web page
+
+            DOM04
+
+            """
             data = self.page().currentFrame().documentElement().toInnerXml()
             print("SAVING...")
             with open('test.html', 'w') as file_handle:
                 file_handle.write(data)
 
         def scroll(delta_x=0, delta_y=0):
-            """ One-time callback for QShortcut """
+            """ One-time callback for QShortcut
+
+            NAV01
+
+            """
             self.page().mainFrame().scroll(delta_x, delta_y)
 
         def zoom(lvl):
-            """ One-time callback for QShortcut """
+            """ One-time callback for QShortcut
+
+            NAV02
+
+            """
             factor = self.zoomFactor() + (lvl * 0.25)
             self.setZoomFactor(factor)
 
@@ -442,7 +466,7 @@ class WebView(QWebView):
             # notifications
             ("Shift+D", self, partial(emit_message_info, title=True)),
             ("D", self, emit_message_info),
-            # DOM actions
+            # DOM actions DOM04 DOM03 DOM02
             ("Ctrl+M", self, dump_dom),
             ("F", self, self.__unembed_frames),
             ("F2", self, self.__delete_fixed),
@@ -452,7 +476,7 @@ class WebView(QWebView):
             ("Alt+Right", self, self.forward),
             ("F5", self, self.reload),
             ("R", self, self.reload),
-            # view interaction
+            # view interaction NAV01 NAV02
             ("J", self, partial(scroll, delta_y=40)),
             ("Z", self, partial(scroll, delta_y=40)),
             ("K", self, partial(scroll, delta_y=-40)),
@@ -465,25 +489,25 @@ class WebView(QWebView):
             ("Ctrl+H", self, partial(fake_key, self, Qt.Key_Backspace)),
             ("Backspace", self, self.back),
             ("C", self, partial(fake_click, self)),
-            # spatial navigation
+            # spatial navigation NAV12
             ("Shift+H", self, partial(self.__spatialnav, LEFT)),
             ("Shift+J", self, partial(self.__spatialnav, DOWN)),
             ("Shift+K", self, partial(self.__spatialnav, UP)),
             ("Shift+L", self, partial(self.__spatialnav, RIGHT)),
-            # toggles
+            # toggles TOG02 TOG03
             # lambda required because self.attr.prefix is updated
             # when the web view navigates the first time
             ("F11", self, lambda: toggle_show_logs(self.attr.prefix)),
             ("Shift+F11", self, lambda: toggle_load_fonts(self.attr.prefix)),
-            ("Escape", self, self.focus_webkit.emit),
+            ("Escape", self, self.focus_webkit.emit),  # FIXME ???
             # clipboard related behavior
-            ("I", self, partial(self.attr.toggle, 'paste', 'I')),
+            ("I", self, partial(self.attr.toggle, 'paste', 'I')),  # TAB04
             ("O", self, partial(self.attr.toggle, 'open_scripted', 'O')),
-            ("S", self, partial(self.attr.toggle, 'save', 'S')),
-            ("V", self, partial(self.attr.toggle, 'play', 'V')),
+            ("S", self, partial(self.attr.toggle, 'save', 'S')),  # CB03
+            ("V", self, partial(self.attr.toggle, 'play', 'V')),  # VID01
             # profiler
-            ("9", self, profiling),
-            ("0", self, partial(profiling, begin=False))
+            ("9", self, profiling),  # DEB02
+            ("0", self, partial(profiling, begin=False))  # DEB02
             ])
 
     def play_mpv(self, qurl):
@@ -491,6 +515,8 @@ class WebView(QWebView):
         in 'qurl'. Warns if 'mpv' is not installed or available.
 
         To be executed in a separate thread. That way, 'wait' will not block.
+
+        VID01
 
         """
 
@@ -512,6 +538,8 @@ class WebView(QWebView):
         Check if the "url" is actually one, partial or otherwise;
         if it's not, construct a web search.
 
+        BRW01
+
         """
 
         if isinstance(request, QUrl):
@@ -520,17 +548,17 @@ class WebView(QWebView):
         # 'navigate' was connected to a QLineEdit to extract its text
         elif isinstance(request, QLineEdit):
             url = request.text()
-            qurl = fix_url(url)
+            qurl = fix_url(url)  # BRW11
         else:
             raise RuntimeError("Navigating to non-navigable")
 
         # if the qurl does not trigger an URL in SHORTENERS or REDIRECTORS,
         # this will be a no-op
-        qurl = do_redirect(qurl)
+        qurl = do_redirect(qurl)  # BRW12
 
         if self.attr.prefix is None:
             # this is the first navigation on this tab/webkit; replace
-            # the Network Access Manager
+            # the Network Access Manager CFG02
 
             instance = extract_instance(qurl.toString())
             self.attr.set_prefix(get_options()['sites'][instance]['prefix'])
@@ -569,6 +597,8 @@ class WebView(QWebView):
     def __unembed_frames(self):
         """ Replaces the content of iframes with a link to their source
 
+        DOM03
+
         """
 
         frame = self.page().mainFrame()
@@ -578,7 +608,11 @@ class WebView(QWebView):
             node.setOuterXml("""<a href="{}">{}</a>""".format(url, url))
 
     def __delete_fixed(self, delete=True):
-        """ Removes all '??? {position: fixed}' nodes """
+        """ Removes all '??? {position: fixed}' nodes
+
+        DOM02
+
+        """
 
         frame = self.page().mainFrame()
         fixables = "div, header, header > a, footer, nav, section, ul"
@@ -605,14 +639,17 @@ class WebView(QWebView):
                     "visibility",
                     QWebElement.ComputedStyle) == 'visible']
 
-    def __find_visible_navigables(self, links=True):
+    def __find_visible(self, navigables=True):
         """ Find the elements on the navigation list that are visible right now
 
-        If 'geometry' is set, find the elements on that subregion instead
+        Can search either navigables (a href, input) or elements with a title
 
-        TODO reduce code duplication
+
+        NAV12 NAV11 DOM01
 
         """
+
+        # TODO reduce code duplication; argument 'navigables' may be unclear
 
         # updating every time; not needed unless scroll or resize
         # but maybe tracking scroll/resize is more expensive...
@@ -620,7 +657,7 @@ class WebView(QWebView):
         view_geom.translate(self.page().mainFrame().scrollPosition())
 
         # which nodes from the entire page are, in any way, visible right now?
-        if links:
+        if navigables:
             navlist = self.__generate_navlist()
             return [node for node in navlist
                     if view_geom.intersects(node.geometry())]
@@ -636,6 +673,8 @@ class WebView(QWebView):
 
         Called externally from WebTab when nav_bar is hidden
 
+        NAV11 DOM01
+
         """
 
         for label in self.__labels:
@@ -650,15 +689,17 @@ class WebView(QWebView):
         """ Create labels for the web nodes in 'source'; if not defined,
         find all visible anchor nodes first
 
-        TODO pass a color; important for 'title' tags
+        TODO pass a color? for 'title' tags
+
+        NAV11 DOM01
 
         """
 
         if target == "links":
-            source = self.__find_visible_navigables()
+            source = self.__find_visible(navigables=True)
             self.attr.clear('find_titles')
         elif target == "titles":
-            source = self.__find_visible_navigables(links=False)
+            source = self.__find_visible(navigables=False)
             self.attr.insert('find_titles')
 
         self.map_tags = dict(zip(ALL_TAGS, source))
@@ -688,7 +729,11 @@ class WebView(QWebView):
             label.move(label.x(), label.y() + label.height() // 4)
 
     def akeynav(self, candidate):
-        """ find and set focus on the node with the given label (if any) """
+        """ find and set focus on the node with the given label (if any)
+
+        NAV11
+
+        """
 
         candidate = candidate.upper()
         if candidate in self.map_tags:
@@ -714,11 +759,13 @@ class WebView(QWebView):
         """ find web link nodes, move through them;
         initial testing to replace webkit's spatial navigation
 
+        NAV12
+
         """
 
         target = None
 
-        localnav = self.__find_visible_navigables()  # this generates a navlist
+        localnav = self.__find_visible(navigables=True)  # generates a navlist
 
         if not localnav:
             print("No anchors in current view?")
@@ -755,6 +802,8 @@ class WebView(QWebView):
         """ Reimplementation from base class. Detects middle clicks
         and sets self.paste
 
+        TAB03
+
         """
         if event.buttons() & Qt.MiddleButton:
             self.attr.toggle('paste', 'P')
@@ -765,6 +814,8 @@ class WebView(QWebView):
     def __focus_in_event(self, event):
         """ Turn on javascript when the WebView is focused if scripting
         was already turned on
+
+        JS01
 
         """
 
@@ -778,7 +829,11 @@ class WebView(QWebView):
         return QWebView.focusInEvent(self, event)
 
     def __focus_out_event(self, event):
-        """ Turn off javascript if the WebView is not focused """
+        """ Turn off javascript if the WebView is not focused
+
+        JS01
+
+        """
 
         if self.javascript() and 'in_page_load' not in self.attr:
             self.attr.insert('stored_scripting_on')
@@ -790,6 +845,8 @@ class WebView(QWebView):
     def javascript(self, state=None):
         """ if called without parameters, return current state of javascript
         being enabled; otherwise, turn javascript on or off
+
+        JS01 TOG01
 
         """
         if state is None:

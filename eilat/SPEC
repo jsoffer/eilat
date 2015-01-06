@@ -1,0 +1,123 @@
+* start app APP0
+* close app APP1
+
+* add tab TAB0
+    * with scripting on TAB01
+    * from clipboard URL TAB02
+    * from middle click on link TAB03
+    * from keyboard request TAB04
+    * cross-instance TAB05
+* close tab TAB1
+    * current, from keyboard TAB11
+    * from tab bar, middle click TAB12
+    . not with 'close' button (disable) TAB13
+* restore last closed tab TAB2
+* visit next, previous tab TAB3
+
+* enter URL on address bar AB0
+    * autocomplete / explore autocompletion AB01
+
+
+* navigate to URL, BRW01
+     after:
+    * translating to a web search if not a URL proper BRW11
+    * resolving URL shorteners or redirection, if applies BRW12
+
+* navigate in page
+    * scroll NAV01
+    * zoom NAV02
+    * navigate links
+        * access key: place labels, allow to select one NAV11
+        * spatial: shift+hjkl (arrows); short range, high tolerance NAV12
+
+* access the DOM
+    * find elements with 'title', select one, show title in notification DOM01
+    * remove or freeze in place 'fixed' elements DOM02
+    * flatten iframes DOM03
+    * save the page's DOM to file (similar, but not quite like, 'view source') DOM04
+
+* toggles
+    * javascript active TOG01
+    * detailed log reporting TOG02
+    * download fonts TOG03
+
+* javascript
+    + temporarily deactivate javascript when not in use (out of focus, etc) JS01
+
+* debug
+    * dump GC state DEB01
+    * start/stop profiling, dump results DEB02
+
+* configuration
+    * custom CSS CFG01
+        * interface CSS CFG11
+    * isolated instances for defined sites CFG02
+
+* video playing
+    * pass URL to mpv VID01
+
+* console-like keyboard
+    * ^J, ^H
+        * backspace for back() (needed for ^H)
+    * fake mouse click
+
+* copy to clipboard CB01
+    + download requests CB02
+        * clicks pre-marked as 'download', instead of navigate CB03
+        * downloadRequested, unsupportedContent signals CB04
+    * current URL CB05
+
++ cookies
+    + block non-whitelisted cookies COO01
+    + save and load cookies COO02
+
+- notifications
+    - which instance is this tab on
+    - is javascript active on this tab?
+    - a download was requested (or unsupported content emerged)
+    - the mouse cursor is over a link (with auxiliar key pressed)
+    - a navigation request was performed (no response yet)
+    - % load progress
+    - show secondary navigation requests
+        - if from the same host and not iframe, or filtered: detailed log
+    - show cookies as they are set (detailed log)
+    - show selected link's URL
+
+Notification targets:
+    - NotifyLabel: blue, stackable, middle of the screen
+    - MessageLabel: yellow, corner of the screen
+    - pseudo-statusbar: in the address bar, in different color
+    - info_label: small label next to the address bar
+    - colorama-ed console
+
+-------------
+
+Window
+    + set title
+
+Tab bar
+    . slim tab size
+    . highlight active tab
+
+Tab
+* most input/output goes here
+    + display web page
+    * search in page
+    * address bar (input)
+        - show visited URL
+
+View
+    * play videos through external app
+    + user css per host
+
+Filters
+    * is a local URL?
+    * is a web font?
+    * is there a weblist - and not on it?
+
+Options
+    + load options file
+        + proxy
+        + instance info
+    + identify instance
+
