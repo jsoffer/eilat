@@ -44,8 +44,9 @@ from functools import partial
 # local
 from eilat.WebTab import WebTab
 
-from eilat.libeilat import fix_url, set_shortcuts
+from eilat.libeilat import fix_url, set_shortcuts, notify
 from eilat.global_store import clipboard, close_managers
+from eilat.options import load_options, load_css
 
 import gc
 import sys
@@ -100,8 +101,16 @@ class MainWin(QMainWindow):
             for pair in pairs:
                 print(pair)
 
+        def reload_disk_init():
+            """ transfer options.yaml and the css directory to global maps """
+            load_options()
+            load_css()
+            notify("reloaded disk config")
+
         set_shortcuts([
             ("F9", self, dump_gc),
+            # reload configuration
+            ("Ctrl+Shift+R", self, reload_disk_init),
             # new tabs
             ("Ctrl+T", self, self.add_tab),
             ("Ctrl+Shift+T", self, partial(self.add_tab, scripting=True)),
