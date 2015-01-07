@@ -50,7 +50,8 @@ from eilat.global_store import mainwin, clipboard, database
 
 
 class WebTab(QWidget):
-    """ Cada tab contiene una página web """
+    """ The tab contains chrome plus a web view; is hosted on a tab bar """
+
     def __init__(self, parent=None):
         super(WebTab, self).__init__(parent)
 
@@ -66,14 +67,14 @@ class WebTab(QWidget):
         self.webkit = WebView(parent=self)
 
         # set_prefix: app defined, carries str
-        self.webkit.set_prefix.connect(self.address_bar.set_model)
+        self.webkit.set_prefix.connect(self.address_bar.set_model)  # CFG02
         # javascript_state: app defined, carries bool
         self.webkit.javascript_state.connect(self.address_bar.set_bgcolor)
 
         # small label displaying instance ID and pending tab operations
 
         info_label = QLabel(parent=self)
-        info_label.setText('?')
+        info_label.setText('?')  # CFG02
 
         # webkit_info: app defined, carries str
         self.webkit.attr.webkit_info.connect(info_label.setText)
@@ -84,6 +85,8 @@ class WebTab(QWidget):
 
             Required because a 3XX HTTP redirection will change the address,
             and without updating, the address bar will be left stale
+
+            AB02 AB03
 
             """
             self.current['address'] = qurl.toString()
@@ -170,8 +173,15 @@ class WebTab(QWidget):
             partial(self.address_bar.set_txt_color,
                     color=QColor(128, 128, 128)))
 
-        # WARNING scrollRequested carries int, int, QRect
-        self.webkit.page().scrollRequested.connect(self.message_label.hide)
+        def hide_message_label(*_):
+            """ WARNING scrollRequested carries int, int, QRect;
+            star swallows all
+
+            """
+            self.message_label.hide()
+
+        self.webkit.page().scrollRequested.connect(hide_message_label)
+
         # focus_webkit (app defined) carries nothing
         self.webkit.hide_overlay.connect(self.message_label.hide)
         self.webkit.focus_webkit.connect(self.address_bar.restore)
@@ -185,8 +195,7 @@ class WebTab(QWidget):
         self.pbar.setMaximumHeight(7)
 
         # search in page
-        self.search_frame = SearchFrame(parent=self)
-
+        self.search_frame = SearchFrame(parent=self)  # NAV20
         # textChanged carries str
         self.search_frame.search_line.textChanged.connect(self.do_search)
 
@@ -207,12 +216,12 @@ class WebTab(QWidget):
         grid.addWidget(self.pbar, 3, 0, 1, 3)
 
         def show_search():
-            """ One-time callback for QShortcut """
+            """ One-time callback for QShortcut NAV20 """
             self.search_frame.setVisible(True)
             self.search_frame.search_line.setFocus()
 
         def hide_search():
-            """ One-time callback for QShortcut """
+            """ One-time callback for QShortcut NAV20 """
             self.search_frame.setVisible(False)
             self.webkit.findText("")
             self.webkit.setFocus()
@@ -223,6 +232,8 @@ class WebTab(QWidget):
 
             Not the best way to do this. It would be better to find out what
             function is being called by that arrow press.
+
+            AB01
 
             """
             event = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier)
@@ -235,6 +246,8 @@ class WebTab(QWidget):
             could have changed because of a hover event).
 
             Optionally, store the original address in the clipboard.
+
+            AB03
 
             """
 
@@ -251,6 +264,8 @@ class WebTab(QWidget):
         def enter_address_bar(clear=True):
             """ do not try entering the address bar if a load is in
             progress; do an 'stop' first
+
+            AB00
 
             """
 
@@ -269,42 +284,46 @@ class WebTab(QWidget):
 
             if 'in_page_load' not in self.webkit.attr:
                 self.message_label.hide()
+                self.webkit.update()
             else:
                 self.webkit.stop()
 
         set_shortcuts([
-            # search
+            # search NAV20
             ("G", self.webkit, show_search),
             ("Escape", self.search_frame, hide_search),
             ("Return", self.search_frame, self.do_search),
             ("Ctrl+J", self.search_frame, self.do_search),
-            # go to page
+            # go to page AB00
             ("Ctrl+J", self.address_bar, partial(
                 self.webkit.navigate, self.address_bar)),
             ("Return", self.address_bar, partial(
                 self.webkit.navigate, self.address_bar)),
             # address bar interaction
             ("A", self.webkit, cancel),
-            ("Ctrl+L", self.webkit, enter_address_bar),
+            ("Ctrl+L", self.webkit, enter_address_bar),  # AB00
             ("Ctrl+Shift+L", self.webkit, partial(
                 enter_address_bar, clear=False)),
-            ("Escape", self.address_bar, self.webkit.setFocus),
-            ("Ctrl+I", self.address_bar, navigate_completion),
+            ("Escape", self.address_bar, self.webkit.setFocus),  # AB00
+            ("Ctrl+I", self.address_bar, navigate_completion),  # AB01
             ("Ctrl+P", self.address_bar, partial(
                 navigate_completion, Qt.Key_Up)),
             # in-page element navigation
-            ("Ñ", self, self.enter_nav),
+            ("Ñ", self, self.enter_nav),  # NAV11
             (";", self, self.enter_nav),
+            # DOM01
             ("Ctrl+Ñ", self, partial(self.enter_nav, target="titles")),
             # toggle
-            ("Q", self.webkit, self.toggle_script),
+            ("Q", self.webkit, self.toggle_script),  # TOG01
             # clipboard
-            ("E", self, partial(reset_addressbar, store=True))
+            ("E", self, partial(reset_addressbar, store=True))  # CB05
             ])
 
     def enter_nav(self, target="links"):
         """ A request for access-key navigation was received; display
         link labels and go to the input area
+
+        NAV11
 
         """
 
@@ -318,15 +337,18 @@ class WebTab(QWidget):
         the opposite
 
         Callback for shortcut action
+
+        TOG01
+
         """
 
         self.webkit.javascript(not self.webkit.javascript())
 
     def load_progress(self, val):
         """ Callback for connection """
-        if self.pbar.isVisible():
-            self.pbar.setValue(val)
-            self.set_title("{}% {}".format(val, self.current['title']))
+
+        self.pbar.setValue(val)
+        self.set_title("{}% {}".format(val, self.current['title']))
 
     # connect (en constructor)
     def load_started(self):
@@ -379,6 +401,8 @@ class WebTab(QWidget):
         """ Find text on the currently loaded web page. If no text
         is provided, it's extracted from the search widget.
 
+        NAV20
+
         """
         if search is None:
             search = self.search_frame.search_line.text()
@@ -388,6 +412,8 @@ class WebTab(QWidget):
 class SearchFrame(QFrame):
     """ A frame with a label and a text entry. The text is provided to
     the application upwards to perform in-page search.
+
+    NAV20
 
     """
 
@@ -430,13 +456,15 @@ class AddressBar(QLineEdit):
         set_shortcuts([
             ("Ctrl+H", self, self.backspace),
             # do not create a new tab when on the address bar;
-            # popup related trouble
+            # popup related trouble BF001
             ("Ctrl+T", self, lambda: None),
             ("Ctrl+Shift+T", self, lambda: None)
         ])
 
     def clear_and_focus(self):
         """ called by keybinding when edition of the address bar is requested
+
+        AB00
 
         """
 
@@ -448,11 +476,14 @@ class AddressBar(QLineEdit):
         be done through an instance variable because of a bug (will not
         complete the line edit otherwise)
 
+        CFG02
+
         """
 
         # storage in __model is required because, apparently, the value
-        # returned from DatabaseLogLite.model() is deleted somehow if used
-        # directly to set the QCompleter, disabled completion silently
+        # returned from DatabaseLogLite.model() is deleted somehow (not stored
+        # anywhere) if used directly to set the QCompleter, disabling
+        # completion silently
         self.__model = database().model(prefix)
         self.__completer = QCompleter(self.__model, self)
         self.setCompleter(self.__completer)
@@ -483,8 +514,10 @@ class AddressBar(QLineEdit):
         self.setText(text)
 
     def restore(self):
-        """ After clearing out the address bar for text input, if cancelled,
-        go back to the previous state
+        """ After clearing out (or modifying) the address bar for text input,
+        if cancelled, go back to the previous state
+
+        AB03
 
         """
 
@@ -495,6 +528,8 @@ class NavigateInput(QLineEdit):
     """ When access-key navigation starts, jump to a line edit, where it's
     easier to input the label name than intercepting keystrokes inside
     the web view
+
+    NAV11 DOM01
 
     """
 
@@ -516,7 +551,8 @@ class NavigateInput(QLineEdit):
 
     def focus_out_event(self, _):
         """ If the line edit loses focus (either by regular means, or because
-        it has been hidden by 'exit'), notify the webkit
+        it has been hidden by the app through the 'exit' method), notify
+        the webkit
 
         """
 

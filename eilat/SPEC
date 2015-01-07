@@ -14,9 +14,10 @@
 * restore last closed tab TAB2
 * visit next, previous tab TAB3
 
-* enter URL on address bar AB0
+* enter URL on address bar AB00
     * autocomplete / explore autocompletion AB01
-
+    * receive new URL from navigation AB02
+    * restore URL after modification AB03
 
 * navigate to URL, BRW01
      after:
@@ -29,6 +30,7 @@
     * navigate links
         * access key: place labels, allow to select one NAV11
         * spatial: shift+hjkl (arrows); short range, high tolerance NAV12
+    * search in page NAV20
 
 * access the DOM
     * find elements with 'title', select one, show title in notification DOM01
@@ -90,6 +92,9 @@ Notification targets:
     - info_label: small label next to the address bar
     - colorama-ed console
 
+Bug fixes:
+    BF001 do not create a new tab when on the address bar
+
 -------------
 
 Window
@@ -102,7 +107,6 @@ Tab bar
 Tab
 * most input/output goes here
     + display web page
-    * search in page
     * address bar (input)
         - show visited URL
 
