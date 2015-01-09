@@ -43,6 +43,8 @@ class DatabaseLogLite(object):
     """ Low load only; using SQLite
     To store bookmarks, configuration, etc.
 
+    AB01 CFG02
+
     """
     def __init__(self):
 
@@ -63,34 +65,13 @@ class DatabaseLogLite(object):
                 " path TEXT, count INTEGER default 0, prefix char(2)," +
                 " PRIMARY KEY (host, path))")
 
-            query_mkblacklist = (
-                "CREATE TABLE blacklist (subdomain text," +
-                " domain text, tld text, primary key(domain, tld, subdomain))")
-
-            inserts = [
-                ('google', 'com'),
-                ('googleusercontent', 'com'),
-                ('gstatic', 'com'),
-                ('googleapis', 'com'),
-                ('facebook', 'com'),
-                ('fbcdn', 'net'),
-                ('twitter', 'com'),
-                ('twimg', 'com')]
-
-            query_insertbl = (
-                "INSERT INTO blacklist values (NULL, '{}', '{}')")
-
             self.litedb.exec_(query_mknav)
-            self.litedb.exec_(query_mkblacklist)
-
-            for host, tld in inserts:
-                self.litedb.exec_(query_insertbl.format(host, tld))
 
         # ###### VALIDATION
         # verifies database structure, not datatypes
 
         tables = self.litedb.tables()
-        tables_ok = [k in tables for k in ['navigation', 'blacklist']]
+        tables_ok = [k in tables for k in ['navigation']]
         if not all(tables_ok):
             raise RuntimeError("tables missing from database")
 
@@ -99,12 +80,6 @@ class DatabaseLogLite(object):
 
         if not all(fnav_ok):
             raise RuntimeError("bad structure for 'navigation' table")
-
-        fbl_ok = [self.litedb.record('blacklist').contains(k)
-                  for k in ['subdomain', 'domain', 'tld']]
-
-        if not all(fbl_ok):
-            raise RuntimeError("bad structure for 'blacklist' table")
 
     def model(self, prefix=None):
         """ recreate the model each call; opening a new window will not
@@ -117,7 +92,7 @@ class DatabaseLogLite(object):
                 "select host || path from navigation " +
                 "order by count desc",
                 self.litedb)
-        else:
+        else:  # CFG02
             query_nav = QSqlQuery(
                 "select host || path from navigation " +
                 "where prefix = '{}' ".format(prefix) +
@@ -125,11 +100,11 @@ class DatabaseLogLite(object):
                 self.litedb)
 
         ret_model = QSqlQueryModel()
-        ret_model.setQuery(query_nav)
+        ret_model.setQuery(query_nav)  # AB01
         return ret_model
 
     def store_navigation(self, host, path, prefix):
-        """ save host, path and increase its count """
+        """ save host, path and increase its count AB01 """
 
         host = host.replace("'", "%27")
         path = path.replace("'", "%27")
