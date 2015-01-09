@@ -42,7 +42,7 @@ from PyQt5.QtCore import QUrl
 
 from eilat.CookieJar import CookieJar
 from eilat.libeilat import (is_local, non_whitelisted,
-                            is_font, is_numerical,
+                            is_font, is_numerical, notify,
                             encode_blocked)
 from eilat.global_store import database, get_options
 
@@ -61,7 +61,7 @@ DO_NOT_STORE = [
 
 
 def compare_host(host1, host2):
-    """ True if the domain.suffix part of both hosts is the same """
+    """ True if the domain.suffix part of both hosts is the same TAB05 """
 
     (_, domain1, suffix1) = tldextract.extract(host1)
     (_, domain2, suffix2) = tldextract.extract(host2)
@@ -168,7 +168,7 @@ class InterceptNAM(QNetworkAccessManager):
         # reference needed to save in shutdown
         self.cookie_jar = CookieJar(parent=self,
                                     options=get_options()['sites'][instance])
-        self.setCookieJar(self.cookie_jar)
+        self.setCookieJar(self.cookie_jar)  # COO02
 
         self.setCache(DiskCacheDir(instance, parent=self))
 
@@ -178,6 +178,8 @@ class InterceptNAM(QNetworkAccessManager):
 
             Replies only - if the request doesn't have to go
             through the network, it will not be reported here
+
+            AB01
 
             """
 
@@ -218,7 +220,7 @@ class InterceptNAM(QNetworkAccessManager):
                 host = sub("^www.", "", qurl.host())
                 path = qurl.path().rstrip("/ ")
 
-                if (
+                if (  # AB01
                         (host not in DO_NOT_STORE) and
                         (not qurl.hasQuery()) and
                         len(path.split('/')) < 4 and
@@ -250,6 +252,7 @@ class InterceptNAM(QNetworkAccessManager):
             """
 
             reply.ignoreSslErrors()
+            notify("[S]")
             show_labeled("SSL",
                          reply.url(),
                          detail="/".join([k.errorString() for k in errors]),
@@ -281,6 +284,8 @@ class InterceptNAM(QNetworkAccessManager):
 
     def create_request(self, operation, request, data):
         """ Reimplemented to intercept requests. Stops blacklisted requests
+
+        CFG02
 
         """
 
@@ -342,6 +347,7 @@ class InterceptNAM(QNetworkAccessManager):
         (subdomain, domain, suffix) = tldextract.extract(url)
         subdomain = subdomain if subdomain != '' else None
 
+        # FIXME this entire block (and maybe the one above) feels half-baked
         for (stop_case, description, detail, show) in [
                 # if 'domain' or 'suffix' are not valid, stop;
                 # should never happen (even though it does - some providers
@@ -355,9 +361,9 @@ class InterceptNAM(QNetworkAccessManager):
                 # whitelists; this means it belong to another instance,
                 # assuming exclusivity
                 # TODO 'domain + suffix' is a maybe bad generalization
-                (whitelist is None and
+                (whitelist is None and  # CFG02
                  domain + '.' + suffix in get_options()['all_whitelists'],
-                 "NEG-WL FILTER", "{} || {} || {} ".format(
+                 "WHITELIST^C FILTER", "{} || {} || {} ".format(
                      subdomain,
                      domain,
                      suffix), self.show_detail)
