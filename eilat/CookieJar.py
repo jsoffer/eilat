@@ -79,7 +79,7 @@ class CookieJar(QNetworkCookieJar):
                     cookies = [QNetworkCookie.parseCookies(k)
                                for k in readfile.readlines()]
                     cookies = [x for y in cookies for x in y]  # flatten
-                    self.setAllCookies(cookies)
+                    self.setAllCookies(cookies)  # COO02
             except IOError:
                 print("LOAD COOKIES: empty?")
 
@@ -92,7 +92,7 @@ class CookieJar(QNetworkCookieJar):
         if self.storage is not None:
             print("Store cookies...", self.storage)
             with open(self.storage, "w") as savefile:
-                for cookie in self.allCookies():
+                for cookie in self.allCookies():  # COO02
                     savefile.write(cookie.toRawForm().data().decode()+"\n")
             print("stored cookies...", self.storage)
 
@@ -106,7 +106,7 @@ class CookieJar(QNetworkCookieJar):
 
         if site not in self.allowed:
             if self.parent().show_detail:
-                print("COOKIE FROM {} not set".format(url.toString()))
+                print("COOKIE FROM {} not set".format(url.toString()))  # COO01
             ret = []
         else:
             print("SET COOKIE FROM {}".format(url.toString()))
