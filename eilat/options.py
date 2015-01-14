@@ -3,10 +3,13 @@ Default values for NAM instances
 
 """
 
+from PyQt5.QtNetwork import QSslConfiguration, QSslCertificate
+
 import tldextract
 
 import yaml
 from os.path import expanduser
+import re
 from glob import glob
 
 from eilat.global_store import set_options, get_options, set_css
@@ -94,3 +97,49 @@ def extract_instance(url):
         return host
     else:
         return 'general'
+
+
+def split_certificates(cert_file):
+    """ input: a file containing X.509 PEM certificates; output: a list of
+    strings, each containing a single certificate
+
+    """
+
+    try:
+        with open(cert_file) as pem_file:
+            certificates = pem_file.read()
+
+        expression = re.compile("-----BEGIN CERTIFICATE-----"
+                                ".*?"  # *? is non greedy
+                                "-----END CERTIFICATE-----",
+                                re.S)  # re.S matches newline with *
+    except FileNotFoundError:
+        return None
+
+    return expression.findall(certificates)
+
+
+def load_certificates():
+    """ load (if existing and not empty) the local PEM file; split it into
+    individual certificates, add each to the default configuration
+
+    """
+
+    local_cert_path = expanduser("~/.eilat/local.pem")
+    local_certificates = split_certificates(local_cert_path)
+
+    if local_certificates:
+        print(r"""
+        /----------------------------\
+        SETTING LOCAL SSL CERTIFICATES
+        \----------------------------/
+
+
+        """)
+        current_configuration = QSslConfiguration.defaultConfiguration()
+        current_certs = current_configuration.caCertificates()
+        for certificate in local_certificates:
+            current_certs.append(QSslCertificate(certificate))
+
+            current_configuration.setCaCertificates(current_certs)
+            QSslConfiguration.setDefaultConfiguration(current_configuration)

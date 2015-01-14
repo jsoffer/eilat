@@ -214,7 +214,7 @@ def notify(text):
 SHORTENERS = [
     "t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly", "dlvr.it",
     "dailym.ai", "fb.me", "wp.me", "amzn.to", "slate.me", "ht.ly",
-    "ow.ly", "j.mp", "met.org", "youtu.be", "tmblr.co"
+    "ow.ly", "j.mp", "met.org", "youtu.be", "tmblr.co", "owl.li"
 ]
 
 REDIRECTORS = [
