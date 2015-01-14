@@ -255,7 +255,10 @@ class InterceptNAM(QNetworkAccessManager):
             notify("[S]")
             show_labeled("SSL",
                          reply.url(),
-                         detail="/".join([k.errorString() for k in errors]),
+                         detail="/".join([
+                             k.certificate().toText() +
+                             k.errorString()
+                             for k in errors]),
                          color=Fore.RED)
 
         self.sslErrors.connect(handle_ssl_error)
