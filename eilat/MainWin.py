@@ -65,7 +65,7 @@ class MainWin(QMainWindow):
         self.last_closed = None
 
         self.tab_widget = QTabWidget(self)
-        self.tab_widget.setTabBar(MidClickTabBar())
+        self.tab_widget.setTabBar(MidClickTabBar(self))
         self.tab_widget.tabBar().setMovable(True)
         self.tab_widget.setTabsClosable(True)
 
@@ -233,6 +233,10 @@ class MainWin(QMainWindow):
 
 class MidClickTabBar(QTabBar):
     """ Overloads middle click to close the clicked tab """
+
+    def __init__(self, parent=None):
+        super(MidClickTabBar, self).__init__(parent=parent)
+
     def mouse_release_event(self, event):
         """ Emits the "close tab" signal if a middle click happened """
         if event.button() == Qt.MidButton:
