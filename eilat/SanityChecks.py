@@ -102,16 +102,14 @@ def check_proxy(host, port):
         print("No proxy set up at options.yaml")
         return False
 
-    try:
-        import socket
-        proxy = socket.socket()
-        proxy.connect((host, port))
-        return True
-    except ConnectionRefusedError:
-        print("No proxy on {}:{}?".format(host, str(port)))
-        return False
-    finally:
-        proxy.close()
+    import socket
+    with socket.socket() as proxy:
+        try:
+            proxy.connect((host, port))
+            return True
+        except ConnectionRefusedError:
+            print("No proxy on {}:{}?".format(host, str(port)))
+            return False
 
 OPTIONS_YAML = """# default options.yaml, written from SanityChecks.py
 proxy:
