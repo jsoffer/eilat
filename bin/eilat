@@ -44,7 +44,9 @@ from eilat.SanityChecks import (check_libraries,
                                 check_python_3,
                                 check_dotfile)
 
-from eilat.options import proxy_options, load_options, load_css
+from eilat.options import (proxy_options, load_options,
+                           load_css,
+                           load_certificates)
 
 check_python_3()
 check_libraries()
@@ -95,6 +97,9 @@ def main():
     # read startup from disk; options from file, css from directory
     load_options()
     load_css()
+
+    # extra PEM SSL certificates from file ($HOME/.eilat/local.pem)
+    load_certificates()
 
     # Proxy
     (proxy_host, proxy_port) = proxy_options()
