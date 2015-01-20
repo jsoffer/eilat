@@ -11,6 +11,7 @@ import yaml
 from os.path import expanduser
 import re
 from glob import glob
+from collections import defaultdict
 
 from eilat.global_store import set_options, get_options, set_css
 from base64 import encodestring
@@ -51,9 +52,13 @@ def load_css():
 
     """
 
-    css_dictionary = {}
-    css_files = glob(expanduser("~/.eilat/css/")+"*.css")
     header = b"data:text/css;charset=utf-8;base64,"
+    empty = (header + encodestring(GLOBAL_CSS)).decode().strip()
+
+    # the defaultdict will return the content of 'empty' for missing keys
+    css_dictionary = defaultdict(lambda: empty)
+
+    css_files = glob(expanduser("~/.eilat/css/")+"*.css")
 
     for css_file in css_files:
         with open(css_file) as file_handle:
@@ -64,10 +69,6 @@ def load_css():
         # filename without extension; also, host to apply css to
         key = css_file.split('/')[-1].split('.css')[0]
         css_dictionary[key] = (header + encoded).decode().strip()
-
-    # default key; every host without .css file, load the global css only
-    empty = (header + encodestring(GLOBAL_CSS)).decode().strip()
-    css_dictionary[None] = empty
 
     set_css(css_dictionary)
 
