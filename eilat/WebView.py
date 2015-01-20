@@ -58,6 +58,7 @@ from eilat.options import extract_instance
 
 from os.path import expanduser
 import datetime
+from time import time
 
 from threading import Thread
 from subprocess import Popen
@@ -275,6 +276,8 @@ class WebView(QWebView):
         self.attr = Attributes(parent=self)
         self.attr.css_path = expanduser("~/.eilat/css/")  # CFG01
 
+        self.started_at = None
+
         # a web element node
         self.__in_focus = None  # NAV11, NAV12
 
@@ -322,7 +325,8 @@ class WebView(QWebView):
             if 'play' in self.attr:
                 print("PLAYING")
 
-                Thread(target=partial(self.play_mpv, qurl)).start()  # VID01
+                Thread(target=partial(self.play_mpv, qurl),
+                       daemon=True).start()  # VID01
 
                 self.attr.clear('play')
 
@@ -359,12 +363,15 @@ class WebView(QWebView):
             CFG01
 
             """
+
+            print("CHGD ({}s)".format(time() - self.started_at))
+            self.started_at = time()
+
             host_id = real_host(qurl.host())
 
             css_map = get_css()
 
-            css_pseudo_file = (
-                css_map[host_id] if host_id in css_map else css_map[None])
+            css_pseudo_file = css_map[host_id]
             self.settings().setUserStyleSheetUrl(QUrl(css_pseudo_file))
 
         # urlChanged carries QUrl
@@ -395,6 +402,8 @@ class WebView(QWebView):
             self.attr.insert('in_page_load')
             self.__in_focus = None
 
+            self.started_at = time()
+
             # profiling()
 
         self.page().loadStarted.connect(load_started)
@@ -407,6 +416,8 @@ class WebView(QWebView):
             Remove the "we're starting to load" attribute.
 
             """
+
+            print("DONE ({}s)".format(time() - self.started_at))
 
             if (not self.hasFocus() and
                     'in_page_load' not in self.attr and
