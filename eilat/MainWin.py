@@ -196,8 +196,7 @@ class MainWin(QMainWindow):
         self.tab_widget.widget(idx).deleteLater()
         self.tab_widget.removeTab(idx)
         if len(self.tab_widget) == 0:
-            close_managers()
-            self.close()
+            close_managers()  # also does an os.__exit
         else:
             self.tab_widget.currentWidget().webkit.setFocus()
 
@@ -289,8 +288,8 @@ class NotifyLabel(QLabel):
 
         """
 
-        if len(self.content) > 0:
+        if self.content:
             self.content.popleft()
             self.setText(" " + " | ".join(self.content) + " ")
-        if len(self.content) == 0:
+        if not self.content:  # may have been modified above by popleft()
             self.hide()
