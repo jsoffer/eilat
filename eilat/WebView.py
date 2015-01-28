@@ -37,17 +37,17 @@
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 from PyQt5.QtWebKit import QWebSettings, QWebElement
 
-from PyQt5.Qt import QLabel, QToolTip, QFrame, QLineEdit
-from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QPoint, QObject
+from PyQt5.Qt import QApplication, QLabel, QToolTip, QFrame, QLineEdit
+from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QPoint, QObject, QEvent
 
-from PyQt5.QtGui import QColor, QPalette
+from PyQt5.QtGui import QColor, QPalette, QKeyEvent
 
 from functools import partial
 
 from eilat.InterceptNAM import InterceptNAM
 from eilat.libeilat import (fix_url, set_shortcuts,
                             real_host,
-                            fake_key, fake_click,
+                            fake_click,
                             notify, do_redirect)
 
 from eilat.global_store import (mainwin, clipboard,
@@ -73,6 +73,17 @@ UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
+
+
+def fake_key(web_view, key):
+    """ Generate a fake key click in the widget """
+    current_javascript = web_view.javascript()
+    web_view.javascript(False)
+    enter_event = QKeyEvent(
+        QEvent.KeyPress, key,
+        Qt.KeyboardModifiers())
+    QApplication.sendEvent(web_view, enter_event)
+    web_view.javascript(current_javascript)
 
 
 def toggle_show_logs(prefix):

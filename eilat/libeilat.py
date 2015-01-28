@@ -34,7 +34,7 @@
 
 """
 
-from PyQt5.QtGui import QMouseEvent, QKeyEvent, QCursor
+from PyQt5.QtGui import QMouseEvent, QCursor
 from PyQt5.QtCore import QUrl, QEvent, Qt
 from PyQt5.Qt import QApplication, QShortcut
 
@@ -160,14 +160,6 @@ def encode_blocked(message, url):
     <a href={}>{}</a></div></body>""".format(message, url, url)
     encoded = encodestring(content.encode())
     return (header + encoded).decode()
-
-
-def fake_key(widget, key):
-    """ Generate a fake key click in the widget """
-    enter_event = QKeyEvent(
-        QEvent.KeyPress, key,
-        Qt.KeyboardModifiers())
-    QApplication.sendEvent(widget, enter_event)
 
 
 def fake_click(widget):
