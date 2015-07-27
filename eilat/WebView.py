@@ -48,7 +48,8 @@ from eilat.InterceptNAM import InterceptNAM
 from eilat.libeilat import (fix_url, set_shortcuts,
                             real_host,
                             fake_click,
-                            notify, do_redirect)
+                            notify, do_redirect,
+                            play_mpv)
 
 from eilat.global_store import (mainwin, clipboard,
                                 has_manager, register_manager, get_manager,
@@ -61,7 +62,6 @@ import datetime
 from time import time
 
 from threading import Thread
-from subprocess import Popen
 
 from colorama import Fore
 
@@ -336,7 +336,7 @@ class WebView(QWebView):
             if 'play' in self.attr:
                 print("PLAYING")
 
-                Thread(target=partial(self.play_mpv, qurl),
+                Thread(target=partial(play_mpv, qurl),
                        daemon=True).start()  # VID01
 
                 self.attr.clear('play')
@@ -482,7 +482,9 @@ class WebView(QWebView):
             if title:
                 self.show_message.emit(self.title())
             elif self.__in_focus is not None:
-                self.show_message.emit(self.__in_focus.attribute('href'))
+                qurl = QUrl(self.__in_focus.attribute('href'))
+                qurl = do_redirect(qurl)
+                self.show_message.emit(qurl.toString())
 
         set_shortcuts([
             # notifications
@@ -532,24 +534,6 @@ class WebView(QWebView):
             ("0", self, partial(profiling, begin=False))  # DEB02
             ])
 
-    def play_mpv(self, qurl):
-        """ Will try to open an 'mpv' instance running the video pointed at
-        in 'qurl'. Warns if 'mpv' is not installed or available.
-
-        To be executed in a separate thread. That way, 'wait' will not block.
-
-        VID01
-
-        """
-
-        try:
-            process = Popen(['mpv', qurl.toString()])
-            process.wait()  # wait, or mpv will be <defunct> after exiting!
-            if process.returncode != 0:
-                self.statusBarMessage.emit("mpv can't play: status {}".format(
-                    process.returncode))
-        except FileNotFoundError:
-            print("'mpv' video player not available")
 
     # action (en register_actions)
     def navigate(self, request=None):

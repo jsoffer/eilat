@@ -40,6 +40,8 @@ from PyQt5.Qt import QApplication, QShortcut
 
 from urllib.parse import parse_qsl, urlparse
 
+from subprocess import call
+
 import tldextract
 
 import http
@@ -206,7 +208,10 @@ def notify(text):
 SHORTENERS = [
     "t.co", "bit.ly", "tinyurl.com", "po.st", "buff.ly", "dlvr.it",
     "dailym.ai", "fb.me", "wp.me", "amzn.to", "slate.me", "ht.ly",
-    "ow.ly", "j.mp", "met.org", "youtu.be", "tmblr.co", "owl.li"
+    "ow.ly", "j.mp", "met.org", "youtu.be", "tmblr.co", "owl.li",
+    "toi.sr", "rol.st", "greatergood.me", "huff.to", "ble.ac", "uproxx.it",
+    "ind.pn", "lsa.io", "igg.me", "on.tcrn.ch", "frsky.me", "ftgv.com",
+    "flic.kr", "on.fb.me", "goo.gl", "shar.es"
 ]
 
 REDIRECTORS = [
@@ -247,3 +252,23 @@ def do_redirect(qurl):
         qurl = QUrl(location)
 
     return qurl
+
+def play_mpv(qurl):
+    """ Will try to open an 'mpv' instance running the video pointed at
+    in 'qurl'. Warns if 'mpv' is not installed or available.
+
+    To be executed in a separate thread. That way, 'wait' will not block.
+
+    VID01
+
+    """
+
+    try:
+        process_returncode = call(['mpv', qurl.toString()])
+        if process_returncode != 0:
+            notify("mpv can't play: status {}".format(
+                process_returncode))
+        #    self.statusBarMessage.emit("mpv can't play: status {}".format(
+        #        process_returncode))
+    except FileNotFoundError:
+        print("'mpv' video player not available")
