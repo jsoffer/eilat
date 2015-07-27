@@ -35,6 +35,8 @@ def load_options():
     options_yaml['all_whitelists'] = set(all_whitelists)  # no repetitions
     set_options(options_yaml)
 
+# note: modifying GLOBAL_CSS in disk doesn't make load_css update it,
+# because it uses the in-memory stored at first file load
 
 GLOBAL_CSS = b""" :focus > img, a:focus, input:focus {
 outline-color: rgba(160, 160, 255, 0.6) ! important;
@@ -43,6 +45,7 @@ outline-width: 10px ! important;
 outline-style: ridge ! important;
 }
 * { box-shadow: none ! important; }
+* { -webkit-user-select: text ! important; } /* override 'forbid selection' */
 """
 
 
