@@ -46,6 +46,8 @@ outline-style: ridge ! important;
 }
 * { box-shadow: none ! important; }
 * { -webkit-user-select: text ! important; } /* override 'forbid selection' */
+::-webkit-scrollbar {width: 8px !important; height: 8px ! important; }
+::-webkit-scrollbar-thumb{background-color: #999 !important;}
 """
 
 
