@@ -254,6 +254,8 @@ class NotifyLabel(QLabel):
     def __init__(self, parent=None):
         super(NotifyLabel, self).__init__(parent)
 
+        print("NOTIFYLABEL", self, parent)
+
         palette = QToolTip.palette()
         color = QColor(Qt.blue)
         color = color.lighter(170)

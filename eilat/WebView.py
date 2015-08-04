@@ -38,7 +38,7 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 from PyQt5.QtWebKit import QWebSettings, QWebElement
 
 from PyQt5.Qt import QApplication, QLabel, QToolTip, QFrame, QLineEdit
-from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QPoint, QObject, QEvent
+from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QPoint, QObject, QEvent, QThread
 
 from PyQt5.QtGui import QColor, QPalette, QKeyEvent
 
@@ -48,8 +48,7 @@ from eilat.InterceptNAM import InterceptNAM
 from eilat.libeilat import (fix_url, set_shortcuts,
                             real_host,
                             fake_click,
-                            notify, do_redirect,
-                            play_mpv)
+                            notify, do_redirect)
 
 from eilat.global_store import (mainwin, clipboard,
                                 has_manager, register_manager, get_manager,
@@ -61,18 +60,64 @@ from os.path import expanduser
 import datetime
 from time import time
 
-from threading import Thread
-
 from colorama import Fore
 
 import string
 import itertools
+
+from subprocess import call
 
 # Poor man's symbols (enum would be better - Python 3.4 and up only)
 UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
+
+
+class VidThread(QThread):
+    """ A thread that runs the 'mpv' player and emits its output as
+    text message
+    """
+
+    mpv_output = pyqtSignal(str)
+
+    def __init__(self, parent, qurl):
+        super(VidThread, self).__init__(parent)
+        self.target_url = qurl
+
+    def run(self):
+        """ Will be automatically run by thread_instance.start() """
+
+        try:
+            process_returncode = call(['mpv', self.target_url.toString()])
+            if process_returncode != 0:
+                self.mpv_output.emit("mpv can't play: status {}".format(
+                    process_returncode))
+        except FileNotFoundError:
+            self.mpv_output.emit("'mpv' video player not available")
+
+
+class VidPlay(QObject):
+    """ An object that has as single purpose to run VidThreads; that
+    can't be done directly on the WebViews because closing a tab while
+    a player is running causes the thread to have nowhere to come back
+    to, crashing the browser
+    """
+
+    def __init__(self, parent=None):
+        super(VidPlay, self).__init__(parent)
+        self.vid_thread = None
+
+    def play(self, url):
+        """ Creates and uses a thread. The thread will be safe even if
+        the tab closes as long as this method is not garbage collected
+        """
+
+        self.vid_thread = VidThread(self, url)
+        self.vid_thread.mpv_output.connect(notify)
+        self.vid_thread.start()
+
+GLOBAL_VID_PLAY = VidPlay()
 
 
 def fake_key(web_view, key):
@@ -336,8 +381,7 @@ class WebView(QWebView):
             if 'play' in self.attr:
                 print("PLAYING")
 
-                Thread(target=partial(play_mpv, qurl),
-                       daemon=True).start()  # VID01
+                GLOBAL_VID_PLAY.play(qurl)  # VID01
 
                 self.attr.clear('play')
 

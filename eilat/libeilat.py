@@ -40,8 +40,6 @@ from PyQt5.Qt import QApplication, QShortcut
 
 from urllib.parse import parse_qsl, urlparse
 
-from subprocess import call
-
 import tldextract
 
 import http
@@ -252,23 +250,3 @@ def do_redirect(qurl):
         qurl = QUrl(location)
 
     return qurl
-
-def play_mpv(qurl):
-    """ Will try to open an 'mpv' instance running the video pointed at
-    in 'qurl'. Warns if 'mpv' is not installed or available.
-
-    To be executed in a separate thread. That way, 'wait' will not block.
-
-    VID01
-
-    """
-
-    try:
-        process_returncode = call(['mpv', qurl.toString()])
-        if process_returncode != 0:
-            notify("mpv can't play: status {}".format(
-                process_returncode))
-        #    self.statusBarMessage.emit("mpv can't play: status {}".format(
-        #        process_returncode))
-    except FileNotFoundError:
-        print("'mpv' video player not available")
