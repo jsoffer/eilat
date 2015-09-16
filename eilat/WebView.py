@@ -52,8 +52,7 @@ from eilat.libeilat import (fix_url, set_shortcuts,
 
 from eilat.global_store import (mainwin, clipboard,
                                 has_manager, register_manager, get_manager,
-                                get_options, get_css,
-                                profiling)
+                                get_options, get_css)
 from eilat.options import extract_instance
 
 from os.path import expanduser
@@ -539,6 +538,7 @@ class WebView(QWebView):
             ("F", self, self.__unembed_frames),
             ("F2", self, self.__delete_fixed),
             ("Shift+F2", self, partial(self.__delete_fixed, delete=False)),
+            ("Ctrl+F2", self, partial(self.__delete_fixed, force=True)),
             # webkit interaction
             ("Alt+Left", self, self.back),
             ("Alt+Right", self, self.forward),
@@ -546,9 +546,9 @@ class WebView(QWebView):
             ("R", self, self.reload),
             # view interaction NAV01 NAV02
             ("J", self, partial(scroll, delta_y=40)),
-            ("Z", self, partial(scroll, delta_y=40)),
+            #("Z", self, partial(scroll, delta_y=40)),
             ("K", self, partial(scroll, delta_y=-40)),
-            ("X", self, partial(scroll, delta_y=-40)),
+            #("X", self, partial(scroll, delta_y=-40)),
             ("H", self, partial(scroll, delta_x=-40)),
             ("L", self, partial(scroll, delta_x=40)),
             ("Ctrl+Up", self, partial(zoom, 1)),
@@ -556,7 +556,8 @@ class WebView(QWebView):
             ("Ctrl+J", self, partial(fake_key, self, Qt.Key_Enter)),
             ("Ctrl+H", self, partial(fake_key, self, Qt.Key_Backspace)),
             ("Backspace", self, self.back),
-            ("C", self, partial(fake_click, self)),
+            #("C", self, partial(fake_click, self)),
+            (",", self, partial(fake_click, self)),
             # spatial navigation NAV12
             ("Shift+H", self, partial(self.__spatialnav, LEFT)),
             ("Shift+J", self, partial(self.__spatialnav, DOWN)),
@@ -574,8 +575,8 @@ class WebView(QWebView):
             ("S", self, partial(self.attr.toggle, 'save', 'S')),  # CB03
             ("V", self, partial(self.attr.toggle, 'play', 'V')),  # VID01
             # profiler
-            ("9", self, profiling),  # DEB02
-            ("0", self, partial(profiling, begin=False))  # DEB02
+            # ("9", self, profiling),  # DEB02
+            # ("0", self, partial(profiling, begin=False))  # DEB02
             ])
 
 
@@ -657,7 +658,7 @@ class WebView(QWebView):
             url = node.attribute('src')
             node.setOuterXml("""<a href="{}">{}</a>""".format(url, url))
 
-    def __delete_fixed(self, delete=True):
+    def __delete_fixed(self, delete=True, force=False):
         """ Removes all '??? {position: fixed}' nodes
 
         DOM02
@@ -666,7 +667,13 @@ class WebView(QWebView):
 
         frame = self.page().mainFrame()
         fixables = "div, header, header > a, footer, nav, section, ul"
-        nodes = [node for node in frame.findAllElements(fixables)
+
+        if force:
+            nodes = frame.findAllElements("*")
+        else:
+            nodes = frame.findAllElements(fixables)
+
+        nodes = [node for node in nodes
                  if node.styleProperty("position",
                                        QWebElement.ComputedStyle) == 'fixed']
 
