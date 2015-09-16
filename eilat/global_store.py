@@ -86,7 +86,11 @@ def get_css():
 # intentionally updating global constants
 # pylint: disable=W0603
 def profiling(begin=True):
-    """ start or end (and report) a profiling session """
+    """ start or end (and report) a profiling session
+
+        Currently unused; commented out at WebView
+
+    """
 
     global PROFILER
 
